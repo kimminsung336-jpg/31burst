@@ -640,7 +640,7 @@ const CASTS={
   abil:'<b>어른의 여유</b> 낸 카드 숫자를 1 올린다',
   style:'판을 천천히 끌고 가다가 마지막 한 칸을 맞춘다'},
  mina:{name:'준',handle:'@jun_mvp',type:'C · 톰보이',deck:[...SHARED,...MINA],momentum:1,back:['#12c6dc','#0a8fa3'],
-  abil:'<b>기세</b> 직전에 낸 내 카드보다 큰 숫자를 내면 한 장 뽑는다',
+  abil:'<b>기세</b> 직전에 낸 내 카드보다 큰 숫자를 내면 한 장 뽑는다. 턴마다 한 번',
   style:'큰 숫자로 몰아치다가 한 칸 넘친 걸 붙잡는다'}
 };
 let SEAT=['iri','miko'],DECK=[CASTS.iri.deck,CASTS.miko.deck];
@@ -1125,7 +1125,7 @@ function newRound(){
 async function startTurn(){
   render();const p=G.cur,P=G.P[p];
   if(P.skip){P.skip=false;log(`${NAME[p]} 차례는 침묵의 주문에 걸려 건너뜀`,p?'ai':'me');return next(p)}
-  P.plays=1+P.extraNext;P.extraNext=0;if(CASTS[SEAT[p]].photoDraw)P.photoUsed=false;
+  P.plays=1+P.extraNext;P.extraNext=0;if(CASTS[SEAT[p]].photoDraw)P.photoUsed=false;P.momUsed=false;
   if(!anyPlayable(p)){
     log(`${NAME[p]} 낼 카드가 없어서 패스`,p?'ai':'me');draw(p,1);G.passes++;P.snipe=false;P.press=false;
     if(G.passes>=2){log('둘 다 패스. 이 판은 무승부');await sleep(500);return endRound(null)}
@@ -1142,7 +1142,7 @@ async function play(p,idx,choice,adj=0){
   const card=P.hand.splice(idx,1)[0];P.played.push(card.id);P.used.push(card);
   let v=valOf(p,card,choice);if(!card.lower){P.capture=false;P.soothe=false}
   if(adj){v+=adj;P.adjUsed=true;log(`${CASTS[SEAT[p]].abName}: ${NAME[p]} 숫자 ${adj>0?'+1':'−1'}`,cls)}
-  if(CASTS[SEAT[p]].momentum&&!card.lower){if(P.lastV!==null&&v>P.lastV){draw(p,1);log(`기세: ${NAME[p]} 1장 뽑음`,cls)}P.lastV=v}
+  if(CASTS[SEAT[p]].momentum&&!card.lower){if(P.lastV!==null&&v>P.lastV&&!P.momUsed){P.momUsed=true;draw(p,1);log(`기세: ${NAME[p]} 1장 뽑음`,cls)}P.lastV=v}
   const prev=G.gauge,ng=Math.max(0,prev+v);
   G.gauge=ng;if(card.photo)P.photoCount++;pop();render();
   const postEl=addPost(p,card,v);
@@ -1246,13 +1246,13 @@ function playLoop(R,AB,S,first){
     const p=R.cur,P=R.P[p],O=R.P[1-p];S.turns++;
     if(!mid){
     if(P.skip){P.skip=false;R.cur=1-p;continue}
-    P.plays=1+P.extraNext;P.extraNext=0;if(AB[p].photoDraw)P.photoUsed=false;
+    P.plays=1+P.extraNext;P.extraNext=0;if(AB[p].photoDraw)P.photoUsed=false;P.momUsed=false;
     if(!P.hand.some(c=>playable(R,p,c))){draw(p,1);R.passes++;P.snipe=false;P.press=false;if(R.passes>=2)return{w:null,busted:R.busted};R.cur=1-p;continue}
     R.passes=0;}
     mid=false;
     while(first||(P.plays>0&&P.hand.some(c=>playable(R,p,c)))){
       let mv;if(first){mv=first;first=null}else mv=ai(R,p);const _opts=P.hand.filter(c=>playable(R,p,c));const _forced=_opts.every(c=>{const vs=c.choice||c.lower?.map(x=>-x)||[valOf(R,p,c,null)];return vs.every(x=>Math.max(0,R.gauge+x)>R.target)});const card=P.hand.splice(mv.i,1)[0];P.played.push(card.id);(P.used=P.used||[]).push(card);S.played[card.id]=(S.played[card.id]||0)+1;
-      let v=valOf(R,p,card,mv.ch);if(!card.lower){P.capture=false;P.soothe=false}if(mv.adj){v+=mv.adj;P.adjUsed=true;S.adj=(S.adj||0)+1}if(AB[p].momentum&&!card.lower){if(P.lastV!=null&&v>P.lastV){draw(p,1);S.mom=(S.mom||0)+1}P.lastV=v}
+      let v=valOf(R,p,card,mv.ch);if(!card.lower){P.capture=false;P.soothe=false}if(mv.adj){v+=mv.adj;P.adjUsed=true;S.adj=(S.adj||0)+1}if(AB[p].momentum&&!card.lower){if(P.lastV!=null&&v>P.lastV&&!P.momUsed){P.momUsed=true;draw(p,1);S.mom=(S.mom||0)+1}P.lastV=v}
       const prev=R.gauge,ng=Math.max(0,prev+v);R.gauge=ng;
       if(card.photo)P.photoCount++;
       if(ng===R.target&&!card.nofinish)return{w:p,stake:R.stake,card:card.id,busted:R.busted};
@@ -1344,7 +1344,7 @@ function ai(R,p){
         if(gap>12&&v<=2&&!c.draw&&!c.extra)s-=6}
       s+=BONUS[c.id]||0;if(c.id==='silence')s-=R.target-R.gauge>10?25:0;
       if(c.photo&&R.photoBias?.[p]&&!P.photoUsed)s+=6;
-      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&P.lastV!=null&&v>P.lastV)s+=7;
+      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&!P.momUsed&&P.lastV!=null&&v>P.lastV)s+=7;
       s+=Math.random()*3;cand.push({i,ch,adj,s});
     }}
   });
@@ -1398,7 +1398,7 @@ function reachOf(p,hand,gAfter){
 const isStall=c=>!c.reactive&&(c.lower||c.v<=0||(c.choice&&c.choice.includes(0)));
 function toR(p){
   const ab=abOf;
-  const tp=q=>{const P=G.P[q];return{def:DECK[q],deck:[...P.deck],hand:[...P.hand],played:[...P.played],used:[...P.used],skip:P.skip,snipe:P.snipe,capture:P.capture,extraNext:P.extraNext,plays:P.plays,usedOnce:P.usedOnce,photoUsed:P.photoUsed,photoCount:P.photoCount,known:[...P.known],out:[...P.out],soothe:P.soothe,press:P.press,adjUsed:P.adjUsed,lastV:P.lastV}};
+  const tp=q=>{const P=G.P[q];return{def:DECK[q],deck:[...P.deck],hand:[...P.hand],played:[...P.played],used:[...P.used],skip:P.skip,snipe:P.snipe,capture:P.capture,extraNext:P.extraNext,plays:P.plays,usedOnce:P.usedOnce,photoUsed:P.photoUsed,momUsed:P.momUsed,photoCount:P.photoCount,known:[...P.known],out:[...P.out],soothe:P.soothe,press:P.press,adjUsed:P.adjUsed,lastV:P.lastV}};
   return{P:[tp(0),tp(1)],gauge:G.gauge,target:G.target,stake:G.stake,cur:p,passes:0,busted:G.stake>1,AB:[ab(SEAT[0]),ab(SEAT[1])]};
 }
 // 어려움: 후보 수마다 상대 손패를 여러 번 가정해서 판 끝까지 굴려보고, 기대 점수가 가장 높은 수를 둔다
@@ -1450,7 +1450,7 @@ function aiAct(p=AI,diff=DIFF){
         }
       }
       s+=BONUS[c.id]||0;if(c.id==='silence')s-=G.target-G.gauge>10?25:0;
-      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&P.lastV!=null&&v>P.lastV)s+=7;
+      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&!P.momUsed&&P.lastV!=null&&v>P.lastV)s+=7;
       s+=Math.random()*3;cand.push({i,ch,adj,s,bust:ng>G.target||(ng===G.target&&!!c.nofinish)});
     }}
   });
