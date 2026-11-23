@@ -139,22 +139,6 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 .phead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .guidebtn{border:2px solid var(--ink);background:var(--y);color:#16121a;border-radius:999px;padding:8px 18px;font:700 15px/1.2 inherit;font-family:inherit;cursor:pointer;min-height:44px}
 .guidebtn:hover,.guidebtn:focus-visible{background:var(--ink);color:var(--y)}
-.pick.guide{z-index:8;place-items:start center}
-.gd{max-width:720px;margin:auto 0}
-.gd .gtop{position:sticky;top:-24px;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--card);margin:-24px -24px 0;padding:18px 24px 12px;border-radius:24px 24px 0 0;border-bottom:2px solid var(--line)}
-.gd .gtop h2{margin:0}
-.gd .gtop button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 18px;font:inherit;min-height:44px;cursor:pointer;flex:none}
-.gd .lead{margin:16px 0 0;font:400 22px/1.3 "Black Han Sans",sans-serif;color:var(--m)}
-.gd h3{margin:26px 0 8px;font:400 21px/1.2 "Black Han Sans",sans-serif}
-.gd p,.gd li{font-size:16px;line-height:1.65;margin:0 0 8px;color:var(--ink)}
-.gd ol{margin:0 0 8px;padding-left:1.4em}
-.gd .ex{margin:12px 0 4px;padding:14px 16px;border-radius:16px;background:var(--bg);border:2px dashed var(--line)}
-.gd .ex b{color:var(--m)}
-.gd .cast{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:0 0 12px;align-items:start}
-.gd .cast img{width:48px;height:48px;border-radius:50%;grid-row:span 2}
-.gd .cast b{font-size:16px}.gd .cast span{font-size:15px;line-height:1.6}
-.gd .note{display:block;margin-top:14px;font-size:14px;color:var(--sub)}
-@media(max-width:600px){.gd .gtop h2{font-size:21px}.gd .gtop{top:-16px;margin:-16px -16px 0;padding:14px 16px 10px;border-radius:18px 18px 0 0}.gd .lead{font-size:19px}.gd h3{font-size:19px}.guidebtn{width:100%}}
 .online{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 6px;padding:10px 12px;border-radius:16px;background:var(--bg);border:2px dashed var(--line)}
 .online b{font-size:14px;margin-right:2px}
 .online button{min-height:40px;border:2px solid var(--c);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;font-weight:700}
@@ -162,6 +146,76 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 .olmsg{flex-basis:100%;font-size:14px;color:var(--sub)}.olmsg:empty{display:none}.olmsg b{font:400 22px/1 "Black Han Sans",sans-serif;color:var(--m);letter-spacing:3px}
 .online.live{border-style:solid;border-color:var(--c)}.online.live button,.online.live .olj{display:none}
 .pc.mine{border-color:var(--c);box-shadow:0 0 0 3px var(--c)}.pc:disabled{cursor:default}.pc:disabled:not(.mine){opacity:.55}
+/* ---------- 게임 설명서 (슬라이드) ---------- */
+.gview{position:fixed;inset:0;z-index:8;display:none;place-items:center;padding:14px;background:rgba(10,6,12,.78)}
+.gview.on{display:grid}
+.gwrap{position:relative;width:min(920px,100%);height:min(600px,calc(100dvh - 28px));border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);background:#16121a}
+.gtrack{display:flex;height:100%;transition:transform .45s cubic-bezier(.2,.85,.25,1);touch-action:pan-y}
+.gs{flex:0 0 100%;height:100%;display:flex;flex-direction:column;align-items:center;padding:28px 34px 84px;overflow:hidden;position:relative;--fg:#fff;--hl:#ffd23f;--hlt:#16121a;color:var(--fg)}
+.gk{font:700 13px/1 "Noto Sans KR",sans-serif;letter-spacing:.5px;padding:7px 14px;border-radius:999px;background:rgba(0,0,0,.18);color:var(--fg)}
+.gt{margin:12px 0 18px;font:400 clamp(38px,6vw,58px)/1 "Black Han Sans",sans-serif;color:var(--tc,#fff);-webkit-text-stroke:var(--ts,0) #16121a;paint-order:stroke fill;text-shadow:0 .07em 0 var(--tsh,rgba(0,0,0,.25));letter-spacing:.5px}
+.gpair{flex:1;min-height:0;width:100%;max-width:720px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px 48px;position:relative;align-items:center}
+.gpair.arrow::before{content:"";position:absolute;left:50%;top:40%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#ffd23f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12h12m-5-6 6 6-6 6' fill='none' stroke='%2316121a' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/24px no-repeat;border:3px solid #16121a;z-index:2;box-shadow:3px 3px 0 #16121a}
+.gpair figure{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:0;position:relative}
+.gp{position:relative;flex:0 1 auto;width:100%;max-width:270px;aspect-ratio:3/4;max-height:calc(100% - 76px);border-radius:20px;background:#fff;border:3px solid #16121a;box-shadow:7px 7px 0 #16121a}
+.gp img{position:absolute;inset:10px;width:calc(100% - 20px);height:calc(100% - 20px);object-fit:contain;border-radius:12px}
+.gpair figure:first-child .gp{transform:rotate(-2deg)}.gpair figure:last-child .gp{transform:rotate(1.8deg)}
+.gp-wide{aspect-ratio:auto;max-width:320px;padding:12px}
+.gp-wide img{position:static;display:block;width:100%;height:auto}
+.gchip{position:absolute;right:-18px;top:-16px;width:58px;height:78px;display:grid;place-items:center;border-radius:12px;background:#fff;border:3px solid #ff2e8a;color:#ff2e8a;font:400 30px/1 "Black Han Sans",sans-serif;transform:rotate(10deg);box-shadow:4px 5px 0 #16121a}
+.gtag{position:relative;z-index:2;margin-bottom:-14px;padding:6px 14px;border-radius:999px;background:#16121a;color:#fff;font:700 14px/1 "Noto Sans KR",sans-serif;transform:rotate(-2deg)}
+.gpair figcaption{margin-top:16px;word-break:keep-all;text-align:center;font:700 clamp(14px,1.9vw,18px)/1.45 "Noto Sans KR",sans-serif;color:var(--fg);text-wrap:balance}
+.gpair mark{background:linear-gradient(transparent 52%,var(--hl) 52%);color:var(--hlt,inherit);padding:0 2px}
+/* 장별 색 */
+.s-cover{background:radial-gradient(circle at 50% 120%,#ff7ab8 0,transparent 55%),#ff2e8a;justify-content:center;--tc:#ffd23f;--ts:8px;--tsh:#16121a}
+.s-cover .gt{font-size:clamp(64px,13vw,128px);margin:18px 0 10px;transform:rotate(-4deg)}
+.gsub{margin:6px 0 0;word-break:keep-all;font:700 clamp(15px,2vw,19px)/1.4 "Noto Sans KR",sans-serif;text-align:center}
+.gsub b{font-family:"Black Han Sans",sans-serif;font-weight:400;color:#ffd23f;font-size:1.3em}
+.gfan{display:flex;justify-content:center;margin-top:26px;height:clamp(120px,24vh,190px)}
+.gfan img{height:100%;aspect-ratio:3/4;object-fit:cover;object-position:center 20%;border-radius:14px;border:3px solid #16121a;box-shadow:5px 5px 0 #16121a;margin:0 -10px;background:#fff}
+.gfan img:nth-child(1){transform:rotate(-12deg) translateY(10px)}.gfan img:nth-child(2){transform:rotate(-4deg)}.gfan img:nth-child(3){transform:rotate(4deg)}.gfan img:nth-child(4){transform:rotate(12deg) translateY(10px)}
+.s-rule{background:#fff4f9;--fg:#16121a;--tc:#ff2e8a;--tsh:rgba(255,46,138,.18);--hl:#bdf1fb}
+.s-rule .gk{background:#16121a;color:#fff}
+.s-just{background:linear-gradient(160deg,#ff5ea8,#ff2e8a);--tc:#fff;--ts:6px;--tsh:#16121a;--hlt:#16121a}
+.s-bust{background:#16121a;--tc:#ffd23f;--ts:0;--tsh:#ff2e8a;--hl:#ff2e8a;--hlt:#fff}
+.s-bust .gk{background:#ffd23f;color:#16121a}
+.s-bust .gp{box-shadow:7px 7px 0 #ff2e8a}
+.s-win{background:#19c6e6;--fg:#16121a;--tc:#fff;--ts:6px;--tsh:#16121a;--hl:#fff}
+.s-win .gk{background:#16121a;color:#fff}
+.s-tip{background:#ffd23f;--fg:#16121a;--tc:#ff2e8a;--ts:6px;--tsh:#16121a;--hl:#fff}
+.s-tip .gk{background:#16121a;color:#fff}
+/* 내비 */
+.gx{position:absolute;right:14px;top:14px;z-index:3;width:44px;height:44px;border-radius:50%;border:3px solid #16121a;background:#fff;color:#16121a;font:700 18px/1 sans-serif;box-shadow:3px 3px 0 #16121a}
+.gnav{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px}
+.gnav button{min-height:46px;min-width:46px;border:3px solid #16121a;border-radius:999px;background:#fff;color:#16121a;font:700 16px/1 "Noto Sans KR",sans-serif;box-shadow:3px 3px 0 #16121a;padding:0 18px}
+.gnav button:disabled{opacity:0;pointer-events:none}
+.gnav .gnext{background:#ffd23f}
+.gdots{display:flex;gap:8px}
+.gdots i{width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.55);border:2px solid #16121a;transition:width .25s}
+.gdots i.on{width:28px;background:#fff}
+@media(max-width:600px){
+  .gview{padding:0}
+  .gwrap{width:100%;height:100dvh;border-radius:0}
+  .gs{padding:22px 16px 82px}
+  .gt{margin:10px 0 14px}
+  .gpair{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:stretch;max-width:420px}
+  .gpair figure{flex-direction:row;justify-content:flex-start;align-items:center;gap:18px}
+  .gpair figure:last-child{flex-direction:row-reverse}
+  .gp,.gp-wide{flex:none;width:50%;max-width:none;max-height:100%}
+  .gp-wide{width:56%}
+  .gpair figcaption{margin:0;text-align:left;font-size:16px;line-height:1.5}
+  .gpair figure:last-child figcaption{text-align:right}
+  .gpair.arrow::before{width:36px;height:36px;margin:-18px 0 0 -18px;background-size:20px;top:50%;left:50%;transform:rotate(90deg)}
+  .gtag{position:absolute;top:2px;left:6px;margin:0;z-index:3}
+  .gpair figure:last-child .gtag{left:auto;right:6px}
+  .gp{border-radius:14px;box-shadow:5px 5px 0 #16121a;padding:6px}
+  .s-bust .gp{box-shadow:5px 5px 0 #ff2e8a}
+  .gchip{width:42px;height:58px;font-size:22px;right:-10px;top:-12px}
+  .gtag{font-size:12px;padding:5px 10px;margin-bottom:-10px}
+  .gfan{height:128px;margin-top:22px}.gfan img{margin:0 -8px;border-width:2px;box-shadow:3px 3px 0 #16121a}
+  .gp{max-height:calc(100% - 64px)}
+}
+@media(prefers-reduced-motion:reduce){.gtrack{transition:none}}
 .pc.foe{opacity:.45;pointer-events:none}.pback{border:0;background:none;color:var(--sub);font:inherit;text-decoration:underline;cursor:pointer;padding:8px 0}
 .pc img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;object-position:center 22%}
 .pc .pi{display:block;padding:12px 14px 16px}
@@ -317,35 +371,64 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   <div class="diff" id="diff" role="radiogroup" aria-label="AI 난이도"><span>AI 난이도</span><button data-d="easy" role="radio">쉬움</button><button data-d="normal" role="radio" class="on" aria-checked="true">보통</button><button data-d="hard" role="radio">어려움</button></div>
   <div class="online" id="online"><b>온라인 2인</b><button type="button" id="olHost">방 만들기</button><span class="olj"><input id="olCode" inputmode="numeric" maxlength="4" placeholder="방 코드" aria-label="방 코드 네 자리"><button type="button" id="olJoin">참가</button></span><span class="olmsg" id="olMsg" role="status"></span></div>
   <div class="pgrid" id="pgrid"></div></div></div>
-<div class="pick guide" id="guide" role="dialog" aria-modal="true" aria-labelledby="gTitle"><div class="pbox gd">
-  <div class="gtop"><h2 id="gTitle">31 버스트! 게임 설명서</h2><button id="gClose" type="button">닫기</button></div>
-  <p class="lead">저스트할래, 아니면 버스트할래?</p>
-  <p>두 캐스트가 하나의 타임라인에 번갈아 포스트를 올립니다. 첫 목표는 <b>열기 31</b>. 딱 맞히면 그 판의 판돈을 가져갑니다. 목표를 넘기면 판돈이 두 배로 오르고 승부가 이어집니다.</p>
-  <h3>게임 준비</h3>
-  <p>AI 난이도(쉬움·보통·어려움)를 정하고, 내 캐스트와 상대 캐스트를 차례로 고르세요. 상대는 AI가 맡고, 게임은 <b>다섯 판</b>으로 진행합니다. 각 캐스트는 고유 능력 하나와 덱 20장(공용 12장, 전용 8장)을 씁니다. 매 판 덱을 새로 섞고 손에 5장을 받습니다. <b>열기 0 · 목표 31 · 판돈 1점</b>으로 시작합니다.</p>
-  <h3>온라인 2인</h3>
-  <p>캐스트 고르기 화면의 <b>방 만들기</b>를 누르면 네 자리 방 코드가 나옵니다. 상대가 그 코드를 넣고 <b>참가</b>를 누르면 연결됩니다. 방장이 먼저 캐스트를 고르고, 상대는 남은 캐스트 중에서 고릅니다. 판 진행과 판정은 방장 화면이 맡습니다.</p>
-  <h3>내 차례</h3>
-  <ol>
-    <li>손에서 포스트 한 장을 냅니다. 리포스트처럼 ‘1장 더 낸다’ 효과가 있으면 이어서 더 낼 수 있습니다.</li>
-    <li>두 사람이 함께 쓰는 열기 게이지에 포스트의 숫자를 더하고 효과를 적용합니다. 음수는 열기를 낮추고, 열기는 0 아래로 내려가지 않습니다.</li>
-    <li>열기가 목표와 같으면 <b>저스트!</b> 현재 판돈만큼 점수를 얻고 그 판이 끝납니다.</li>
-    <li>열기가 목표보다 높으면 <b>버스트!</b> 열기는 그 자리에 두고 목표를 10 올립니다. 판돈은 두 배가 되고(불길한 예언으로 터지면 세 배), 새 목표에서 승부를 이어갑니다.</li>
-    <li>포스트를 다 냈으면 카드 한 장을 뽑고 차례를 넘깁니다.</li>
-  </ol>
-  <p>‘저스트 불가’ 카드(해명문, 특종!, 결계, 마감 설거지)로 목표에 딱 맞히면 저스트가 아니라 버스트입니다.</p>
-  <div class="ex"><b>지금 열기가 28이라면?</b> 신메뉴 홍보(+3)를 올리면 31로 저스트! 떡상(+5)을 올리면 33으로 버스트! 이제 열기 33에서 목표 41을 노립니다. 내가 키운 판돈도 상대가 먼저 41을 맞히면 상대 몫입니다.</div>
-  <h3>판이 끝나면</h3>
-  <p>첫 판의 선공은 무작위로 정하고, 다음 판부터는 승패와 상관없이 선공과 후공이 번갈아 바뀝니다. 다섯 판을 모두 마치면 <b>총점이 높은 쪽</b>이 승리합니다. 총점이 같으면 저스트를 더 많이 한 쪽이 이기고, 그것도 같으면 무승부입니다.</p>
-  <p>낼 수 있는 카드가 없으면 카드 한 장을 뽑고 패스합니다. 두 사람이 연달아 패스하면 그 판은 무승부입니다. 덱이 비었을 때 카드를 뽑아야 한다면, 그 판에 낸 카드를 다시 섞어 덱으로 씁니다.</p>
-  <h3>캐스트</h3>
-  <div class="cast"><img src="img/iri_av.jpg" alt=""><b>M · 아이리 — 셀카 장인</b><span>내 차례마다 처음 올린 사진 포스트로 카드 한 장을 더 뽑습니다.</span></div>
-  <div class="cast"><img src="img/miko_av.jpg" alt=""><b>K · 미코 — 흉조</b><span>누구든 버스트하면 배수를 적용한 뒤 판돈이 1점 더 오르고, 미코는 카드 두 장을 뽑습니다.</span></div>
-  <div class="cast"><img src="img/haru_av.jpg" alt=""><b>Y · 하루 — 어른의 여유</b><span>판마다 한 번, 내가 낸 포스트의 숫자를 1 올릴 수 있습니다. 한 칸 모자랄 때 쓰세요.</span></div>
-  <div class="cast"><img src="img/mina_av.jpg" alt=""><b>C · 준 — 숨 고르기</b><span>판마다 한 번, 내가 낸 포스트의 숫자를 1 내릴 수 있습니다. 큰 숫자로 몰아치다 한 칸 넘쳤을 때 쓰세요.</span></div>
-  <div class="ex"><b>특종!</b> 숫자가 무려 31인 포스트입니다. 이 카드로는 저스트할 수 없습니다. 손에 들어왔다면, 언제 판을 키울지 골라보세요.</div>
-  <span class="note">카드별 숫자와 효과는 게임 중 ‘덱 리스트’에서 볼 수 있습니다.</span>
-</div></div>
+<div class="gview" id="guide" role="dialog" aria-modal="true" aria-label="게임 설명서">
+  <div class="gwrap">
+    <div class="gtrack" id="gTrack">
+      <section class="gs s-cover">
+        <span class="gk">저스트할래, 버스트할래?</span>
+        <h2 class="gt">31 버스트!</h2>
+        <p class="gsub">둘이 함께 쓰는 열기 게이지를 <b>31</b>에 딱 맞추는 카드게임</p>
+        <div class="gfan"><img src="img/iri_selfie.jpg" alt=""><img src="img/miko_selfie.jpg" alt=""><img src="img/haru_selfie.jpg" alt=""><img src="img/mina_selfie.jpg" alt=""></div>
+      </section>
+      <section class="gs s-rule">
+        <span class="gk">저스트할래, 버스트할래?</span>
+        <h2 class="gt">게임 룰</h2>
+        <div class="gpair">
+          <figure><div class="gp"><img src="img/g_feed.jpg" alt="번갈아 올라오는 타임라인 포스트"></div><figcaption>매 턴 <mark>번갈아 가면서</mark><br>카드를 한 장씩 냅니다</figcaption></figure>
+          <figure><div class="gp gp-wide"><img src="img/g_card.jpg" alt="왼쪽 위에 숫자 3이 적힌 카드"></div><figcaption>카드 <mark>왼쪽 위 숫자</mark>만큼<br>게이지가 올라갑니다</figcaption></figure>
+        </div>
+      </section>
+      <section class="gs s-just">
+        <span class="gk">저스트할래, 버스트할래?</span>
+        <h2 class="gt">저스트</h2>
+        <div class="gpair arrow">
+          <figure><div class="gp"><img src="img/g_28.jpg" alt="게이지 28, 목표 31"><b class="gchip">+3</b></div><figcaption>게이지의 목표 숫자를<br><mark>정확히 맞추면?</mark></figcaption></figure>
+          <figure><div class="gp"><img src="img/g_just.jpg" alt="저스트 연출"></div><figcaption><mark>걸린 점수</mark>를<br>얻습니다!</figcaption></figure>
+        </div>
+      </section>
+      <section class="gs s-bust">
+        <span class="gk">저스트할래, 버스트할래?</span>
+        <h2 class="gt">버스트</h2>
+        <div class="gpair arrow">
+          <figure><div class="gp"><img src="img/g_28.jpg" alt="게이지 28, 목표 31"><b class="gchip">+5</b></div><figcaption>게이지의 목표 숫자를<br><mark>넘겨 버리면?</mark></figcaption></figure>
+          <figure><div class="gp"><img src="img/g_33.jpg" alt="게이지 33, 목표 41, 판돈 2점"></div><figcaption>목표 숫자에 <mark>10을 더하고</mark><br>걸린 점수는 <mark>두 배로!</mark></figcaption></figure>
+        </div>
+      </section>
+      <section class="gs s-win">
+        <span class="gk">저스트할래, 버스트할래?</span>
+        <h2 class="gt">승리 조건</h2>
+        <div class="gpair">
+          <figure><div class="gp gp-wide"><img src="img/g_score.jpg" alt="5판, 하루 9점, 준 4점"></div><figcaption><mark>다섯 판</mark>에서 얻은 점수를<br>모두 더합니다</figcaption></figure>
+          <figure><div class="gp gp-wide"><img src="img/g_final.jpg" alt="하루 승리, 최종 9 대 4"></div><figcaption>더 많은 점수를 얻은 사람이<br><mark>승리!</mark></figcaption></figure>
+        </div>
+      </section>
+      <section class="gs s-tip">
+        <span class="gk">저스트할래, 버스트할래?</span>
+        <h2 class="gt">추천 전략</h2>
+        <div class="gpair">
+          <figure><span class="gtag">지고 있다면</span><div class="gp"><img src="img/g_44.jpg" alt="게이지 44, 목표 51, 판돈 4점"></div><figcaption>적극적으로 <mark>버스트</mark>를<br>이용해 봅시다!</figcaption></figure>
+          <figure><span class="gtag">이기고 있다면</span><div class="gp"><img src="img/g_29.jpg" alt="게이지 29, 목표 31"></div><figcaption>안전하게<br><mark>저스트!</mark></figcaption></figure>
+        </div>
+      </section>
+    </div>
+    <button class="gx" id="gClose" type="button" aria-label="설명서 닫기">✕</button>
+    <nav class="gnav">
+      <button type="button" class="gprev" id="gPrev" aria-label="이전">←</button>
+      <span class="gdots" id="gDots"></span>
+      <button type="button" class="gnext" id="gNext">다음</button>
+    </nav>
+  </div>
+</div>
 <div class="pick" id="deckView" role="dialog" aria-modal="true" aria-labelledby="dvTitle"><div class="pbox dv">
   <div class="dvh"><h2 id="dvTitle">덱 리스트</h2><button id="dvClose" aria-label="닫기">닫기</button></div>
   <p>흐리게 보이는 카드는 이번 판에 이미 나온 카드, 분홍 테두리는 지금 내 손패야.</p>
@@ -1226,12 +1309,24 @@ function showDeck(){
   $('deckView').classList.add('on');$('dvClose').focus();
 }
 function hideDeck(){$('deckView').classList.remove('on');$('deckBtn').focus()}
-function showGuide(){$('guide').classList.add('on');$('guide').scrollTop=0;$('gClose').focus()}
+let GI=0;const GN=document.querySelectorAll('#gTrack .gs').length;
+$('gDots').innerHTML=Array.from({length:GN},()=>'<i></i>').join('');
+function gGo(n){GI=Math.max(0,Math.min(GN-1,n));$('gTrack').style.transform=`translateX(${-GI*100}%)`;
+  [...$('gDots').children].forEach((d,k)=>d.classList.toggle('on',k===GI));
+  $('gPrev').disabled=GI===0;$('gNext').textContent=GI===GN-1?'시작하기':'다음'}
+function showGuide(){gGo(0);$('guide').classList.add('on');$('gNext').focus()}
 function hideGuide(){$('guide').classList.remove('on');$('guideBtn').focus()}
 $('guideBtn').addEventListener('click',showGuide);
 $('gClose').addEventListener('click',hideGuide);
+$('gPrev').addEventListener('click',()=>gGo(GI-1));
+$('gNext').addEventListener('click',()=>GI===GN-1?hideGuide():gGo(GI+1));
 $('guide').addEventListener('click',e=>{if(e.target.id==='guide')hideGuide()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('guide').classList.contains('on'))hideGuide()});
+document.addEventListener('keydown',e=>{if(!$('guide').classList.contains('on'))return;
+  if(e.key==='Escape')hideGuide();else if(e.key==='ArrowRight')gGo(GI+1);else if(e.key==='ArrowLeft')gGo(GI-1)});
+{let x0=null;const tr=$('gTrack');
+ tr.addEventListener('pointerdown',e=>{x0=e.clientX});
+ tr.addEventListener('pointerup',e=>{if(x0===null)return;const dx=e.clientX-x0;x0=null;if(Math.abs(dx)>40)gGo(GI+(dx<0?1:-1))});
+ tr.addEventListener('pointercancel',()=>{x0=null})}
 $('tlTab').addEventListener('click',()=>tlOpen(true));
 $('tlClose').addEventListener('click',()=>tlOpen(false));
 $('tlBack').addEventListener('click',()=>tlOpen(false));
