@@ -512,7 +512,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
         <span class="gk">저스트할래, 버스트할래?</span>
         <h2 class="gt">덱 구성</h2>
         <div class="gpair plus">
-          <figure><span class="gtag">공용 카드</span><div class="gp"><img src="img/g_deck_common.jpg" alt="공용 카드 떡상, 특종, 수정됨"><b class="gchip">12</b></div><figcaption>모든 캐스트가 똑같이 쓰는<br><mark>공용 카드 12장</mark></figcaption></figure>
+          <figure><span class="gtag">공용 카드</span><div class="gp"><img src="img/g_deck_common.jpg" alt="공용 카드 조회수 폭발, 특종, 수정됨"><b class="gchip">12</b></div><figcaption>모든 캐스트가 똑같이 쓰는<br><mark>공용 카드 12장</mark></figcaption></figure>
           <figure><span class="gtag">하루 전용</span><div class="gp"><img src="img/g_deck_cast.jpg" alt="하루 전용 카드 오므라이스, 볼 터치 셀카, 핸드드립"><b class="gchip">8</b></div><figcaption>캐스트마다 다른<br><mark>전용 카드 8장</mark></figcaption></figure>
         </div>
         <p class="gnote">합쳐서 <b>20장</b>. 판마다 새로 섞어 <b>5장</b> 들고 시작하고, 내 턴이 끝나면 <b>1장</b> 뽑습니다</p>
@@ -587,7 +587,7 @@ const SHARED=[
  C('shot','오늘의 출근샷',1,'효과 없음',{photo:1}),
  C('selfie','셀카 업로드',2,'효과 없음',{photo:1}),
  C('menu','신메뉴 홍보',3,'효과 없음',{photo:1}),
- C('boom','떡상',5,'효과 없음'),
+ C('boom','조회수 폭발',5,'효과 없음'),
  C('edit','수정됨',1,'낼 때 숫자를 0·1·2 중에서 고른다',{choice:[0,1,2]}),
  C('excuse','해명문',-3,'효과 없음'),
  C('trend','실검 1위',2,'게이지가 20 이상이면 숫자가 4'),
@@ -596,6 +596,14 @@ const SHARED=[
  C('snipe','저격글',2,'상대는 다음 턴에 3 이상인 카드를 못 낸다'),
  C('repost','리포스트',1,'이번 턴에 1장 더 낸다',{extra:1}),
  C('scoop','특종!',31,'저스트 불가. 목표에 딱 맞으면 버스트',{nofinish:1}),
+];
+// ---------- 카드풀 (지금 덱에는 안 들어감, 나중에 덱빌딩에서 사용) ----------
+const POOL_SHARED=[
+ C('unfollow','언팔로우',-2,'효과 없음'),
+ C('unlike','좋아요 취소',-1,'효과 없음'),
+ C('lurk','눈팅',0,'효과 없음'),
+ C('challenge','해시태그 챌린지',4,'효과 없음'),
+ C('algo','알고리즘 탑승',6,'효과 없음'),
 ];
 const IRI=[
  C('burst','셀카 연사',1,'이번 턴에 1장 더 낸다',{photo:1,extra:1}),
