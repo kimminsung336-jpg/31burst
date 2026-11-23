@@ -44,8 +44,22 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 .ring .num b.pop{transform:scale(1.15)}
 .info h2{margin:0 0 6px;font:400 30px/1.1 "Black Han Sans"}
 .info p{margin:0 0 10px;color:var(--sub)}
-.stake{display:inline-block;font:400 22px "Black Han Sans";padding:4px 14px;border-radius:10px;background:var(--m);color:#fff;margin-bottom:10px}
-.stake.hot{background:var(--k);color:var(--y)}
+.stake{position:relative;display:inline-flex;align-items:center;gap:0;margin-bottom:14px;border-radius:14px;background:var(--m);color:#fff;border:3px solid #16121a;box-shadow:4px 4px 0 #16121a;transition:background .3s,color .3s}
+.stake .sk{align-self:stretch;display:grid;place-items:center;padding:0 10px;font:700 13px/1 "Noto Sans KR",sans-serif;border-right:3px dashed rgba(22,18,26,.35)}
+.stake b{font:400 44px/1 "Black Han Sans",sans-serif;padding:8px 4px 8px 14px;min-width:1.1em;text-align:right}
+.stake .su{font:700 15px/1 "Noto Sans KR",sans-serif;align-self:flex-end;padding:0 14px 12px 3px}
+.stake .sch{display:flex;align-items:center;gap:3px;padding:0 0 0 12px;font:400 15px/1 "Black Han Sans",sans-serif;opacity:.9}
+.stake .sch:empty{display:none}
+.stake .sch i{font-style:normal}.stake .sch i:last-child{display:none}.stake .sch em{font-style:normal;font-size:11px;opacity:.7}
+.stake[data-t="2"]{background:#16121a;color:var(--y);box-shadow:4px 4px 0 var(--m)}
+.stake[data-t="2"] .sk{border-color:rgba(255,210,63,.35)}
+.stake[data-t="3"]{background:var(--y);color:#16121a;box-shadow:5px 5px 0 var(--m);animation:wob 1.6s ease-in-out infinite}
+.stake[data-t="4"]{background:#16121a;color:var(--y);box-shadow:0 0 0 3px var(--m),0 0 22px 4px rgba(255,46,138,.65),5px 5px 0 var(--m);animation:wob .7s ease-in-out infinite}
+.stake[data-t="4"] .sk{color:var(--m);border-color:rgba(255,46,138,.5)}
+.stake[data-t="4"] .sk::after{content:"잭팟";display:block;margin-top:3px;font-size:10px}
+.stake.up{animation:stup .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes stup{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-6deg)}60%{transform:scale(.95) rotate(2deg)}100%{transform:none}}
+@keyframes wob{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
 .turn{font-weight:700;font-size:18px}
 .hand h3{margin:0 0 6px;font-size:16px}
 .abil{margin:4px 0 10px;font-size:13px;color:var(--sub)}
@@ -310,7 +324,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   .back{width:16px;height:24px;border-radius:4px}.opp .backs{gap:3px;flex:none}
   .gauge{order:2;grid-template-columns:92px minmax(0,1fr);gap:12px;padding:10px 12px;border-radius:16px;text-align:left}
   .ring{max-width:92px;margin:0}.ring .num b{font-size:38px}.ring .num span{font-size:11px;margin-top:0}
-  .info h2{font-size:20px;margin:0 0 2px}.info p{display:none}.stake{font-size:15px;padding:2px 10px;margin-bottom:4px}.turn{font-size:14px}
+  .info h2{font-size:20px;margin:0 0 2px}.info p{display:none}.turn{font-size:14px}
   .phone{order:3;position:relative;top:0;flex:1;min-height:0;height:auto;max-width:none;margin:0;padding:0;background:none;border-radius:16px;box-shadow:0 0 0 1px var(--line)}
   .screen{border-radius:16px}.notch{display:none}.appbar{padding:8px 12px}.appbar b{font-size:16px}.appbar .dot{width:20px;height:20px}
   .post{padding:9px 11px;gap:8px;grid-template-columns:32px minmax(0,1fr)}.av{width:32px;height:32px}.pt{font-size:14px}
@@ -336,7 +350,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   .ring .num b{font-size:clamp(60px,18vw,92px)}
   .ring .num span{font:400 20px/1.1 "Black Han Sans",sans-serif;color:var(--ink);margin-top:4px}
   .info{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
-  .stake{font-size:19px;margin:0;padding:3px 14px}.turn{font-size:15px}
+  .stake{margin:0;box-shadow:3px 3px 0 #16121a}.stake b{font-size:32px;padding:6px 3px 6px 10px}.stake .sk{font-size:12px;padding:0 8px}.stake .su{font-size:13px;padding:0 10px 9px 2px}.stake .sch{font-size:13px;padding-left:9px}.turn{font-size:15px}
   /* 타임라인: 오른쪽 서랍 */
   .phone{position:fixed;top:0;right:0;bottom:0;left:auto;width:min(88vw,400px);height:auto;max-width:none;margin:0;padding:0;z-index:4;border-radius:20px 0 0 20px;background:var(--card);box-shadow:-12px 0 40px rgba(0,0,0,.35);transform:translateX(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
   .screen{border-radius:20px 0 0 20px;padding-top:env(safe-area-inset-top)}
@@ -393,8 +407,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
         <div class="num"><div><b id="gNum">0</b><span id="gTarget">목표 31</span></div></div>
       </div>
       <div class="info">
-        <div class="stake" id="stake">판돈 1점</div>
-        <h2 id="gapLine">31칸 남음</h2>
+        <div class="stake" id="stake" data-t="1"><span class="sk">판돈</span><span class="sch" id="stakeChain"></span><b id="stakeN">1</b><span class="su">점</span></div>
         <div class="turn" id="turnLine">내 차례</div>
       </div>
     </div>
@@ -856,11 +869,11 @@ const NET={on:false,role:null,peer:null,conn:null,code:'',hostCast:null,guestCas
 const PH={id:'?',name:'?',v:0,text:''};
 function snap(){
   const mask=(P,hide)=>({...P,deck:P.deck.length,hand:hide?P.hand.length:P.hand,used:[],known:hide?[]:P.known});
-  return{hist:G.hist,busts:G.busts,round:G.round,score:G.score,wins:G.wins,starter:G.starter,cur:G.cur,gauge:G.gauge,target:G.target,stake:G.stake,busy:G.busy,over:G.over,
+  return{hist:G.hist,busts:G.busts,stakeHist:G.stakeHist,round:G.round,score:G.score,wins:G.wins,starter:G.starter,cur:G.cur,gauge:G.gauge,target:G.target,stake:G.stake,busy:G.busy,over:G.over,
     P:G.P.length?[mask(G.P[0],true),mask(G.P[1],false)]:[]};
 }
 function applySnap(s){
-  Object.assign(G,{hist:(s.hist||[]).map(h=>({...h,w:h.w===null?null:1-h.w})),busts:s.busts||0,round:s.round,score:[s.score[1],s.score[0]],wins:[s.wins[1],s.wins[0]],starter:1-s.starter,cur:1-s.cur,gauge:s.gauge,target:s.target,stake:s.stake,busy:s.busy,over:s.over});
+  Object.assign(G,{hist:(s.hist||[]).map(h=>({...h,w:h.w===null?null:1-h.w})),busts:s.busts||0,stakeHist:s.stakeHist||[s.stake],round:s.round,score:[s.score[1],s.score[0]],wins:[s.wins[1],s.wins[0]],starter:1-s.starter,cur:1-s.cur,gauge:s.gauge,target:s.target,stake:s.stake,busy:s.busy,over:s.over});
   const fix=P=>({...P,deck:Array(P.deck).fill(null),hand:typeof P.hand==='number'?Array(P.hand).fill(PH):P.hand});
   if(s.P.length)G.P=[fix(s.P[1]),fix(s.P[0])];
   render();
@@ -989,8 +1002,10 @@ function render(){
   $('vTarget').textContent=G.target;{const g=G.target-G.gauge;$('vGap').textContent=g>0?g+'칸':'도달'}$('vStake').textContent=G.stake+'점';
   const vb=$('vbar');vb.classList.toggle('hot',G.stake>1);vb.classList.toggle('near',G.target-G.gauge>0&&G.target-G.gauge<=5&&!G.over);
   const tm=$('turnMini');tm.textContent=G.over?'게임 끝':G.cur===ME?'· 내 차례':`· ${NAME[AI]} 차례`;tm.classList.toggle('wait',G.cur!==ME||G.over);
-  const st=$('stake');st.textContent=`판돈 ${G.stake}점`;st.classList.toggle('hot',G.stake>1);
-  const gap=G.target-G.gauge;$('gapLine').textContent=gap>0?`${gap}칸 남음`:'목표 도달';
+  {const st=$('stake'),n=G.stake;$('stakeN').textContent=n;st.dataset.t=n>=8?4:n>=4?3:n>=2?2:1;
+   const ch=G.stakeHist||[1];$('stakeChain').innerHTML=ch.length>1?ch.map(x=>`<i>${x}</i>`).join('<em>→</em>'):'';
+   if(render._st!==undefined&&n>render._st){st.classList.remove('up');void st.offsetWidth;st.classList.add('up')}render._st=n}
+  const gap=G.target-G.gauge;
   document.querySelector('.ring').classList.toggle('near',gap>0&&gap<=5&&!G.over);
   $('turnLine').textContent=G.over?'게임 끝':G.cur===ME?'내 차례':`${jo(NAME[AI],'이','가')} 고민 중…`;
   $('aiBacks').innerHTML=G.P[AI]?G.P[AI].hand.map(()=>'<i class="back"></i>').join(''):'';
@@ -1060,7 +1075,7 @@ function showResult(fin,w,wait){
 function newGame(){G.round=0;G.score=[0,0];G.wins=[0,0];G.hist=[];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
 function newRound(){
   G.round++;G.P=[freshPlayer(ME),freshPlayer(AI)];draw(ME,5);draw(AI,5);
-  G.gauge=0;G.target=31;G.stake=1;G.passes=0;G.busts=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
+  G.gauge=0;G.target=31;G.stake=1;G.stakeHist=[1];G.passes=0;G.busts=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
   log(`— ${G.round}판 시작. ${NAME[G.cur]} 선공 —`);startTurn();
 }
 
@@ -1090,7 +1105,7 @@ async function play(p,idx,choice,adj=0){
 
   if(ng===G.target&&!card.nofinish){bigHit(G.target);await sleep(2600);G.busy=false;return endRound(p)}
   if(ng>G.target||(ng===G.target&&card.nofinish)){   // 저스트 불가 카드로 목표에 딱 맞으면 버스트
-    const mult=card.triple?3:2,plus=SEAT.filter(k=>CASTS[k].bustPlus).length;G.stake=G.stake*mult+plus;G.target+=10;G.busts++;
+    const mult=card.triple?3:2,plus=SEAT.filter(k=>CASTS[k].bustPlus).length;G.stake=G.stake*mult+plus;G.target+=10;G.busts++;(G.stakeHist=G.stakeHist||[1]).push(G.stake);
     const drawers=[ME,AI].filter(q=>CASTS[SEAT[q]].bustDraw);drawers.forEach(q=>draw(q,CASTS[SEAT[q]].bustDraw));
     bustFx(postEl);render();bigBust(mult);await sleep(2300);
     log(`버스트! 묻고 ${mult===3?'트리플':'더블'}.${plus?' 흉조로 +1,':''} 판돈 ${G.stake}점, 목표 ${G.target}.${drawers.map(q=>` ${NAME[q]} 2장 뽑음`).join('')}`);
