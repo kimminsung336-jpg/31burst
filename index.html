@@ -291,7 +291,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 .rbox[data-res=win]{background:linear-gradient(170deg,#ff5ea8,#ff2e8a);color:#fff}
 .rbox[data-res=lose]{background:#16121a;color:#fbeef5;box-shadow:8px 8px 0 #19c6e6}
 .rbox[data-res=draw]{background:#19c6e6;color:#16121a}
-.rk{display:inline-block;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.22);font:700 13px/1 "Noto Sans KR",sans-serif;color:inherit}
+.rk:empty,.rs:empty{display:none}.rk{display:inline-block;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.22);font:700 13px/1 "Noto Sans KR",sans-serif;color:inherit}
 .rt{margin:12px 0 4px;font:400 clamp(48px,11vw,76px)/1 "Black Han Sans",sans-serif;color:#ffd23f;-webkit-text-stroke:6px #16121a;paint-order:stroke fill;text-shadow:0 .07em 0 #16121a;transform:rotate(-3deg)}
 .rbox[data-res=lose] .rt{color:#19c6e6;text-shadow:0 .07em 0 #ff2e8a}
 .rs{margin:6px 0 16px;font:700 16px/1.4 "Noto Sans KR",sans-serif;word-break:keep-all}
@@ -1101,10 +1101,9 @@ function showResult(fin,w,wait){
     $('rMeName').textContent=NAME[ME];$('rAiName').textContent=NAME[AI];$('rMeSc').textContent=a;$('rAiSc').textContent=b;
     let win=null,title,sub='',note='',kick;
     if(fin){
-      kick='최종 결과';
+      kick='';
       if(a!==b)win=a>b?ME:AI;else if(G.wins[ME]!==G.wins[AI]){win=G.wins[ME]>G.wins[AI]?ME:AI;note=`동점! 저스트 ${G.wins[ME]} : ${G.wins[AI]}로 승부가 갈렸다`}
       title=win===null?'무승부':win===ME?'승리!':'패배…';
-      sub=win===null?'완벽하게 비겼다':`${NAME[win]}의 타임라인이 이겼다`;
     }else{
       const h=G.hist[G.hist.length-1];kick=`${G.round}판 결과`;win=w;
       title=w===null?'무승부':'저스트!';
