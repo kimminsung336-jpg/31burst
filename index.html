@@ -135,17 +135,39 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:16px}
 .diff{display:flex;align-items:center;gap:8px;margin:0 0 14px;flex-wrap:wrap}.diff span{font-size:14px;color:var(--sub);margin-right:4px}.diff button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 16px;font-size:14px}.diff button.on{background:var(--k);color:var(--y);border-color:var(--k)}
 .deckbtn{border:0;color:var(--y);font:inherit;cursor:pointer}.deckbtn:hover{background:#3a2f42}
-.dv{max-width:900px}.dvh{display:flex;justify-content:space-between;align-items:center;gap:12px}.dvh h2{margin:0}
+.dv{max-width:960px;max-height:calc(100dvh - 32px);display:flex;flex-direction:column;padding:20px 22px}
+.dvh{display:flex;justify-content:space-between;align-items:center;gap:12px;flex:none}.dvh h2{margin:0}
 .dvh button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 16px;font:inherit}
-.dvg{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:6px}
-.dvc h3{margin:0 0 8px;font:400 20px "Black Han Sans",sans-serif}.dvc h3 small{font:13px/1 inherit;color:var(--sub);margin-left:6px;font-family:inherit}
-.dvl{list-style:none;margin:0;padding:0;display:grid;gap:4px}
-.dvl li{display:grid;grid-template-columns:38px 1fr;gap:8px;align-items:center;padding:6px 8px;border-radius:10px;background:var(--bg)}
-.dvl li.gone{opacity:.38}.dvl li.hand{outline:2px solid var(--m);outline-offset:-2px}
-.dvl .nv{font:400 18px "Black Han Sans",sans-serif;text-align:center}
-.dvl .nm{font-size:14px}.dvl .nm small{display:block;font-size:12px;color:var(--sub)}
-.dvl .ex{display:inline-block;margin-left:6px;padding:0 6px;border-radius:999px;font-size:11px;background:var(--k);color:var(--y)}
-@media(max-width:600px){.dvg{grid-template-columns:1fr}}
+.dvtabs{display:none}
+.dvg{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:12px;overflow:auto;min-height:0;overscroll-behavior:contain}
+.dvhd{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;padding:4px 0 10px;background:var(--card)}
+.dvhd img{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px var(--cc)}
+.dvhd span{font:400 22px/1.05 "Black Han Sans",sans-serif}.dvhd small{display:block;font:700 12px/1.3 "Noto Sans KR",sans-serif;color:var(--sub)}
+.dvhd em{margin-left:auto;font-style:normal;font-size:13px;color:var(--sub)}
+.dvs h4{display:flex;align-items:center;gap:6px;margin:12px 0 6px;font:700 13px/1 "Noto Sans KR",sans-serif;color:var(--sub)}
+.dvs h4 b{min-width:22px;padding:3px 7px;border-radius:999px;background:var(--bg);color:var(--ink);text-align:center;font-size:12px}
+.dvs ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.dvs li{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:start;padding:9px 10px;border-radius:12px;background:var(--bg);border:2px solid transparent}
+.dvs .v{width:36px;height:42px;border-radius:9px;display:grid;place-items:center;font:400 20px/1 "Black Han Sans",sans-serif;background:var(--m);color:#fff}
+.dvs .v.neg{background:var(--k);color:var(--c)}.dvs .v.q{background:var(--k);color:var(--y)}.dvs .v.zero{background:var(--c);color:#16121a}
+.dvs .nm{min-width:0;word-break:keep-all}.dvs .nm b{font-size:15px;line-height:1.3}
+.dvs .nm small{display:block;margin-top:2px;font-size:12.5px;line-height:1.4;color:var(--sub)}
+.dvs .tg{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font:700 11px/1.5 "Noto Sans KR",sans-serif;font-style:normal;vertical-align:1px;background:var(--k);color:var(--y)}
+.dvs .tg.ph{background:var(--m);color:#fff}
+.dvs.inhand li{border-color:var(--m);background:var(--card);box-shadow:0 3px 0 var(--m)}.dvs.inhand h4{color:var(--m)}
+.dvs.gone li{opacity:.42}.dvs.gone .nm b{text-decoration:line-through;text-decoration-thickness:2px}
+@media(max-width:600px){
+  #deckView{padding:0}
+  .dv{max-width:none;height:100dvh;max-height:none;border-radius:0;padding:14px 12px 0}
+  .dvtabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px;padding:4px;border-radius:16px;background:var(--bg);flex:none}
+  .dvtabs button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:46px;border:0;border-radius:12px;background:none;color:var(--sub);font:700 14px/1.1 "Noto Sans KR",sans-serif}
+  .dvtabs button small{font:400 16px/1 "Black Han Sans",sans-serif;color:inherit}
+  .dvtabs button img{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px var(--cc)}
+  .dvtabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+  .dvg{grid-template-columns:1fr;margin-top:6px;padding-bottom:24px}
+  .dvg[data-s="0"] .dvc:nth-child(2),.dvg[data-s="1"] .dvc:nth-child(1){display:none}
+  .dvhd{display:none}
+}
 .pc{text-align:left;border:3px solid var(--line);border-radius:18px;background:var(--bg);padding:0;overflow:hidden;color:var(--ink);transition:transform .15s,border-color .15s}
 .pc:hover,.pc:focus-visible{border-color:var(--m);transform:translateY(-3px)}
 .pc.miko:hover,.pc.miko:focus-visible{border-color:#7a4cc4}
@@ -438,7 +460,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
         <li>게이지를 목표에 딱 맞추면 저스트: 그 판 승리, 판돈만큼 득점</li>
         <li>넘기면 버스트: 판돈 2배, 목표 +10 (흉조 캐스트가 있으면 +1 더)</li>
         <li>둘 다 연달아 패스하면 무승부</li>
-        <li>5판 총점 승부. 동점이면 이긴 판 수</li>
+        <li>정한 판 수(단판·3판·5판)의 총점 승부. 동점이면 이긴 판 수</li>
         <li>선공은 판마다 번갈아 바뀐다</li>
       </ul>
     </details>
@@ -457,6 +479,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 
 <div class="pick" id="pick" role="dialog" aria-modal="true" aria-labelledby="pickTitle"><div class="pbox">
   <div class="phead"><div><h2 id="pickTitle">캐스트 고르기</h2><p id="pickSub">내가 플레이할 캐스트를 골라.</p></div><button class="guidebtn" id="guideBtn" type="button" aria-haspopup="dialog" aria-controls="guide">게임 설명서</button></div>
+  <div class="diff" id="rounds" role="radiogroup" aria-label="판 수"><span>판 수</span><button data-r="1" role="radio">단판</button><button data-r="3" role="radio">3판</button><button data-r="5" role="radio" class="on" aria-checked="true">5판</button></div>
   <div class="diff" id="diff" role="radiogroup" aria-label="AI 난이도"><span>AI 난이도</span><button data-d="easy" role="radio">쉬움</button><button data-d="normal" role="radio" class="on" aria-checked="true">보통</button><button data-d="hard" role="radio">어려움</button></div>
   <div class="online" id="online"><b>온라인 2인</b><button type="button" id="olHost">방 만들기</button><span class="olj"><input id="olCode" inputmode="numeric" maxlength="4" placeholder="방 코드" aria-label="방 코드 네 자리"><button type="button" id="olJoin">참가</button></span><span class="olmsg" id="olMsg" role="status"></span></div>
   <div class="pgrid" id="pgrid"></div></div></div>
@@ -506,7 +529,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
         <span class="gk">저스트할래, 버스트할래?</span>
         <h2 class="gt">승리 조건</h2>
         <div class="gpair">
-          <figure><div class="gp gp-wide"><img src="img/g_score.jpg" alt="5판, 하루 9점, 준 4점"></div><figcaption><mark>다섯 판</mark>에서 얻은 점수를<br>모두 더합니다</figcaption></figure>
+          <figure><div class="gp gp-wide"><img src="img/g_score.jpg" alt="5판, 하루 9점, 준 4점"></div><figcaption><mark>단판·3판·5판</mark> 중 고른 판 수만큼<br>얻은 점수를 모두 더합니다</figcaption></figure>
           <figure><div class="gp gp-wide"><img src="img/g_final.jpg" alt="하루 승리, 최종 9 대 4"></div><figcaption>더 많은 점수를 얻은 사람이<br><mark>승리!</mark></figcaption></figure>
         </div>
       </section>
@@ -529,8 +552,8 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 </div>
 <div class="pick" id="deckView" role="dialog" aria-modal="true" aria-labelledby="dvTitle"><div class="pbox dv">
   <div class="dvh"><h2 id="dvTitle">덱 리스트</h2><button id="dvClose" aria-label="닫기">닫기</button></div>
-  <p>흐리게 보이는 카드는 이번 판에 이미 나온 카드, 분홍 테두리는 지금 내 손패야.</p>
-  <div class="dvg" id="dvGrid"></div></div></div>
+  <div class="dvtabs" id="dvTabs" role="tablist"></div>
+  <div class="dvg" id="dvGrid" data-s="0"></div></div></div>
 <div class="fx" id="fx" aria-hidden="true"></div>
 <button class="tltab" id="tlTab" type="button" aria-label="타임라인 열기"><span>타임라인</span><b class="bd" id="tlBadge"></b></button>
 <div class="tlback" id="tlBack"></div>
@@ -887,11 +910,12 @@ const NET={on:false,role:null,peer:null,conn:null,code:'',hostCast:null,guestCas
 const PH={id:'?',name:'?',v:0,text:''};
 function snap(){
   const mask=(P,hide)=>({...P,deck:P.deck.length,hand:hide?P.hand.length:P.hand,used:[],known:hide?[]:P.known});
-  return{hist:G.hist,busts:G.busts,stakeHist:G.stakeHist,round:G.round,score:G.score,wins:G.wins,starter:G.starter,cur:G.cur,gauge:G.gauge,target:G.target,stake:G.stake,busy:G.busy,over:G.over,
+  return{rounds:G.rounds,hist:G.hist,busts:G.busts,stakeHist:G.stakeHist,round:G.round,score:G.score,wins:G.wins,starter:G.starter,cur:G.cur,gauge:G.gauge,target:G.target,stake:G.stake,busy:G.busy,over:G.over,
     P:G.P.length?[mask(G.P[0],true),mask(G.P[1],false)]:[]};
 }
 function applySnap(s){
-  Object.assign(G,{hist:(s.hist||[]).map(h=>({...h,w:h.w===null?null:1-h.w})),busts:s.busts||0,stakeHist:s.stakeHist||[s.stake],round:s.round,score:[s.score[1],s.score[0]],wins:[s.wins[1],s.wins[0]],starter:1-s.starter,cur:1-s.cur,gauge:s.gauge,target:s.target,stake:s.stake,busy:s.busy,over:s.over});
+  Object.assign(G,{rounds:s.rounds||5,hist:(s.hist||[]).map(h=>({...h,w:h.w===null?null:1-h.w})),busts:s.busts||0,stakeHist:s.stakeHist||[s.stake],round:s.round,score:[s.score[1],s.score[0]],wins:[s.wins[1],s.wins[0]],starter:1-s.starter,cur:1-s.cur,gauge:s.gauge,target:s.target,stake:s.stake,busy:s.busy,over:s.over});
+  $('rounds').querySelectorAll('button').forEach(x=>{const on=+x.dataset.r===G.rounds;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)});
   const fix=P=>({...P,deck:Array(P.deck).fill(null),hand:typeof P.hand==='number'?Array(P.hand).fill(PH):P.hand});
   if(s.P.length)G.P=[fix(s.P[1]),fix(s.P[0])];
   render();
@@ -1006,9 +1030,9 @@ const anyPlayable=p=>G.P[p].hand.some(c=>playable(p,c));
 
 function render(){
   NET.state();
-  $('roundPill').textContent=G.over?'최종':`${Math.max(G.round,1)} / 5판`;
+  $('roundPill').textContent=G.over?'최종':G.rounds===1?'단판':`${Math.max(G.round,1)} / ${G.rounds}판`;
   $('sMe').textContent=G.score[ME];$('sAi').textContent=G.score[AI];
-  $('sbDots').innerHTML=Array.from({length:5},(_,k)=>{const h=G.hist[k];
+  $('sbDots').innerHTML=Array.from({length:G.rounds||5},(_,k)=>{const h=G.hist[k];
     if(h)return h.w===null?'<i class="d" title="무승부">–</i>':`<i class="${h.w===ME?'m':'a'}" title="${NAME[h.w]} +${h.pts}">${h.pts}</i>`;
     return `<i class="${k===G.round-1&&!G.over?'now':''}"></i>`}).join('');
   {const lead=G.score[ME]-G.score[AI];$('sb').dataset.lead=lead>0?'me':lead<0?'ai':''}
@@ -1081,7 +1105,8 @@ function showResult(fin,w,wait){
     $('rKick').textContent=kick;$('rTitle').textContent=title;$('rSub').textContent=sub;$('rNote').textContent=note;
     box.dataset.res=win===null?'draw':win===ME?'win':'lose';box.classList.toggle('fin',fin);
     $('rMe').classList.toggle('won',win===ME);$('rAi').classList.toggle('won',win===AI);
-    $('rRounds').innerHTML=Array.from({length:5},(_,k)=>{const h=G.hist[k];
+    {const N=G.rounds||5;$('rRounds').style.cssText=`grid-template-columns:repeat(${N},minmax(0,1fr));max-width:${N*90}px`}
+    $('rRounds').innerHTML=Array.from({length:G.rounds||5},(_,k)=>{const h=G.hist[k];
       if(!h)return `<li class="e"><span>${k+1}판</span><em>—</em></li>`;
       const c=h.w===null?'d':h.w===ME?'m':'a',who=h.w===null?'무승부':NAME[h.w];
       return `<li class="${c}${k===G.hist.length-1&&!fin?' last':''}"><span>${k+1}판</span>${h.w===null?'':`<img src="img/${SEAT[h.w]}_av.jpg" alt="">`}<em>${who}</em><b>${h.w===null?'':'+'+h.pts}</b>${h.busts?`<i>버스트×${h.busts}</i>`:''}</li>`}).join('');
@@ -1090,7 +1115,7 @@ function showResult(fin,w,wait){
     $('rGo').onclick=()=>{$('res').classList.remove('on');res()};
   });
 }
-function newGame(){G.round=0;G.score=[0,0];G.wins=[0,0];G.hist=[];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
+function newGame(){G.rounds=MATCH;G.round=0;G.score=[0,0];G.wins=[0,0];G.hist=[];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
 function newRound(){
   G.round++;G.P=[freshPlayer(ME),freshPlayer(AI)];draw(ME,5);draw(AI,5);
   G.gauge=0;G.target=31;G.stake=1;G.stakeHist=[1];G.passes=0;G.busts=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
@@ -1184,7 +1209,7 @@ async function endRound(w){
   if(w!==null){G.score[w]+=pts;G.wins[w]++;log(`저스트! ${NAME[w]} ${G.round}판 승리, +${pts}점`)}
   G.hist.push({w,pts:w===null?0:pts,busts:G.busts});
   G.starter=1-G.starter;   // 선후공은 판마다 번갈아
-  const fin=G.round>=5;if(fin)G.over=true;
+  const fin=G.round>=G.rounds;if(fin)G.over=true;
   render();
   NET.ev({t:'result',final:fin,w});
   await showResult(fin,w);
@@ -1328,7 +1353,7 @@ function ai(R,p){
 return{playLoop,cloneR,shuffle,global};
 })();
 /* ---------- AI ---------- */
-let DIFF='normal';
+let DIFF='normal',MATCH=5;
 const curV=(P,c,g)=>c.id==='trend'?(g>=20?4:2):c.id==='fourcut'?(P.photoCount>=3?1:4):c.v;
 // 상대(1-me)가 다음 차례에 gap을 딱 맞출 확률
 function oppWinProb(gap,gAfter,me=AI,diff=DIFF){
@@ -1437,19 +1462,25 @@ function aiAct(p=AI,diff=DIFF){
 }
 
 
-function deckLabel(c){return c.choice?c.choice.join('/'):c.lower?'−'+c.lower[0]+'~'+c.lower[c.lower.length-1]:String(c.v)}
-function deckCol(p,title){
-  const P=G.P[p];const played=P?P.played:[];const inHand=p===ME&&P?P.hand.map(c=>c.id):[];
-  const cards=[...DECK[p]];
-  return `<div class="dvc"><h3>${title}<small>${cards.length}장</small></h3><ul class="dvl">${cards.map(c=>{
-    const cls=played.includes(c.id)?'gone':inHand.includes(c.id)?'hand':'';
-    const own=!SHARED.some(x=>x.id===c.id);
-    return `<li class="${cls}"><span class="nv">${deckLabel(c)}</span><span class="nm">${c.name}${own?'<span class="ex">전용</span>':''}${c.photo?'<span class="ex" style="background:var(--m);color:#fff">사진</span>':''}<small>${c.text}</small></span></li>`}).join('')}</ul></div>`;
-}
-function showDeck(){
-  $('dvGrid').innerHTML=deckCol(ME,`내 덱 · ${NAME[ME]}`)+deckCol(AI,`상대 덱 · ${NAME[AI]}`);
+function deckRow(p,c){
+  const v=c.choice||c.lower?null:valOf(p,c,null),q=c.choice||c.lower;
+  const cls=q?'q':v<0?'neg':v===0?'zero':'',own=!SHARED.some(x=>x.id===c.id);
+  return `<li><span class="v ${cls}">${q?'?':v}</span><span class="nm"><b>${c.name}</b>${own?'<i class="tg own">전용</i>':''}${c.photo?'<i class="tg ph">사진</i>':''}<small>${c.text}</small></span></li>`}
+function deckCol(p){
+  const P=G.P[p],played=P?P.played:[],me=p===ME,k=SEAT[p];
+  const cards=[...DECK[p]],gone=cards.filter(c=>played.includes(c.id));
+  const hand=me&&P?cards.filter(c=>P.hand.some(h=>h.id===c.id)):[];
+  const rest=cards.filter(c=>!gone.includes(c)&&!hand.includes(c));
+  const grp=(cls,t,list)=>list.length?`<section class="dvs ${cls}"><h4>${t}<b>${list.length}</b></h4><ul>${list.map(c=>deckRow(p,c)).join('')}</ul></section>`:'';
+  return `<div class="dvc"><div class="dvhd" style="--cc:${CASTS[k].back[0]}"><img src="img/${k}_av.jpg" alt=""><span><small>${me?'내 덱':'상대 덱'}</small>${NAME[p]}</span><em>${cards.length}장</em></div>`
+   +grp('inhand','손패',hand)+grp('left',me?'덱에 남음':'아직 안 나옴',rest)+grp('gone','이번 판에 나옴',gone)+'</div>'}
+function showDeck(s){
+  const t=$('dvGrid');if(s!==undefined)t.dataset.s=s;
+  t.innerHTML=deckCol(ME)+deckCol(AI);
+  $('dvTabs').innerHTML=[ME,AI].map((p,i)=>`<button role="tab" data-s="${i}" aria-selected="${t.dataset.s==i}" style="--cc:${CASTS[SEAT[p]].back[0]}"><img src="img/${SEAT[p]}_av.jpg" alt="">${p===ME?'내 덱':'상대 덱'}<small>${NAME[p]}</small></button>`).join('');
   $('deckView').classList.add('on');$('dvClose').focus();
 }
+$('dvTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b){showDeck(+b.dataset.s);$('dvGrid').scrollTop=0}});
 function hideDeck(){$('deckView').classList.remove('on');$('deckBtn').focus()}
 let GI=0;const GN=document.querySelectorAll('#gTrack .gs').length;
 $('gDots').innerHTML=Array.from({length:GN},()=>'<i></i>').join('');
@@ -1473,7 +1504,7 @@ $('tlTab').addEventListener('click',()=>tlOpen(true));
 $('tlClose').addEventListener('click',()=>tlOpen(false));
 $('tlBack').addEventListener('click',()=>tlOpen(false));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('tl'))tlOpen(false)});
-$('deckBtn').addEventListener('click',showDeck);
+$('deckBtn').addEventListener('click',()=>showDeck());
 $('dvClose').addEventListener('click',hideDeck);
 $('deckView').addEventListener('click',e=>{if(e.target.id==='deckView')hideDeck()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('deckView').classList.contains('on'))hideDeck()});
@@ -1506,6 +1537,8 @@ function renderPick(){
   $('pgrid').innerHTML=Object.entries(CASTS).map(([k,c])=>`<button class="pc ${k}${k===foe?' foe':''}${k===mine?' mine':''}" data-k="${k}" ${lock&&k!==mine?'disabled':''}><img src="img/${k}_selfie.jpg" alt="${c.name}"><span class="pi"><span class="pn">${c.name}<small>${c.handle}</small></span><span class="ab">${c.abil}</span></span></button>`).join('')
     +(!on&&PICK_ME?'<button class="pback" id="pBack" type="button">다시 고르기</button>':'');
 }
+$('rounds').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||NET.role==='guest')return;MATCH=+b.dataset.r;
+  $('rounds').querySelectorAll('button').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})});
 $('diff').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;DIFF=b.dataset.d;
   $('diff').querySelectorAll('button').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})});
 $('olHost').addEventListener('click',netHost);
