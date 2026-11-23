@@ -201,36 +201,36 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   .cardb .n{font-size:13px}.cardb .t{font-size:11px;line-height:1.35}
   .rules{display:none}
 }
-.vbar,.tmini{display:none}
+.vbar,.tmini,.tltab,.tlback,.lastp,.tlclose{display:none}
 @media(max-width:600px){
-  .wrap{display:grid;grid-template-columns:minmax(0,1fr) 58px;grid-template-rows:auto minmax(0,1fr) auto;gap:8px 8px}
-  .opp{grid-column:1/-1;grid-row:1}.phone{grid-column:1;grid-row:2}.hand{grid-column:1/-1;grid-row:3}
-  .gauge,.abil,.opp .abil,.hand .abil{display:none}
-  .opp{align-items:center}.opp .who{font-size:14px}
-  .vbar{grid-column:2;grid-row:2;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:0}
-  .vbar{gap:5px}
-  .vt{display:block;width:100%;padding:5px 0 6px;border-radius:12px;background:var(--k);color:var(--y);text-align:center;box-shadow:0 0 0 2px var(--y) inset}
-  .vt small{display:block;font:700 11px/1.2 "Noto Sans KR",sans-serif;color:#fff}
-  .vt b{display:block;font:400 28px/1 "Black Han Sans",sans-serif;letter-spacing:-.5px}
-  .vg{font:700 13px/1.1 "Noto Sans KR",sans-serif;color:var(--m);white-space:nowrap}
-  .vbar.near .vg{color:#fff;background:var(--m);padding:2px 7px;border-radius:999px}
-  .vtrack{position:relative;flex:1;width:28px;margin-top:6px;border-radius:999px;background:light-dark(#f0cfe0,#3b2d44);box-shadow:inset 0 0 0 2px light-dark(#e6b3cd,#4d3b57);min-height:0}
-  .vtrack::before{content:"";position:absolute;left:-6px;right:-6px;top:0;height:3px;border-radius:2px;background:var(--y);box-shadow:0 0 0 1px var(--k)}
-  .vfill{position:absolute;left:0;right:0;bottom:0;height:0;border-radius:999px;background:linear-gradient(to top,var(--m),#ff7ab8);transition:height .35s cubic-bezier(.2,1.2,.4,1)}
-  .vbar.hot .vfill{background:linear-gradient(to top,var(--c),#8ae9f7)}
-  .vnum{position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);min-width:46px;padding:4px 0;border-radius:11px;background:var(--ink);color:var(--bg);font:400 21px/1 "Black Han Sans",sans-serif;text-align:center;transition:bottom .35s cubic-bezier(.2,1.2,.4,1);box-shadow:0 0 0 2px var(--bg)}
-  .vbar.near .vnum{background:var(--m);animation:vbeat .85s ease-in-out infinite}
-  .vbar.near .vfill{box-shadow:0 0 8px rgba(255,46,138,.9),0 0 18px rgba(255,46,138,.5);animation:vglow .85s ease-in-out infinite}
-  .vbar.near.hot .vfill{box-shadow:0 0 8px rgba(25,198,230,.9),0 0 18px rgba(25,198,230,.5)}
-  .vs{width:100%;text-align:center;font:400 17px/1 "Black Han Sans",sans-serif;padding:5px 0 6px;border-radius:10px;background:var(--m);color:#fff;white-space:nowrap;margin-top:10px}
-  .vbar.hot .vs{background:var(--k);color:var(--y)}
-  .vs::before{content:"판돈";display:block;font:700 10px/1.4 "Noto Sans KR",sans-serif;opacity:.9;text-align:center}
-  .tmini{display:inline;font-size:12px;font-weight:700;color:var(--m)}
-  .tmini.wait{color:var(--sub);font-weight:500}
-  .appbar{padding:6px 12px}
   body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
   .top{flex:none;flex-wrap:nowrap}.top h1{display:none}.score{flex-wrap:nowrap;overflow-x:auto;width:100%}
-  .wrap{flex:1;height:auto;min-height:0;width:100%}
+  .wrap{flex:1;height:auto;min-height:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;gap:8px;padding:8px 10px 0;overflow:hidden}
+  .opp{grid-row:1;align-items:center}.opp .who{font-size:14px}.gauge{grid-row:2}.hand{grid-row:3}
+  .abil,.opp .abil,.hand .abil,#gapLine,#hint{display:none}
+  /* 가운데: 큰 원형 게이지 */
+  .gauge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:14px 12px;min-height:0;border-radius:20px}
+  .ring{width:min(66vw,38dvh,300px);max-width:none;margin:0}
+  .ring .num b{font-size:clamp(60px,18vw,92px)}
+  .ring .num span{font:400 20px/1.1 "Black Han Sans",sans-serif;color:var(--ink);margin-top:4px}
+  .info{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+  .stake{font-size:19px;margin:0;padding:3px 14px}.turn{font-size:15px}
+  .lastp{display:block;margin:0;max-width:100%;padding:7px 14px;border-radius:999px;background:var(--bg);border:1px solid var(--line);font-size:13px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  .lastp:empty{display:none}.lastp b{color:var(--ink)}.lastp em{font-style:normal;font-weight:700;color:var(--m)}
+  /* 타임라인: 오른쪽 서랍 */
+  .phone{position:fixed;top:0;right:0;bottom:0;left:auto;width:min(88vw,400px);height:auto;max-width:none;margin:0;padding:0;z-index:4;border-radius:20px 0 0 20px;background:var(--card);box-shadow:-12px 0 40px rgba(0,0,0,.35);transform:translateX(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  .screen{border-radius:20px 0 0 20px;padding-top:env(safe-area-inset-top)}
+  body.tl .phone{transform:none}
+  .tlback{display:block;position:fixed;inset:0;z-index:3;background:rgba(10,6,12,.45);opacity:0;pointer-events:none;transition:opacity .2s}
+  body.tl .tlback{opacity:1;pointer-events:auto}
+  .tltab{display:flex;flex-direction:column;align-items:center;gap:6px;position:fixed;right:0;top:46%;transform:translateY(-50%);z-index:2;border:0;border-radius:14px 0 0 14px;padding:14px 9px;background:var(--k);color:#fff;font:700 14px/1.1 "Noto Sans KR",sans-serif;box-shadow:-4px 4px 14px rgba(0,0,0,.25)}
+  .tltab span{writing-mode:vertical-rl;letter-spacing:2px}
+  .tltab .bd{min-width:22px;padding:2px 6px;border-radius:999px;background:var(--m);color:#fff;font-size:12px;text-align:center}
+  .tltab .bd:empty{display:none}
+  .tlclose{display:inline-flex;margin-left:auto;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:4px 14px;font-weight:700;min-height:36px;align-items:center}
+  .tmini{display:inline;font-size:12px;font-weight:700;color:var(--m)}
+  .tmini.wait{color:var(--sub);font-weight:500}
+  .appbar{padding:10px 12px}
 }
 @keyframes vbeat{0%,100%{scale:1}12%{scale:1.22}24%{scale:.97}36%{scale:1.14}}
 @keyframes vglow{0%,100%{filter:brightness(1)}12%{filter:brightness(1.35)}36%{filter:brightness(1.2)}}
@@ -269,6 +269,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
         <p id="hint">딱 맞추면 저스트, 그 판을 먹는다. 넘기면 버스트, 묻고 더블.</p>
         <div class="turn" id="turnLine">내 차례</div>
       </div>
+      <p class="lastp" id="lastP" role="button" tabindex="0" aria-label="타임라인 열기"></p>
     </div>
 
     <div class="vbar" id="vbar" aria-hidden="true">
@@ -298,7 +299,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
     <div class="phone">
       <div class="screen">
         <i class="notch"></i>
-        <div class="appbar"><span class="dot"></span><b>타임라인</b></div>
+        <div class="appbar"><span class="dot"></span><b>타임라인</b><button class="tlclose" id="tlClose" type="button">닫기</button></div>
         <div class="feed" id="feed" aria-live="polite"></div>
       </div>
     </div>
@@ -344,6 +345,8 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   <p>흐리게 보이는 카드는 이번 판에 이미 나온 카드, 분홍 테두리는 지금 내 손패야.</p>
   <div class="dvg" id="dvGrid"></div></div></div>
 <div class="fx" id="fx" aria-hidden="true"></div>
+<button class="tltab" id="tlTab" type="button" aria-label="타임라인 열기"><span>타임라인</span><b class="bd" id="tlBadge"></b></button>
+<div class="tlback" id="tlBack"></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true"><div class="box"><h3 id="mTitle"></h3><p id="mText"></p><div class="opts" id="mOpts"></div></div></div>
 
 <script>
@@ -590,8 +593,9 @@ function addPost(p,card,v){
     <p class="pt">${(POSTS[SEAT[p]]||{})[card.id]||POST[card.id]}</p>${photoOf(p,card.id)?`<div class="pimg"><img src="img/${photoOf(p,card.id)}.jpg" alt="${NAME[p]}의 사진"></div>`:IMG[card.id]?`<div class="pimg">${IMG[card.id](p)}</div>`:''}
     <div class="pa"><span class="r">${REPLY}<em>${fmt(reps)}</em></span><span class="h">${HEART}<em>${fmt(likes)}</em></span></div></div>`;
   feed.prepend(el);while(feed.children.length>30)feed.lastChild.remove();
+  tlNote(p,card,v);
   feed.scrollTop=0;
-  requestAnimationFrame(()=>{const r=el.querySelector('.h').getBoundingClientRect();spawn(r.left+8,r.top+8,4+Math.min(10,Math.abs(v)*2),70)});
+  requestAnimationFrame(()=>{let r=el.querySelector('.h').getBoundingClientRect();if(r.left>innerWidth-4||r.right<4){const q=document.querySelector('.ring').getBoundingClientRect();r={left:q.left+q.width/2-8,top:q.top+q.height/2-8}}spawn(r.left+8,r.top+8,4+Math.min(10,Math.abs(v)*2),70)});
   return el;
 }
 function bigHit(n){
@@ -620,6 +624,12 @@ function bustFx(el){
 }
 
 const $=id=>document.getElementById(id);
+// 모바일 타임라인 서랍
+let TL_UNREAD=0;
+const isMobile=()=>matchMedia('(max-width:600px)').matches;
+function tlOpen(on){document.body.classList.toggle('tl',on);if(on){TL_UNREAD=0;$('tlBadge').textContent='';$('tlClose').focus()}else $('tlTab').focus()}
+function tlNote(p,card,v){$('lastP').innerHTML=`<b>${NAME[p]}</b> · ${card.name} <em>${v>=0?'+':''}${v}</em> → ${G.gauge}`;
+  if(isMobile()&&!document.body.classList.contains('tl')){TL_UNREAD++;$('tlBadge').textContent=TL_UNREAD>9?'9+':TL_UNREAD}}
 // 받침에 맞는 조사: jo('준','이','가') → '준이'
 const jo=(w,a,b)=>{const c=w.charCodeAt(w.length-1)-0xAC00;const bat=c>=0&&c<=11171&&c%28>0;if(a==='으로'&&c%28===8)return w+'로';return w+(bat?a:b)};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -806,7 +816,7 @@ function ask(title,text,opts){
 function newGame(){G.round=0;G.score=[0,0];G.wins=[0,0];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
 function newRound(){
   G.round++;G.P=[freshPlayer(ME),freshPlayer(AI)];draw(ME,5);draw(AI,5);
-  G.gauge=0;G.target=31;G.stake=1;G.passes=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
+  G.gauge=0;G.target=31;G.stake=1;G.passes=0;G.cur=G.starter;$('feed').innerHTML='';$('lastP').textContent='';NET.ev({t:'clear'});
   log(`— ${G.round}판 시작. ${NAME[G.cur]} 선공 —`);startTurn();
 }
 
@@ -1175,6 +1185,12 @@ $('guideBtn').addEventListener('click',showGuide);
 $('gClose').addEventListener('click',hideGuide);
 $('guide').addEventListener('click',e=>{if(e.target.id==='guide')hideGuide()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('guide').classList.contains('on'))hideGuide()});
+$('tlTab').addEventListener('click',()=>tlOpen(true));
+$('tlClose').addEventListener('click',()=>tlOpen(false));
+$('tlBack').addEventListener('click',()=>tlOpen(false));
+$('lastP').addEventListener('click',()=>tlOpen(true));
+$('lastP').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tlOpen(true)}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('tl'))tlOpen(false)});
 $('deckBtn').addEventListener('click',showDeck);
 $('dvClose').addEventListener('click',hideDeck);
 $('deckView').addEventListener('click',e=>{if(e.target.id==='deckView')hideDeck()});
