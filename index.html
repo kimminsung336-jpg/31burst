@@ -327,7 +327,8 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   .rvs{gap:8px}.rp figcaption b{font-size:30px}
   .rrounds{gap:5px}.rrounds li{min-height:88px;font-size:12px}.rrounds li em{font-size:12px}.rrounds li b{font-size:19px}.rrounds li img{width:28px;height:28px}.rrounds li i{font-size:10px;padding:1px 4px}
 }
-.pc.foe{opacity:.45;pointer-events:none}.pback{border:0;background:none;color:var(--sub);font:inherit;text-decoration:underline;cursor:pointer;padding:8px 0}
+.pc.foe{opacity:.45;pointer-events:none}.diff .pback{margin-left:auto;border:2px solid var(--m);background:var(--card);color:var(--m);font-weight:700}.diff .pback[hidden]{display:none}
+@media(max-width:600px){.diff{gap:6px;flex-wrap:nowrap}.diff span{margin-right:0;white-space:nowrap}.diff button{padding:6px 11px;white-space:nowrap}.diff .pbl{display:none}}
 .pc img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;object-position:center 22%}
 .pc .pi{display:block;padding:12px 14px 16px}
 .pc .pn{display:block;font:400 26px/1.1 "Black Han Sans",sans-serif}
@@ -480,7 +481,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 <div class="pick" id="pick" role="dialog" aria-modal="true" aria-labelledby="pickTitle"><div class="pbox">
   <div class="phead"><div><h2 id="pickTitle">캐스트 고르기</h2><p id="pickSub">내가 플레이할 캐스트를 골라.</p></div><button class="guidebtn" id="guideBtn" type="button" aria-haspopup="dialog" aria-controls="guide">게임 설명서</button></div>
   <div class="diff" id="rounds" role="radiogroup" aria-label="판 수"><span>판 수</span><button data-r="1" role="radio">단판</button><button data-r="3" role="radio">3판</button><button data-r="5" role="radio" class="on" aria-checked="true">5판</button></div>
-  <div class="diff" id="diff" role="radiogroup" aria-label="AI 난이도"><span>AI 난이도</span><button data-d="easy" role="radio">쉬움</button><button data-d="normal" role="radio" class="on" aria-checked="true">보통</button><button data-d="hard" role="radio">어려움</button></div>
+  <div class="diff" id="diff" role="radiogroup" aria-label="AI 난이도"><span>AI 난이도</span><button data-d="easy" role="radio">쉬움</button><button data-d="normal" role="radio" class="on" aria-checked="true">보통</button><button data-d="hard" role="radio">어려움</button><button class="pback" id="pBack" type="button" hidden aria-label="다시 고르기">← 다시<span class="pbl"> 고르기</span></button></div>
   <div class="online" id="online"><b>온라인 2인</b><button type="button" id="olHost">방 만들기</button><span class="olj"><input id="olCode" inputmode="numeric" maxlength="4" placeholder="방 코드" aria-label="방 코드 네 자리"><button type="button" id="olJoin">참가</button></span><span class="olmsg" id="olMsg" role="status"></span></div>
   <div class="pgrid" id="pgrid"></div></div></div>
 <div class="gview" id="guide" role="dialog" aria-modal="true" aria-label="게임 설명서">
@@ -1552,17 +1553,18 @@ function renderPick(){
   else{title=PICK_ME?'상대 캐스트 고르기':'캐스트 고르기';sub=PICK_ME?`${jo(CASTS[PICK_ME].name,'으로','로')} 플레이. 상대는 AI가 맡아.`:'내가 플레이할 캐스트를 골라.';foe=PICK_ME}
   $('pickTitle').textContent=title;$('pickSub').textContent=sub;
   $('pgrid').innerHTML=Object.entries(CASTS).map(([k,c])=>`<button class="pc ${k}${k===foe?' foe':''}${k===mine?' mine':''}" data-k="${k}" ${lock&&k!==mine?'disabled':''}><img src="img/${k}_selfie.jpg" alt="${c.name}"><span class="pi"><span class="pn">${c.name}<small>${c.handle}</small></span><span class="ab">${c.abil}</span></span></button>`).join('')
-    +(!on&&PICK_ME?'<button class="pback" id="pBack" type="button">다시 고르기</button>':'');
+;
+  $('pBack').hidden=!(!on&&PICK_ME);
 }
 $('rounds').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||NET.role==='guest')return;MATCH=+b.dataset.r;
   $('rounds').querySelectorAll('button').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})});
-$('diff').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;DIFF=b.dataset.d;
+$('pBack').addEventListener('click',e=>{e.stopPropagation();PICK_ME=null;renderPick()});
+$('diff').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.id==='pBack')return;DIFF=b.dataset.d;
   $('diff').querySelectorAll('button').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})});
 $('olHost').addEventListener('click',netHost);
 $('olJoin').addEventListener('click',netJoin);
 $('olCode').addEventListener('keydown',e=>{if(e.key==='Enter')netJoin()});
 $('pgrid').addEventListener('click',e=>{
-  if(e.target.id==='pBack'){PICK_ME=null;renderPick();return}
   const b=e.target.closest('.pc');if(!b||b.disabled)return;const k=b.dataset.k;
   if(NET.on){
     if(NET.role==='host'&&!NET.hostCast&&k!==NET.guestCast){NET.hostCast=k;NET.send({t:'hostcast',k});renderPick();netTryStart()}
