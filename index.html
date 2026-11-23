@@ -637,7 +637,7 @@ const CASTS={
   abil:'<b>흉조</b> 직전에 낸 내 카드보다 작은 숫자를 내면 상대가 한 장 버린다',
   style:'상대 손을 끊고, 판이 터지길 기다린다'},
  haru:{name:'하루',handle:'@haru_ne',type:'Y · 누님',deck:[...SHARED,...HARU],mirror:1,back:['#f5b800','#b98a00'],
-  abil:'<b>오냐오냐</b> 상대가 직전에 낸 숫자와 같은 숫자를 내면 한 장 뽑는다',
+  abil:'<b>받아주기</b> 상대가 직전에 낸 숫자와 같은 숫자를 내면 한 장 뽑는다',
   style:'판을 천천히 끌고 가다가 마지막 한 칸을 맞춘다'},
  mina:{name:'준',handle:'@jun_mvp',type:'C · 톰보이',deck:[...SHARED,...MINA],momentum:1,back:['#12c6dc','#0a8fa3'],
   abil:'<b>기세 올려!</b> 직전에 낸 내 카드보다 2 이상 큰 숫자를 내면 한 장 뽑는다',
@@ -1153,7 +1153,7 @@ async function play(p,idx,choice,adj=0){
   let v=valOf(p,card,choice);if(!card.lower){P.capture=false;P.soothe=false}
   if(adj){v+=adj;P.adjUsed=true;log(`${CASTS[SEAT[p]].abName}: ${NAME[p]} 숫자 ${adj>0?'+1':'−1'}`,cls)}
   {const OP=G.P[1-p],rm=CASTS[SEAT[p]].revMom;if(rm&&P.lastP!==null&&v<=P.lastP-rm&&OP.hand.length){const c=OP.hand.splice(Math.random()*OP.hand.length|0,1)[0];OP.used.push(c);log(`흉조: ${NAME[1-p]} 손패 「${c.name}」 버림`,cls)}}
-  {const OP=G.P[1-p];if(CASTS[SEAT[p]].mirror&&OP.lastP!==null&&v===OP.lastP){draw(p,1);log(`오냐오냐: ${NAME[p]} 1장 뽑음`,cls)}P.lastP=v}
+  {const OP=G.P[1-p];if(CASTS[SEAT[p]].mirror&&OP.lastP!==null&&v===OP.lastP){draw(p,1);log(`받아주기: ${NAME[p]} 1장 뽑음`,cls)}P.lastP=v}
   if(CASTS[SEAT[p]].momentum&&!card.lower){if(P.lastV!==null&&v>=P.lastV+2&&!P.momUsed){P.momUsed=true;draw(p,1);log(`기세 올려!: ${NAME[p]} 1장 뽑음`,cls)}P.lastV=v}
   const prev=G.gauge,ng=Math.max(0,prev+v);
   G.gauge=ng;if(card.photo)P.photoCount++;pop();render();
