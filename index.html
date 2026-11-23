@@ -323,7 +323,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   <p>첫 판의 선공은 무작위로 정하고, 다음 판부터는 직전 판에서 진 쪽이 먼저 냅니다. 무승부였다면 선공이 바뀝니다. 다섯 판을 모두 마치면 <b>총점이 높은 쪽</b>이 승리합니다. 총점이 같으면 저스트를 더 많이 한 쪽이 이기고, 그것도 같으면 무승부입니다.</p>
   <p>낼 수 있는 카드가 없으면 카드 한 장을 뽑고 패스합니다. 두 사람이 연달아 패스하면 그 판은 무승부입니다. 덱이 비었을 때 카드를 뽑아야 한다면, 그 판에 낸 카드를 다시 섞어 덱으로 씁니다.</p>
   <h3>캐스트</h3>
-  <div class="cast"><img src="img/iri_av.jpg" alt=""><b>M · 아이리 — 셀카 장인</b><span>매 판 처음으로 사진 포스트를 올리면 카드 한 장을 더 뽑습니다.</span></div>
+  <div class="cast"><img src="img/iri_av.jpg" alt=""><b>M · 아이리 — 셀카 장인</b><span>내 차례마다 처음 올린 사진 포스트로 카드 한 장을 더 뽑습니다.</span></div>
   <div class="cast"><img src="img/miko_av.jpg" alt=""><b>K · 미코 — 흉조</b><span>누구든 버스트하면 배수를 적용한 뒤 판돈이 1점 더 오르고, 미코는 카드 두 장을 뽑습니다.</span></div>
   <div class="cast"><img src="img/haru_av.jpg" alt=""><b>Y · 하루 — 어른의 여유</b><span>판마다 한 번, 내가 낸 포스트의 숫자를 1 올리거나 내릴 수 있습니다. 마지막 한 칸을 맞추는 데 쓰세요.</span></div>
   <div class="cast"><img src="img/mina_av.jpg" alt=""><b>C · 미나 — 기세</b><span>직전에 낸 내 포스트보다 큰 숫자를 내면 카드 한 장을 뽑습니다. 작은 숫자에서 큰 숫자로 몰아칠수록 손이 불어납니다.</span></div>
@@ -396,7 +396,7 @@ const MINA=[
 ];
 const CASTS={
  iri:{name:'아이리',handle:'@iri_cafe',type:'M · 갸루',deck:[...SHARED,...IRI],photoDraw:1,back:['#ff2e8a','#c41d68'],
-  abil:'<b>셀카 장인</b> 사진 포스트를 내면 1장 뽑는다. 판마다 한 번',
+  abil:'<b>셀카 장인</b> 사진 포스트를 내면 1장 뽑는다. 턴마다 한 번',
   style:'사진 포스트로 손을 계속 돌리고, 숫자를 유연하게 맞춘다'},
  miko:{name:'미코',handle:'@miko_occult',type:'K · 오컬트',deck:[...SHARED,...MIKO],bustPlus:1,bustDraw:2,back:['#7a4cc4','#4b2a85'],
   abil:'<b>흉조</b> 버스트가 나면 판돈이 1 더 오르고, 미코가 2장 뽑는다',
@@ -802,7 +802,7 @@ function newRound(){
 async function startTurn(){
   render();const p=G.cur,P=G.P[p];
   if(P.skip){P.skip=false;log(`${NAME[p]} 차례는 침묵의 주문에 걸려 건너뜀`,p?'ai':'me');return next(p)}
-  P.plays=1+P.extraNext;P.extraNext=0;
+  P.plays=1+P.extraNext;P.extraNext=0;if(CASTS[SEAT[p]].photoDraw)P.photoUsed=false;
   if(!anyPlayable(p)){
     log(`${NAME[p]} 낼 카드가 없어서 패스`,p?'ai':'me');draw(p,1);G.passes++;P.snipe=false;P.press=false;
     if(G.passes>=2){log('둘 다 패스. 이 판은 무승부');await sleep(500);return endRound(null)}
@@ -927,7 +927,7 @@ function playLoop(R,AB,S,first){
     const p=R.cur,P=R.P[p],O=R.P[1-p];S.turns++;
     if(!mid){
     if(P.skip){P.skip=false;R.cur=1-p;continue}
-    P.plays=1+P.extraNext;P.extraNext=0;
+    P.plays=1+P.extraNext;P.extraNext=0;if(AB[p].photoDraw)P.photoUsed=false;
     if(!P.hand.some(c=>playable(R,p,c))){draw(p,1);R.passes++;P.snipe=false;P.press=false;if(R.passes>=2)return{w:null,busted:R.busted};R.cur=1-p;continue}
     R.passes=0;}
     mid=false;
