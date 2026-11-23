@@ -592,7 +592,7 @@ const SHARED=[
 const IRI=[
  C('burst','셀카 연사',1,'이번 턴에 1장 더 낸다',{photo:1,extra:1}),
  C('nail','네일 자랑',2,'손패 1장을 덱 맨 아래에 넣고 2장 뽑는다',{photo:1}),
- C('fourcut','인생네컷',4,'이번 판에 사진 포스트를 3장 이상 냈으면 숫자가 1',{photo:1}),
+ C('fourcut','인생네컷',1,'이번 판에 사진 포스트를 3장 이상 냈으면 숫자가 4',{photo:1}),
  C('filter','필터 과다',1,'낼 때 숫자를 1이나 2 중에서 고른다',{photo:1,choice:[1,2]}),
  C('f4f','맞팔 이벤트',2,'양쪽 다 1장씩 뽑는다'),
  C('vlog','브이로그',3,'효과 없음',{photo:1}),
@@ -603,11 +603,11 @@ const MIKO=[
  C('omen','흉',6,'효과 없음'),
  C('doll','저주 인형',1,'상대 손패 1장을 보고, 3 이상이면 버리게 한다'),
  C('charm','부적',0,'상대가 다음에 내는 카드는 숫자 +1'),
- C('ward','결계',0,'게이지를 1~3 내린다. 저스트 불가, 목표에 딱 맞으면 버스트',{lower:[1,2,3],nofinish:1}),
- C('silence','침묵의 주문',0,'상대의 다음 차례를 건너뛴다. 판마다 한 번',{once:1}),
+ C('ward','결계',0,'게이지를 1~3 내린다',{lower:[1,2,3],nofinish:1}),
+ C('silence','침묵의 주문',0,'상대의 다음 차례를 건너뛴다',{once:1}),
  C('prophecy','불길한 예언',4,'이 카드로 버스트하면 판돈 3배',{triple:1}),
  C('fortune','점괘',1,'덱 위 3장 중 1장을 골라 손에 넣는다'),
- C('convert','포교',2,'상대 손패 1장을 무작위로 버리게 한다'),
+ C('convert','포교',2,'상대 손패를 무작위로 한 장 버린다'),
 ];
 const HARU=[
  C('cheek','볼 터치 셀카',2,'낼 때 숫자를 2나 3 중에서 고른다',{photo:1,choice:[2,3]}),
@@ -616,8 +616,8 @@ const HARU=[
  C('tea','야간 티타임',1,'다음 내 차례에 1장 더 낸다',{photo:1}),
  C('drip','핸드드립',0,'덱 위 2장 중 1장을 손에 넣고, 나머지는 덱 맨 아래로'),
  C('wink','윙크 셀카',3,'낼 때 숫자를 3이나 4 중에서 고른다',{photo:1,choice:[3,4]}),
- C('dishes','마감 설거지',0,'게이지를 1~2 내린다. 저스트 불가, 목표에 딱 맞으면 버스트',{lower:[1,2],nofinish:1}),
- C('regular','단골 손님',2,'낸 뒤 손패가 3장 이하면 1장 뽑는다'),
+ C('dishes','마감 설거지',0,'게이지를 1~2 내린다',{lower:[1,2],nofinish:1}),
+ C('regular','단골 손님',2,'손패가 3장 이하면 1장 뽑는다'),
 ];
 const MINA=[
  C('mvp','오늘의 MVP',4,'효과 없음',{photo:1}),
@@ -1019,7 +1019,7 @@ function valOf(p,c,ch){
   const P=G.P[p];let v;
   if(c.choice)v=ch;else if(c.lower)v=-ch;
   else if(c.id==='trend')v=G.gauge>=20?4:2;
-  else if(c.id==='fourcut')v=P.photoCount>=3?1:4;
+  else if(c.id==='fourcut')v=P.photoCount>=3?4:1;
   else v=c.v;
   if(P.capture&&!c.lower)v+=1;
   if(P.soothe&&!c.lower)v-=1;
@@ -1239,7 +1239,7 @@ function valOf(R,p,c,ch){
   const P=R.P[p];let v;
   if(c.choice)v=ch;else if(c.lower)v=-ch;
   else if(c.id==='trend')v=R.gauge>=20?4:2;
-  else if(c.id==='fourcut')v=P.photoCount>=3?1:4;
+  else if(c.id==='fourcut')v=P.photoCount>=3?4:1;
   else v=c.v;
   if(P.capture&&!c.lower)v+=1;
   if(P.soothe&&!c.lower)v-=1;
@@ -1306,7 +1306,7 @@ function oppWin(R,me,gap,gAfter){
   const H=R.P[1-me];if(H.skip||gap<=0)return 0;
   const add=dOf(H),ad=R.AB&&!H.adjUsed&&R.AB[1-me].adjust||0;
   const hit=c=>{if(c.reactive||c.lower||c.nofinish)return false;
-    const base=(c.choice||[c.id==='trend'?(gAfter>=20?4:2):c.id==='fourcut'?(H.photoCount>=3?1:4):c.v]).map(x=>x+add);
+    const base=(c.choice||[c.id==='trend'?(gAfter>=20?4:2):c.id==='fourcut'?(H.photoCount>=3?4:1):c.v]).map(x=>x+add);
     const vs=ad?base.flatMap(x=>[x,x+ad]):base;return vs.some(v=>v===gap&&okV(H,v,c))};
   let pool=H.def.filter(c=>!H.played.includes(c.id));let h=H.hand.length;if(!h)return 0;
   if(global.__diff&&global.__diff[me]==='hard'&&!global.__noMem){const M=R.P[me];M.known=M.known.filter(k=>H.hand.includes(k));
@@ -1317,7 +1317,7 @@ function oppWin(R,me,gap,gAfter){
 function squeeze(R,me,gap,ng,RR){   // 상대 손패가 전부 '나한테 끝낼 칸을 주는 카드'일 확률
   const H=R.P[1-me];let pool=H.def.filter(c=>!H.played.includes(c.id)&&!c.reactive);let h=H.hand.length;
   const M=R.P[me];const known=(M.known||[]).filter(k=>H.hand.includes(k));
-  const vOf=c=>c.choice||(c.lower?c.lower.map(x=>-x):[c.id==='trend'?(ng>=20?4:2):c.id==='fourcut'?(H.photoCount>=3?1:4):c.v]);
+  const vOf=c=>c.choice||(c.lower?c.lower.map(x=>-x):[c.id==='trend'?(ng>=20?4:2):c.id==='fourcut'?(H.photoCount>=3?4:1):c.v]);
   const safe=c=>vOf(c).some(x=>x!==gap&&!RR.has(gap-x));   // 넘기거나 버티거나 구멍으로 피할 수 있음
   if(known.some(safe))return 0;
   const kid=known.map(k=>k.id);pool=pool.filter(c=>!kid.includes(c.id)&&!(M.out||[]).includes(c.id));h-=known.length;
@@ -1327,7 +1327,7 @@ function squeeze(R,me,gap,ng,RR){   // 상대 손패가 전부 '나한테 끝낼
 const BONUS={scoop:-4,story:8,vlog:8,hilite:8,nail:6,burst:9,repost:9,snipe:10,charm:8,doll:10,convert:12,fortune:8,f4f:2,dm:2,ward:4,drip:8,calm:6,tea:7,regular:4,whistle:10,court:8,jog:9,sub:5};
 function reachOf(P,hand,gAfter){
   const vals=hand.map(c=>{if(c.reactive||c.lower||c.nofinish)return[];if(c.choice)return c.choice;
-    if(c.id==='trend')return[gAfter>=20?4:2];if(c.id==='fourcut')return[P.photoCount>=3?1:4];return[c.v]});
+    if(c.id==='trend')return[gAfter>=20?4:2];if(c.id==='fourcut')return[P.photoCount>=3?4:1];return[c.v]});
   const S=new Set();hand.forEach((c,i)=>{vals[i].forEach(x=>S.add(x));if(!c.extra)return;
     hand.forEach((d,j)=>{if(j===i)return;vals[i].forEach(x=>vals[j].forEach(y=>S.add(x+y)));
       if(d.extra)hand.forEach((e,k)=>{if(k===i||k===j)return;vals[i].forEach(x=>vals[j].forEach(y=>vals[k].forEach(z=>S.add(x+y+z))))})})});
@@ -1368,7 +1368,7 @@ return{playLoop,cloneR,shuffle,global};
 })();
 /* ---------- AI ---------- */
 let DIFF='normal',MATCH=5;
-const curV=(P,c,g)=>c.id==='trend'?(g>=20?4:2):c.id==='fourcut'?(P.photoCount>=3?1:4):c.v;
+const curV=(P,c,g)=>c.id==='trend'?(g>=20?4:2):c.id==='fourcut'?(P.photoCount>=3?4:1):c.v;
 // 상대(1-me)가 다음 차례에 gap을 딱 맞출 확률
 function oppWinProb(gap,gAfter,me=AI,diff=DIFF){
   const H=G.P[1-me];if(H.skip||gap<=0)return 0;
