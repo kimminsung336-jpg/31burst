@@ -142,7 +142,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 .dvg{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:12px;overflow:auto;min-height:0;overscroll-behavior:contain}
 .dvhd{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;padding:4px 0 10px;background:var(--card)}
 .dvhd img{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px var(--cc)}
-.dvhd span{font:400 22px/1.05 "Black Han Sans",sans-serif}.dvhd small{display:block;font:700 12px/1.3 "Noto Sans KR",sans-serif;color:var(--sub)}
+.dvhd span{font:400 22px/1.05 "Black Han Sans",sans-serif}.dvhd small{display:block;margin-bottom:3px;font:700 12px/1.3 "Noto Sans KR",sans-serif;color:var(--sub)}
 .dvhd em{margin-left:auto;font-style:normal;font-size:13px;color:var(--sub)}
 .dvs h4{display:flex;align-items:center;gap:6px;margin:12px 0 6px;font:700 13px/1 "Noto Sans KR",sans-serif;color:var(--sub)}
 .dvs h4 b{min-width:22px;padding:3px 7px;border-radius:999px;background:var(--bg);color:var(--ink);text-align:center;font-size:12px}
@@ -331,7 +331,14 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 @media(max-width:600px){.diff{gap:6px;flex-wrap:nowrap}.diff span{margin-right:0;white-space:nowrap}.diff button{padding:6px 11px;white-space:nowrap}.diff .pbl{display:none}}
 .pc img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;object-position:center 22%}
 .pc .pi{display:block;padding:12px 14px 16px}
-.pc .pn{display:block;font:400 26px/1.1 "Black Han Sans",sans-serif}
+.pc .pi{position:relative}.pc .pn{display:block;padding-right:40px;font:400 26px/1.1 "Black Han Sans",sans-serif}
+.pdeck{position:absolute;right:12px;top:10px;width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--card);border:2px solid var(--line);color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s}
+.pdeck svg{width:20px;height:20px}.pdeck rect{fill:var(--card);stroke:currentColor;stroke-width:2}
+.pdeck:hover,.pdeck:focus-visible{border-color:var(--m);color:var(--m);outline:none}
+.pc:disabled .pdeck{pointer-events:auto}
+#deckView{z-index:9}#deckView.pv .dvtabs{display:none}#deckView.pv .tg.own{display:none}.dvab{margin:2px 0 4px;font-size:14px;word-break:keep-all}.dvab b{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:999px;background:var(--k);color:var(--y);font-size:13px}
+.dvg[data-s="p"]{grid-template-columns:minmax(0,640px);justify-content:center}
+@media(max-width:600px){.dvg[data-s="p"] .dvc{display:block!important}.dvhd.pv{display:flex}.pdeck{width:28px;height:28px;border-radius:8px;right:8px;top:7px}.pc .pn{padding-right:32px}.pdeck svg{width:16px;height:16px}}
 .pc .pn small{margin-left:8px;font:500 13px/1 "Noto Sans KR",sans-serif;color:var(--sub);vertical-align:2px;white-space:nowrap}
 .pc .ab{margin-top:8px;word-break:keep-all}
 .pc .ty{display:block;font-size:13px;color:var(--sub);margin-bottom:8px}
@@ -1481,7 +1488,7 @@ function aiAct(p=AI,diff=DIFF){
 
 function deckLabel(c){return c.choice?c.choice.join('/'):c.lower?'−'+c.lower[0]+'~'+c.lower[c.lower.length-1]:String(c.v)}
 function deckRow(p,c){
-  const v=c.choice||c.lower?null:valOf(p,c,null),q=c.choice||c.lower;
+  const q=c.choice||c.lower,v=q?null:p===null?c.v:valOf(p,c,null);
   const cls=q?'q':v<0?'neg':v===0?'zero':'',own=!SHARED.some(x=>x.id===c.id);
   return `<li><span class="v ${cls}">${q?'?':v}</span><span class="nm"><b>${c.name}</b>${own?'<i class="tg own">전용</i>':''}${c.photo?'<i class="tg ph">사진</i>':''}<small>${c.text}</small></span></li>`}
 function deckCol(p){
@@ -1492,14 +1499,22 @@ function deckCol(p){
   const grp=(cls,t,list)=>list.length?`<section class="dvs ${cls}"><h4>${t}<b>${list.length}</b></h4><ul>${list.map(c=>deckRow(p,c)).join('')}</ul></section>`:'';
   return `<div class="dvc"><div class="dvhd" style="--cc:${CASTS[k].back[0]}"><img src="img/${k}_av.jpg" alt=""><span><small>${me?'내 덱':'상대 덱'}</small>${NAME[p]}</span><em>${cards.length}장</em></div>`
    +grp('inhand','손패',hand)+grp('left',me?'덱에 남음':'아직 안 나옴',rest)+grp('gone','이번 판에 나옴',gone)+'</div>'}
+let DV_RET=null;
+function previewDeck(k,from){
+  const c=CASTS[k],own=c.deck.filter(x=>!SHARED.includes(x)),t=$('dvGrid');DV_RET=from;
+  const grp=(t2,list)=>`<section class="dvs"><h4>${t2}<b>${list.length}</b></h4><ul>${list.map(x=>deckRow(null,x)).join('')}</ul></section>`;
+  t.dataset.s='p';$('dvTitle').textContent=`${c.name} 덱`;$('dvTabs').innerHTML='';
+  t.innerHTML=`<div class="dvc"><div class="dvhd pv" style="--cc:${c.back[0]}"><img src="img/${k}_av.jpg" alt=""><span><small>${c.handle}</small>${c.name}</span><em>${c.deck.length}장</em></div><p class="dvab">${c.abil}</p>`+grp('전용 카드',own)+grp('공용 카드',SHARED)+'</div>';
+  $('deckView').classList.add('on','pv');t.scrollTop=0;$('dvClose').focus();
+}
 function showDeck(s){
-  const t=$('dvGrid');if(s!==undefined)t.dataset.s=s;
+  const t=$('dvGrid');$('dvTitle').textContent='덱 리스트';$('deckView').classList.remove('pv');DV_RET=null;if(s!==undefined)t.dataset.s=s;else if(t.dataset.s==='p')t.dataset.s=0;
   t.innerHTML=deckCol(ME)+deckCol(AI);
   $('dvTabs').innerHTML=[ME,AI].map((p,i)=>`<button role="tab" data-s="${i}" aria-selected="${t.dataset.s==i}" style="--cc:${CASTS[SEAT[p]].back[0]}"><img src="img/${SEAT[p]}_av.jpg" alt="">${p===ME?'내 덱':'상대 덱'}<small>${NAME[p]}</small></button>`).join('');
   $('deckView').classList.add('on');$('dvClose').focus();
 }
 $('dvTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b){showDeck(+b.dataset.s);$('dvGrid').scrollTop=0}});
-function hideDeck(){$('deckView').classList.remove('on');$('deckBtn').focus()}
+function hideDeck(){$('deckView').classList.remove('on','pv');(DV_RET||$('deckBtn')).focus();DV_RET=null}
 let GI=0;const GN=document.querySelectorAll('#gTrack .gs').length;
 $('gDots').innerHTML=Array.from({length:GN},()=>'<i></i>').join('');
 function gGo(n){GI=Math.max(0,Math.min(GN-1,n));$('gTrack').style.transform=`translateX(${-GI*100}%)`;
@@ -1552,7 +1567,7 @@ function renderPick(){
     else{foe=NET.hostCast;mine=NET.guestCast;lock=!foe||!!mine;sub=!foe?'방장이 캐스트를 고르는 중…':!mine?`방장은 ${CASTS[foe].name}. 내 캐스트를 골라.`:'곧 시작!'}}
   else{title=PICK_ME?'상대 캐스트 고르기':'캐스트 고르기';sub=PICK_ME?`${jo(CASTS[PICK_ME].name,'으로','로')} 플레이. 상대는 AI가 맡아.`:'내가 플레이할 캐스트를 골라.';foe=PICK_ME}
   $('pickTitle').textContent=title;$('pickSub').textContent=sub;
-  $('pgrid').innerHTML=Object.entries(CASTS).map(([k,c])=>`<button class="pc ${k}${k===foe?' foe':''}${k===mine?' mine':''}" data-k="${k}" ${lock&&k!==mine?'disabled':''}><img src="img/${k}_selfie.jpg" alt="${c.name}"><span class="pi"><span class="pn">${c.name}<small>${c.handle}</small></span><span class="ab">${c.abil}</span></span></button>`).join('')
+  $('pgrid').innerHTML=Object.entries(CASTS).map(([k,c])=>`<button class="pc ${k}${k===foe?' foe':''}${k===mine?' mine':''}" data-k="${k}" ${lock&&k!==mine?'disabled':''}><img src="img/${k}_selfie.jpg" alt="${c.name}"><span class="pi"><span class="pn">${c.name}<small>${c.handle}</small><span class="pdeck" role="button" tabindex="0" data-deck="${k}" aria-label="${c.name} 덱 보기" title="덱 보기"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="12" height="16" rx="2.5"/><rect x="4" y="6" width="12" height="16" rx="2.5"/></svg></span></span><span class="ab">${c.abil}</span></span></button>`).join('')
 ;
   $('pBack').hidden=!(!on&&PICK_ME);
 }
@@ -1564,7 +1579,9 @@ $('diff').addEventListener('click',e=>{const b=e.target.closest('button');if(!b|
 $('olHost').addEventListener('click',netHost);
 $('olJoin').addEventListener('click',netJoin);
 $('olCode').addEventListener('keydown',e=>{if(e.key==='Enter')netJoin()});
+$('pgrid').addEventListener('keydown',e=>{const d=e.target.closest('.pdeck');if(d&&(e.key==='Enter'||e.key===' ')){e.preventDefault();e.stopPropagation();previewDeck(d.dataset.deck,d)}});
 $('pgrid').addEventListener('click',e=>{
+  {const d=e.target.closest('.pdeck');if(d){e.stopPropagation();previewDeck(d.dataset.deck,d.closest('.pc'));return}}
   const b=e.target.closest('.pc');if(!b||b.disabled)return;const k=b.dataset.k;
   if(NET.on){
     if(NET.role==='host'&&!NET.hostCast&&k!==NET.guestCast){NET.hostCast=k;NET.send({t:'hostcast',k});renderPick();netTryStart()}
