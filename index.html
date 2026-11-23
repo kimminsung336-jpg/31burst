@@ -788,10 +788,10 @@ function bigHit(n){
   setTimeout(()=>{const m=document.querySelector('main');m.classList.remove('quake');void m.offsetWidth;m.classList.add('quake');
     spawn(innerWidth/2,innerHeight/2,70,340);spawn(0,0,50,240,true)},230);
 }
-function bigBust(mult){
-  NET.ev({t:'bust'});
+function bigBust(k=1){
+  NET.ev({t:'bust',k});
   const d=document.createElement('div');d.className='bustbig';
-  d.innerHTML=`<div class="w"><span class="t">BUST!</span></div>`;
+  d.innerHTML=`<div class="w"><span class="t">BUST!</span>${k>1?`<small>${k}연속 버스트!</small>`:''}</div>`;
   document.body.appendChild(d);setTimeout(()=>d.remove(),3000);
   const m=document.querySelector('main');m.classList.remove('quake');void m.offsetWidth;m.classList.add('quake');
 }
@@ -951,7 +951,7 @@ function onNet(m){
     case'clear':$('feed').innerHTML='';break;
     case'post':{const c=ALLC.find(x=>x.id===m.id);if(c)NET.lastEl=addPost(1-m.p,c,m.v);break}
     case'hit':bigHit();break;
-    case'bust':bigBust();break;
+    case'bust':bigBust(m.k||1);break;
     case'bustfx':bustFx(NET.lastEl);break;
     case'log':log(m.msg,flipCls(m.cls),1);break;
     case'ask':ask(m.title,m.text,m.labels.map((l,k)=>({label:l,value:k}))).then(k=>NET.send({t:'ans',id:m.id,k}));break;
@@ -1105,10 +1105,12 @@ async function play(p,idx,choice,adj=0){
 
   if(ng===G.target&&!card.nofinish){bigHit(G.target);await sleep(2600);G.busy=false;return endRound(p)}
   if(ng>G.target||(ng===G.target&&card.nofinish)){   // 저스트 불가 카드로 목표에 딱 맞으면 버스트
-    const mult=card.triple?3:2,plus=SEAT.filter(k=>CASTS[k].bustPlus).length;G.stake=G.stake*mult+plus;G.target+=10;G.busts++;(G.stakeHist=G.stakeHist||[1]).push(G.stake);
+    // 목표가 열기보다 위로 올라갈 때까지 연속으로 버스트
+    const plus=SEAT.filter(k=>CASTS[k].bustPlus).length;let k=0;
+    do{const mult=k===0&&card.triple?3:2;G.stake=G.stake*mult+plus;G.target+=10;G.busts++;(G.stakeHist=G.stakeHist||[1]).push(G.stake);k++}while(G.gauge>=G.target);
     const drawers=[ME,AI].filter(q=>CASTS[SEAT[q]].bustDraw);drawers.forEach(q=>draw(q,CASTS[SEAT[q]].bustDraw));
-    bustFx(postEl);render();bigBust(mult);await sleep(2300);
-    log(`버스트! 묻고 ${mult===3?'트리플':'더블'}.${plus?' 흉조로 +1,':''} 판돈 ${G.stake}점, 목표 ${G.target}.${drawers.map(q=>` ${NAME[q]} 2장 뽑음`).join('')}`);
+    bustFx(postEl);render();bigBust(k);await sleep(2300);
+    log(`버스트!${k>1?` ${k}연속,`:''} 묻고 ${card.triple?'트리플':'더블'}.${plus?' 흉조로 판돈 +1,':''} 판돈 ${G.stake}점, 목표 ${G.target}.${drawers.map(q=>` ${NAME[q]} 2장 뽑음`).join('')}`);
   }
   // 효과
   if(card.draw)draw(p,card.draw);
@@ -1213,7 +1215,7 @@ function playLoop(R,AB,S,first){
       if(ng>R.target||(ng===R.target&&card.nofinish)){
         const si=P.hand.findIndex(c=>c.id==='sorry');
         if(si>=0){S.undo=(S.undo||0)+1;P.hand.splice(si,1);P.hand.push(card);R.gauge=prev;if(card.photo)P.photoCount--;P.plays=0;break}
-        const m=card.triple?3:2;R.stake=R.stake*m+(AB[0].bustPlus?1:0)+(AB[1].bustPlus?1:0);if(global.__reset){R.gauge=0}else R.target+=10;R.busted=true;S.busts++;S.bc=S.bc||{};const _k=(R.gauge-v>R.target?'이미넘침':_forced?'강제':'선택')+':'+card.id;S.bc[_k]=(S.bc[_k]||0)+1;S.bb=S.bb||[0,0];S.bb[p]++;S.maxStake=Math.max(S.maxStake,R.stake);
+        {let k=0;do{const m=k===0&&card.triple?3:2;R.stake=R.stake*m+(AB[0].bustPlus?1:0)+(AB[1].bustPlus?1:0);R.target+=10;k++}while(R.gauge>=R.target)}R.busted=true;S.busts++;S.bc=S.bc||{};const _k=(R.gauge-v>R.target?'이미넘침':_forced?'강제':'선택')+':'+card.id;S.bc[_k]=(S.bc[_k]||0)+1;S.bb=S.bb||[0,0];S.bb[p]++;S.maxStake=Math.max(S.maxStake,R.stake);
         for(const q of[0,1])if(AB[q].bustDraw)draw(q,AB[q].bustDraw);
       }
       if(card.draw)draw(p,card.draw);
@@ -1286,8 +1288,8 @@ function ai(R,p){
     for(const adj of AD&&!c.lower?[0,AD]:[0]){
       const v=valOf(R,p,c,ch)+adj;if(adj&&!okV(P,v,c))continue;const ng=Math.max(0,R.gauge+v);let s;
       if(ng===R.target&&!c.nofinish)s=10000;
-      else if(ng>R.target||(ng===R.target&&c.nofinish)){const m=c.triple?3:2,gap=R.target+10-ng;const hs=P.hand.some(x=>x.id==='sorry');
-        s=-140*oppWin(R,p,gap,ng)*m-15*m+(R.bustLike?.[p]?12:0)+(hs?-60:0)+(easy&&oppWin(R,p,R.target-R.gauge,R.gauge)>.5?60:0);if(!easy&&gap<=0)s-=30}
+      else if(ng>R.target||(ng===R.target&&c.nofinish)){let nt=R.target,k=0;do{nt+=10;k++}while(ng>=nt);const m=(c.triple?3:2)*2**(k-1),gap=nt-ng;const hs=P.hand.some(x=>x.id==='sorry');
+        s=-140*oppWin(R,p,gap,ng)*m-15*m+(R.bustLike?.[p]?12:0)+(hs?-60:0)+(easy&&oppWin(R,p,R.target-R.gauge,R.gauge)>.5?60:0);}
       else if(!easy){const gap=R.target-ng;let risk;
         const FL={charm:'capture',calm:'soothe',whistle:'press'}[c.id];if(FL){const H=R.P[1-p],keep=H[FL];H[FL]=true;risk=oppWin(R,p,gap,ng);H[FL]=keep}else risk=oppWin(R,p,gap,ng);
         if(c.id==='silence')risk=0;if(c.id==='snipe')risk*=.35;s=-100*risk;if(gap===0)s-=150;
@@ -1385,10 +1387,9 @@ function aiAct(p=AI,diff=DIFF){
       const rest=P.hand.filter((_,j)=>j!==i);
       if(ng===G.target&&!c.nofinish)s=10000;
       else if(ng>G.target||(ng===G.target&&c.nofinish)){
-        const m=c.triple?3:2,gap=G.target+10-ng;
+        let nt=G.target,k=0;do{nt+=10;k++}while(ng>=nt);const m=(c.triple?3:2)*2**(k-1),gap=nt-ng;
         s=-140*oppWinProb(gap,ng,p,diff)*m-15*m+(CASTS[SEAT[p]].bustDraw?12:0);
         if(easy)s+=oppWinProb(G.target-G.gauge,G.gauge,p,diff)>.5?60:0;   // 쉬움: 질 것 같으면 판부터 키운다
-        else if(gap<=0)s-=30;   // 버스트 뒤에도 넘친 상태면 연쇄 버스트
       }else{
         const gap=G.target-ng;let risk;
         const FL={charm:'capture',calm:'soothe',whistle:'press'}[c.id];if(FL&&!easy){const H=G.P[O],keep=H[FL];H[FL]=true;risk=oppWinProb(gap,ng,p,diff);H[FL]=keep}
