@@ -216,6 +216,72 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   .gp{max-height:calc(100% - 64px)}
 }
 @media(prefers-reduced-motion:reduce){.gtrack{transition:none}}
+/* ---------- 점수판 ---------- */
+.top{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center}
+.sb{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;max-width:620px;width:100%;justify-self:center}
+.sbp{display:flex;align-items:center;gap:9px;min-width:0}
+.sbp.ai{justify-content:flex-end}
+.sba{width:38px;height:38px;border-radius:50%;object-fit:cover;flex:none;box-shadow:0 0 0 3px var(--cMe,var(--m))}
+.sbp.ai .sba{box-shadow:0 0 0 3px var(--cAi,var(--c))}
+.sbn{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.sbn span{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbn small{font-size:11px;color:#b9a6b3;white-space:nowrap}
+.sbp.ai .sbn{text-align:right}
+.sbp strong{font:400 34px/1 "Black Han Sans",sans-serif;min-width:1.2em;text-align:center;color:#fff;transition:transform .25s}
+.sb[data-lead=me] .sbp.me strong{color:var(--y)}.sb[data-lead=ai] .sbp.ai strong{color:var(--y)}
+.sbr{display:flex;flex-direction:column;align-items:center;gap:5px}
+.sbl{font:700 14px/1 "Noto Sans KR",sans-serif;color:#fbeef5;letter-spacing:.5px}
+.sbd{display:flex;gap:5px}
+.sbd i{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font:400 15px/1 "Black Han Sans",sans-serif;font-style:normal;background:#2a2230;color:#fff;border:1px solid #3a2f42}
+.sbd i.m{background:var(--cMe,var(--m));border-color:transparent;color:#16121a}
+.sbd i.a{background:var(--cAi,var(--c));border-color:transparent;color:#16121a}
+.sbd i.d{color:#fbeef5;background:#4a3d55}
+.sbd i.now{border:2px solid var(--y);animation:nowp 1.4s ease-in-out infinite}
+@keyframes nowp{50%{box-shadow:0 0 0 3px rgba(255,210,63,.35)}}
+/* ---------- 결과판 ---------- */
+.res{position:fixed;inset:0;z-index:6;display:none;place-items:center;padding:16px;background:rgba(10,6,12,.72);overflow:auto}
+.res.on{display:grid}
+.rbox{position:relative;width:min(560px,100%);border-radius:28px;padding:26px 24px 22px;text-align:center;background:var(--card);border:3px solid #16121a;box-shadow:8px 8px 0 #16121a;animation:rin .45s cubic-bezier(.2,1.3,.4,1)}
+@keyframes rin{from{transform:translateY(30px) scale(.92);opacity:0}}
+.rbox[data-res=win]{background:linear-gradient(170deg,#ff5ea8,#ff2e8a);color:#fff}
+.rbox[data-res=lose]{background:#16121a;color:#fbeef5;box-shadow:8px 8px 0 #19c6e6}
+.rbox[data-res=draw]{background:#19c6e6;color:#16121a}
+.rk{display:inline-block;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.22);font:700 13px/1 "Noto Sans KR",sans-serif;color:inherit}
+.rt{margin:12px 0 4px;font:400 clamp(48px,11vw,76px)/1 "Black Han Sans",sans-serif;color:#ffd23f;-webkit-text-stroke:6px #16121a;paint-order:stroke fill;text-shadow:0 .07em 0 #16121a;transform:rotate(-3deg)}
+.rbox[data-res=lose] .rt{color:#19c6e6;text-shadow:0 .07em 0 #ff2e8a}
+.rs{margin:6px 0 16px;font:700 16px/1.4 "Noto Sans KR",sans-serif;word-break:keep-all}
+.rvs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;margin:0 auto 16px;max-width:400px}
+.rp{margin:0;position:relative;transition:transform .3s,opacity .3s}
+.rp img{display:block;width:100%;aspect-ratio:1;object-fit:cover;object-position:center 22%;border-radius:18px;border:3px solid #16121a;background:#fff}
+.rp figcaption{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:8px;font:700 14px/1 "Noto Sans KR",sans-serif}
+.rp figcaption b{font:400 38px/1 "Black Han Sans",sans-serif}
+.rbox.fin .rp:not(.won){opacity:.55;transform:scale(.92)}
+.rp.won img{box-shadow:0 0 0 4px #ffd23f}
+.rp.won::after{content:"WIN";position:absolute;top:-12px;left:50%;transform:translateX(-50%) rotate(-6deg);padding:3px 12px;border-radius:999px;background:#ffd23f;color:#16121a;border:2px solid #16121a;font:400 16px/1.2 "Black Han Sans",sans-serif}
+.rcol{font:400 40px/1 "Black Han Sans",sans-serif;opacity:.7}
+.rrounds{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;max-width:440px}
+.rrounds li{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 2px;border-radius:12px;background:rgba(0,0,0,.16);font-size:13px;min-height:96px}
+.rrounds li span{font-weight:700;opacity:.8}
+.rrounds li img{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid #16121a}
+.rrounds li em{font-style:normal;font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.rrounds li b{font:400 22px/1 "Black Han Sans",sans-serif}
+.rrounds li i{font-style:normal;font-size:11px;font-weight:700;padding:1px 6px;border-radius:999px;background:#16121a;color:#ffd23f}
+.rrounds li.m{background:rgba(255,255,255,.88);color:#16121a}
+.rrounds li.a{background:rgba(22,18,26,.75);color:#fff}
+.rbox[data-res=lose] .rrounds li.a{background:#2a2230}
+.rrounds li.e{opacity:.45}
+.rrounds li.last{outline:3px solid #ffd23f;outline-offset:-1px}
+.rnote{margin:12px 0 0;font:700 14px/1.4 "Noto Sans KR",sans-serif;opacity:.9}.rnote:empty{display:none}
+.rgo{margin-top:18px;min-height:50px;min-width:180px;border:3px solid #16121a;border-radius:999px;background:#ffd23f;color:#16121a;font:700 17px/1 "Noto Sans KR",sans-serif;box-shadow:4px 4px 0 #16121a;cursor:pointer}
+@media(max-width:600px){
+  .top{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:8px 10px}
+  .sb{gap:6px}.sbn{display:none}.sba{width:30px;height:30px}.sbp{gap:6px}.sbp strong{font-size:26px}
+  .sbd{gap:4px}.sbd i{width:21px;height:21px;font-size:13px;border-radius:6px}.sbl{font-size:12px}
+  .deckbtn{padding:6px 10px;font-size:12px}
+  .rbox{padding:22px 16px 18px;border-radius:22px}
+  .rvs{gap:8px}.rp figcaption b{font-size:30px}
+  .rrounds{gap:5px}.rrounds li{min-height:88px;font-size:12px}.rrounds li em{font-size:12px}.rrounds li b{font-size:19px}.rrounds li img{width:28px;height:28px}.rrounds li i{font-size:10px;padding:1px 4px}
+}
 .pc.foe{opacity:.45;pointer-events:none}.pback{border:0;background:none;color:var(--sub);font:inherit;text-decoration:underline;cursor:pointer;padding:8px 0}
 .pc img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;object-position:center 22%}
 .pc .pi{display:block;padding:12px 14px 16px}
@@ -301,12 +367,12 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 <body>
 <header class="top">
   <h1>31 <b>버스트</b></h1>
-  <div class="score">
-    <span class="pill" id="roundPill">1 / 5판</span>
-    <span class="pill me"><span id="nMe">아이리</span><strong id="sMe">0</strong></span>
-    <span class="pill ai"><span id="nAi">미코 (AI)</span><strong id="sAi">0</strong></span>
-    <button class="pill deckbtn" id="deckBtn" aria-haspopup="dialog">덱 리스트</button>
+  <div class="sb" id="sb">
+    <div class="sbp me"><img class="sba" id="sbMeAv" src="img/iri_av.jpg" alt=""><span class="sbn"><span id="nMe">아이리</span><small>나</small></span><strong id="sMe">0</strong></div>
+    <div class="sbr"><span class="sbl" id="roundPill">1 / 5판</span><span class="sbd" id="sbDots"></span></div>
+    <div class="sbp ai"><strong id="sAi">0</strong><span class="sbn"><span id="nAi">미코</span><small id="nAiTag">AI</small></span><img class="sba" id="sbAiAv" src="img/miko_av.jpg" alt=""></div>
   </div>
+  <button class="pill deckbtn" id="deckBtn" aria-haspopup="dialog">덱 리스트</button>
 </header>
 
 <main class="wrap">
@@ -436,6 +502,19 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 <div class="fx" id="fx" aria-hidden="true"></div>
 <button class="tltab" id="tlTab" type="button" aria-label="타임라인 열기"><span>타임라인</span><b class="bd" id="tlBadge"></b></button>
 <div class="tlback" id="tlBack"></div>
+<div class="res" id="res" role="dialog" aria-modal="true" aria-labelledby="rTitle"><div class="rbox" id="rBox">
+  <span class="rk" id="rKick">1판 결과</span>
+  <h2 class="rt" id="rTitle">저스트!</h2>
+  <p class="rs" id="rSub"></p>
+  <div class="rvs">
+    <figure class="rp" id="rMe"><img id="rMeImg" src="img/iri_selfie.jpg" alt=""><figcaption><span id="rMeName">아이리</span><b id="rMeSc">0</b></figcaption></figure>
+    <span class="rcol">:</span>
+    <figure class="rp" id="rAi"><img id="rAiImg" src="img/miko_selfie.jpg" alt=""><figcaption><span id="rAiName">미코</span><b id="rAiSc">0</b></figcaption></figure>
+  </div>
+  <ol class="rrounds" id="rRounds"></ol>
+  <p class="rnote" id="rNote"></p>
+  <button type="button" class="rgo" id="rGo">다음 판</button>
+</div></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true"><div class="box"><h3 id="mTitle"></h3><p id="mText"></p><div class="opts" id="mOpts"></div></div></div>
 
 <script>
@@ -497,16 +576,16 @@ const MINA=[
 ];
 const CASTS={
  iri:{name:'아이리',handle:'@iri_cafe',type:'M · 갸루',deck:[...SHARED,...IRI],photoDraw:1,back:['#ff2e8a','#c41d68'],
-  abil:'<b>셀카 장인</b> 사진 포스트를 내면 1장 뽑는다. 턴마다 한 번',
+  abil:'<b>셀카 장인</b> 사진을 포스트하면 한 장 뽑는다',
   style:'사진 포스트로 손을 계속 돌리고, 숫자를 유연하게 맞춘다'},
  miko:{name:'미코',handle:'@miko_occult',type:'K · 오컬트',deck:[...SHARED,...MIKO],bustPlus:1,bustDraw:2,back:['#7a4cc4','#4b2a85'],
-  abil:'<b>흉조</b> 버스트가 나면 판돈이 1 더 오르고, 미코가 2장 뽑는다',
+  abil:'<b>흉조</b> 버스트하면 판돈을 더 올리고, 두 장 뽑는다',
   style:'상대 손을 끊고, 판이 터지길 기다린다'},
  haru:{name:'하루',handle:'@haru_ne',type:'Y · 누님',deck:[...SHARED,...HARU],adjust:1,abName:'어른의 여유',back:['#f5b800','#b98a00'],
-  abil:'<b>어른의 여유</b> 판마다 한 번, 낸 카드 숫자를 1 올린다',
+  abil:'<b>어른의 여유</b> 낸 카드 숫자를 1 올린다',
   style:'판을 천천히 끌고 가다가 마지막 한 칸을 맞춘다'},
  mina:{name:'준',handle:'@jun_mvp',type:'C · 톰보이',deck:[...SHARED,...MINA],adjust:-1,abName:'숨 고르기',back:['#12c6dc','#0a8fa3'],
-  abil:'<b>숨 고르기</b> 판마다 한 번, 낸 카드 숫자를 1 내린다',
+  abil:'<b>숨 고르기</b> 낸 카드 숫자를 1 내린다',
   style:'큰 숫자로 몰아치다가 한 칸 넘친 걸 붙잡는다'}
 };
 let SEAT=['iri','miko'],DECK=[CASTS.iri.deck,CASTS.miko.deck];
@@ -766,7 +845,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const ME=0,AI=1,NAME=['아이리','미코'];
 
-const G={round:0,score:[0,0],wins:[0,0],starter:ME,cur:ME,gauge:0,target:31,stake:1,passes:0,busy:false,over:false,P:[]};
+const G={round:0,score:[0,0],wins:[0,0],starter:ME,cur:ME,gauge:0,target:31,stake:1,passes:0,busy:false,over:false,P:[],hist:[],busts:0};
 
 /* ---------- 온라인 2인 (PeerJS, 방장이 판정) ---------- */
 const NET={on:false,role:null,peer:null,conn:null,code:'',hostCast:null,guestCast:null,lastEl:null,last:'',aid:0,wait:{},
@@ -776,11 +855,11 @@ const NET={on:false,role:null,peer:null,conn:null,code:'',hostCast:null,guestCas
 const PH={id:'?',name:'?',v:0,text:''};
 function snap(){
   const mask=(P,hide)=>({...P,deck:P.deck.length,hand:hide?P.hand.length:P.hand,used:[],known:hide?[]:P.known});
-  return{round:G.round,score:G.score,wins:G.wins,starter:G.starter,cur:G.cur,gauge:G.gauge,target:G.target,stake:G.stake,busy:G.busy,over:G.over,
+  return{hist:G.hist,busts:G.busts,round:G.round,score:G.score,wins:G.wins,starter:G.starter,cur:G.cur,gauge:G.gauge,target:G.target,stake:G.stake,busy:G.busy,over:G.over,
     P:G.P.length?[mask(G.P[0],true),mask(G.P[1],false)]:[]};
 }
 function applySnap(s){
-  Object.assign(G,{round:s.round,score:[s.score[1],s.score[0]],wins:[s.wins[1],s.wins[0]],starter:1-s.starter,cur:1-s.cur,gauge:s.gauge,target:s.target,stake:s.stake,busy:s.busy,over:s.over});
+  Object.assign(G,{hist:(s.hist||[]).map(h=>({...h,w:h.w===null?null:1-h.w})),busts:s.busts||0,round:s.round,score:[s.score[1],s.score[0]],wins:[s.wins[1],s.wins[0]],starter:1-s.starter,cur:1-s.cur,gauge:s.gauge,target:s.target,stake:s.stake,busy:s.busy,over:s.over});
   const fix=P=>({...P,deck:Array(P.deck).fill(null),hand:typeof P.hand==='number'?Array(P.hand).fill(PH):P.hand});
   if(s.P.length)G.P=[fix(s.P[1]),fix(s.P[0])];
   render();
@@ -827,7 +906,9 @@ function netLost(){if(!NET.on)return;netReset(true);$('modal').classList.remove(
 function seatSetup(){
   const[me,op]=SEAT;DECK=[CASTS[me].deck,CASTS[op].deck];NAME[ME]=CASTS[me].name;NAME[AI]=CASTS[op].name;
   const tag=NET.on?' (상대)':' (AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]+')';
-  $('nMe').textContent=NAME[ME];$('nAi').textContent=NAME[AI]+tag;$('aiWho').textContent=NAME[AI]+(NET.on?' (상대)':' (AI)');
+  $('nMe').textContent=NAME[ME];$('nAi').textContent=NAME[AI];$('nAiTag').textContent=NET.on?'상대':'AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF];
+  $('sbMeAv').src=`img/${me}_av.jpg`;$('sbAiAv').src=`img/${op}_av.jpg`;
+  const rs=document.documentElement.style;rs.setProperty('--cMe',CASTS[me].back[0]);rs.setProperty('--cAi',CASTS[op].back[0]);$('aiWho').textContent=NAME[AI]+(NET.on?' (상대)':' (AI)');
   $('meAbil').innerHTML=CASTS[me].abil;$('aiAbil').innerHTML=CASTS[op].abil;
   document.documentElement.style.setProperty('--backA',CASTS[op].back[0]);document.documentElement.style.setProperty('--backB',CASTS[op].back[1]);
   $('pick').classList.remove('on');
@@ -860,8 +941,7 @@ function onNet(m){
     case'bustfx':bustFx(NET.lastEl);break;
     case'log':log(m.msg,flipCls(m.cls),1);break;
     case'ask':ask(m.title,m.text,m.labels.map((l,k)=>({label:l,value:k}))).then(k=>NET.send({t:'ans',id:m.id,k}));break;
-    case'notice':ask(m.title,m.text,[{label:'확인',value:1}]);break;
-    case'end':NET.hostCast=null;NET.guestCast=null;ask(m.title,m.text,[{label:'캐스트 다시 고르기',value:1}]).then(showPick);break;
+    case'result':{const w=m.w===null?null:1-m.w;if(m.final){NET.hostCast=null;NET.guestCast=null;showResult(true,w).then(showPick)}else showResult(false,w,true);break}
   }
 }
 
@@ -894,8 +974,12 @@ const anyPlayable=p=>G.P[p].hand.some(c=>playable(p,c));
 
 function render(){
   NET.state();
-  $('roundPill').textContent=`${Math.max(G.round,1)} / 5판`;
+  $('roundPill').textContent=G.over?'최종':`${Math.max(G.round,1)} / 5판`;
   $('sMe').textContent=G.score[ME];$('sAi').textContent=G.score[AI];
+  $('sbDots').innerHTML=Array.from({length:5},(_,k)=>{const h=G.hist[k];
+    if(h)return h.w===null?'<i class="d" title="무승부">–</i>':`<i class="${h.w===ME?'m':'a'}" title="${NAME[h.w]} +${h.pts}">${h.pts}</i>`;
+    return `<i class="${k===G.round-1&&!G.over?'now':''}"></i>`}).join('');
+  {const lead=G.score[ME]-G.score[AI];$('sb').dataset.lead=lead>0?'me':lead<0?'ai':''}
   $('gNum').textContent=G.gauge;$('gTarget').textContent='목표 '+G.target;
   const base=G.target-31,frac=Math.min(1,Math.max(0,(G.gauge-base)/(G.target-base)));
   $('arc').style.strokeDashoffset=326.7*(1-frac);
@@ -943,10 +1027,39 @@ function ask(title,text,opts){
   });
 }
 
-function newGame(){G.round=0;G.score=[0,0];G.wins=[0,0];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
+function showResult(fin,w,wait){
+  return new Promise(res=>{
+    const[a,b]=[G.score[ME],G.score[AI]],box=$('rBox');
+    $('rMeImg').src=`img/${SEAT[ME]}_selfie.jpg`;$('rAiImg').src=`img/${SEAT[AI]}_selfie.jpg`;
+    $('rMeName').textContent=NAME[ME];$('rAiName').textContent=NAME[AI];$('rMeSc').textContent=a;$('rAiSc').textContent=b;
+    let win=null,title,sub='',note='',kick;
+    if(fin){
+      kick='최종 결과';
+      if(a!==b)win=a>b?ME:AI;else if(G.wins[ME]!==G.wins[AI]){win=G.wins[ME]>G.wins[AI]?ME:AI;note=`동점! 저스트 ${G.wins[ME]} : ${G.wins[AI]}로 승부가 갈렸다`}
+      title=win===null?'무승부':win===ME?'승리!':'패배…';
+      sub=win===null?'완벽하게 비겼다':`${NAME[win]}의 타임라인이 이겼다`;
+    }else{
+      const h=G.hist[G.hist.length-1];kick=`${G.round}판 결과`;win=w;
+      title=w===null?'무승부':'저스트!';
+      sub=w===null?'둘 다 낼 카드가 없어서 이 판은 비겼다':`${NAME[w]} +${h.pts}점${h.busts?` · 버스트 ${h.busts}번 묻고 더블`:''}`;
+      if(wait)note='상대가 다음 판을 열 때까지 기다려줘';
+    }
+    $('rKick').textContent=kick;$('rTitle').textContent=title;$('rSub').textContent=sub;$('rNote').textContent=note;
+    box.dataset.res=win===null?'draw':win===ME?'win':'lose';box.classList.toggle('fin',fin);
+    $('rMe').classList.toggle('won',win===ME);$('rAi').classList.toggle('won',win===AI);
+    $('rRounds').innerHTML=Array.from({length:5},(_,k)=>{const h=G.hist[k];
+      if(!h)return `<li class="e"><span>${k+1}판</span><em>—</em></li>`;
+      const c=h.w===null?'d':h.w===ME?'m':'a',who=h.w===null?'무승부':NAME[h.w];
+      return `<li class="${c}${k===G.hist.length-1&&!fin?' last':''}"><span>${k+1}판</span>${h.w===null?'':`<img src="img/${SEAT[h.w]}_av.jpg" alt="">`}<em>${who}</em><b>${h.w===null?'':'+'+h.pts}</b>${h.busts?`<i>버스트×${h.busts}</i>`:''}</li>`}).join('');
+    $('rGo').textContent=fin?'다시 하기':wait?'확인':'다음 판';
+    $('res').classList.add('on');$('rGo').focus();
+    $('rGo').onclick=()=>{$('res').classList.remove('on');res()};
+  });
+}
+function newGame(){G.round=0;G.score=[0,0];G.wins=[0,0];G.hist=[];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
 function newRound(){
   G.round++;G.P=[freshPlayer(ME),freshPlayer(AI)];draw(ME,5);draw(AI,5);
-  G.gauge=0;G.target=31;G.stake=1;G.passes=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
+  G.gauge=0;G.target=31;G.stake=1;G.passes=0;G.busts=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
   log(`— ${G.round}판 시작. ${NAME[G.cur]} 선공 —`);startTurn();
 }
 
@@ -976,7 +1089,7 @@ async function play(p,idx,choice,adj=0){
 
   if(ng===G.target&&!card.nofinish){bigHit(G.target);await sleep(2600);G.busy=false;return endRound(p)}
   if(ng>G.target||(ng===G.target&&card.nofinish)){   // 저스트 불가 카드로 목표에 딱 맞으면 버스트
-    const mult=card.triple?3:2,plus=SEAT.filter(k=>CASTS[k].bustPlus).length;G.stake=G.stake*mult+plus;G.target+=10;
+    const mult=card.triple?3:2,plus=SEAT.filter(k=>CASTS[k].bustPlus).length;G.stake=G.stake*mult+plus;G.target+=10;G.busts++;
     const drawers=[ME,AI].filter(q=>CASTS[SEAT[q]].bustDraw);drawers.forEach(q=>draw(q,CASTS[SEAT[q]].bustDraw));
     bustFx(postEl);render();bigBust(mult);await sleep(2300);
     log(`버스트! 묻고 ${mult===3?'트리플':'더블'}.${plus?' 흉조로 +1,':''} 판돈 ${G.stake}점, 목표 ${G.target}.${drawers.map(q=>` ${NAME[q]} 2장 뽑음`).join('')}`);
@@ -1031,21 +1144,15 @@ async function play(p,idx,choice,adj=0){
 }
 
 async function endRound(w){
-  if(w!==null){G.score[w]+=G.stake;G.wins[w]++;log(`저스트! ${NAME[w]} ${G.round}판 승리, +${G.stake}점`)}
+  const pts=G.stake;
+  if(w!==null){G.score[w]+=pts;G.wins[w]++;log(`저스트! ${NAME[w]} ${G.round}판 승리, +${pts}점`)}
+  G.hist.push({w,pts:w===null?0:pts,busts:G.busts});
   G.starter=1-G.starter;   // 선후공은 판마다 번갈아
+  const fin=G.round>=5;if(fin)G.over=true;
   render();
-  if(G.round>=5){
-    G.over=true;render();
-    let res;const[a,b]=G.score;
-    if(a!==b)res=a>b?`${NAME[ME]} 승리!`:`${NAME[AI]} 승리…`;
-    else res=G.wins[0]===G.wins[1]?'완전 무승부':(G.wins[0]>G.wins[1]?`동점, 판 수로 ${NAME[ME]} 승리`:`동점, 판 수로 ${NAME[AI]} 승리`);
-    NET.ev({t:'end',title:res,text:`최종 ${a} : ${b} (이긴 판 ${G.wins[0]} : ${G.wins[1]})`});
-    await ask(res,`최종 ${a} : ${b} (이긴 판 ${G.wins[0]} : ${G.wins[1]})`,[{label:'캐스트 다시 고르기',value:1}]);
-    return showPick();
-  }
-  const msg=w===null?'무승부':`${NAME[w]} 승리, +${G.stake}점`;
-  NET.ev({t:'notice',title:`${G.round}판 끝`,text:`${msg}. 상대가 다음 판을 열 거야.`});
-  await ask(`${G.round}판 끝`,`${msg}. 현재 ${G.score[0]} : ${G.score[1]}`,[{label:'다음 판',value:1}]);
+  NET.ev({t:'result',final:fin,w});
+  await showResult(fin,w);
+  if(fin)return showPick();
   newRound();
 }
 
