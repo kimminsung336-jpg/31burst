@@ -286,6 +286,8 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 .pc img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;object-position:center 22%}
 .pc .pi{display:block;padding:12px 14px 16px}
 .pc .pn{display:block;font:400 26px/1.1 "Black Han Sans",sans-serif}
+.pc .pn small{margin-left:8px;font:500 13px/1 "Noto Sans KR",sans-serif;color:var(--sub);vertical-align:2px;white-space:nowrap}
+.pc .ab{margin-top:8px;word-break:keep-all}
 .pc .ty{display:block;font-size:13px;color:var(--sub);margin-bottom:8px}
 .pc .ab{display:block;font-size:14px;margin-bottom:6px}
 .pc .ab b{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:999px;background:var(--k);color:var(--y);font-size:13px}
@@ -1468,7 +1470,7 @@ function renderPick(){
     else{foe=NET.hostCast;mine=NET.guestCast;lock=!foe||!!mine;sub=!foe?'방장이 캐스트를 고르는 중…':!mine?`방장은 ${CASTS[foe].name}. 내 캐스트를 골라.`:'곧 시작!'}}
   else{title=PICK_ME?'상대 캐스트 고르기':'캐스트 고르기';sub=PICK_ME?`${jo(CASTS[PICK_ME].name,'으로','로')} 플레이. 상대는 AI가 맡아.`:'내가 플레이할 캐스트를 골라.';foe=PICK_ME}
   $('pickTitle').textContent=title;$('pickSub').textContent=sub;
-  $('pgrid').innerHTML=Object.entries(CASTS).map(([k,c])=>`<button class="pc ${k}${k===foe?' foe':''}${k===mine?' mine':''}" data-k="${k}" ${lock&&k!==mine?'disabled':''}><img src="img/${k}_selfie.jpg" alt="${c.name}"><span class="pi"><span class="pn">${c.name}</span><span class="ty">${c.handle}</span><span class="ab">${c.abil}</span></span></button>`).join('')
+  $('pgrid').innerHTML=Object.entries(CASTS).map(([k,c])=>`<button class="pc ${k}${k===foe?' foe':''}${k===mine?' mine':''}" data-k="${k}" ${lock&&k!==mine?'disabled':''}><img src="img/${k}_selfie.jpg" alt="${c.name}"><span class="pi"><span class="pn">${c.name}<small>${c.handle}</small></span><span class="ab">${c.abil}</span></span></button>`).join('')
     +(!on&&PICK_ME?'<button class="pback" id="pBack" type="button">다시 고르기</button>':'');
 }
 $('diff').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;DIFF=b.dataset.d;
