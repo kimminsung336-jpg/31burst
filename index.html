@@ -201,7 +201,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   .cardb .n{font-size:13px}.cardb .t{font-size:11px;line-height:1.35}
   .rules{display:none}
 }
-.vbar,.tmini,.tltab,.tlback,.lastp,.tlclose{display:none}
+.vbar,.tmini,.tltab,.tlback,.tlclose{display:none}
 @media(max-width:600px){
   body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
   .top{flex:none;flex-wrap:nowrap}.top h1{display:none}.score{flex-wrap:nowrap;overflow-x:auto;width:100%}
@@ -215,8 +215,6 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   .ring .num span{font:400 20px/1.1 "Black Han Sans",sans-serif;color:var(--ink);margin-top:4px}
   .info{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
   .stake{font-size:19px;margin:0;padding:3px 14px}.turn{font-size:15px}
-  .lastp{display:block;margin:0;max-width:100%;padding:7px 14px;border-radius:999px;background:var(--bg);border:1px solid var(--line);font-size:13px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-  .lastp:empty{display:none}.lastp b{color:var(--ink)}.lastp em{font-style:normal;font-weight:700;color:var(--m)}
   /* 타임라인: 오른쪽 서랍 */
   .phone{position:fixed;top:0;right:0;bottom:0;left:auto;width:min(88vw,400px);height:auto;max-width:none;margin:0;padding:0;z-index:4;border-radius:20px 0 0 20px;background:var(--card);box-shadow:-12px 0 40px rgba(0,0,0,.35);transform:translateX(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
   .screen{border-radius:20px 0 0 20px;padding-top:env(safe-area-inset-top)}
@@ -232,6 +230,13 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   .tmini.wait{color:var(--sub);font-weight:500}
   .appbar{padding:10px 12px}
 }
+.flyc{position:fixed;left:0;top:0;z-index:5;pointer-events:none;transform-style:preserve-3d}
+.flyc .fc{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 10px 24px -6px rgba(0,0,0,.45)}
+.flyc .front{display:grid;place-items:center;background:var(--card);border:3px solid var(--m)}
+.flyc .front b{font:400 clamp(30px,8vw,46px)/1 "Black Han Sans",sans-serif;color:var(--m)}
+.flyc .front.zero{border-color:var(--c)}.flyc .front.zero b{color:var(--c)}
+.flyc .front.neg{background:var(--k);border-color:var(--c)}.flyc .front.neg b{color:var(--c)}
+.flyc .back{transform:rotateY(180deg);background:repeating-linear-gradient(45deg,var(--backA,#7a4cc4) 0 8px,var(--backB,#4b2a85) 8px 16px);border:3px solid #fff}
 @keyframes vbeat{0%,100%{scale:1}12%{scale:1.22}24%{scale:.97}36%{scale:1.14}}
 @keyframes vglow{0%,100%{filter:brightness(1)}12%{filter:brightness(1.35)}36%{filter:brightness(1.2)}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.fly{display:none}}
@@ -269,7 +274,6 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
         <p id="hint">딱 맞추면 저스트, 그 판을 먹는다. 넘기면 버스트, 묻고 더블.</p>
         <div class="turn" id="turnLine">내 차례</div>
       </div>
-      <p class="lastp" id="lastP" role="button" tabindex="0" aria-label="타임라인 열기"></p>
     </div>
 
     <div class="vbar" id="vbar" aria-hidden="true">
@@ -627,8 +631,32 @@ const $=id=>document.getElementById(id);
 // 모바일 타임라인 서랍
 let TL_UNREAD=0;
 const isMobile=()=>matchMedia('(max-width:600px)').matches;
+// 카드 내는 모션: 내 카드는 손에서, 상대 카드는 뒷면으로 나와서 뒤집히며 링으로
+let LAST_PICK=null;
+function flyCard(p,v){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const ring=document.querySelector('.ring').getBoundingClientRect();if(!ring.width)return;
+  let src;
+  if(p===ME){src=LAST_PICK&&performance.now()-LAST_PICK.t<4000?LAST_PICK.r:$('hand').getBoundingClientRect();LAST_PICK=null}
+  else{const bk=$('aiBacks');src=(bk.lastElementChild||bk).getBoundingClientRect()}
+  const W=Math.max(58,Math.min(84,ring.width*.32)),H=W*1.38;
+  const sx=src.left+src.width/2-W/2,sy=src.top+src.height/2-H/2,dx=ring.left+ring.width/2-W/2,dy=ring.top+ring.height/2-H/2;
+  const el=document.createElement('div');el.className='flyc'+(p===ME?'':' opp');el.style.width=W+'px';el.style.height=H+'px';
+  const cls=v<0?'neg':v===0?'zero':'';
+  el.innerHTML=`<div class="fc front ${cls}"><b>${v}</b></div><div class="fc back"></div>`;
+  document.body.appendChild(el);
+  const r0=p===ME?0:180,mx=(sx+dx)/2+(p===ME?-20:20),my=Math.min(sy,dy)-(p===ME?60:-10);
+  const a=el.animate([
+    {transform:`perspective(700px) translate(${sx}px,${sy}px) rotateY(${r0}deg) scale(.7)`,opacity:p===ME?1:.9},
+    {transform:`perspective(700px) translate(${mx}px,${my}px) rotateY(${r0/2}deg) rotate(${p===ME?-8:8}deg) scale(1)`,opacity:1,offset:.5},
+    {transform:`perspective(700px) translate(${dx}px,${dy}px) rotateY(0deg) scale(1.15)`,opacity:1,offset:.82},
+    {transform:`perspective(700px) translate(${dx}px,${dy}px) rotateY(0deg) scale(1.6)`,opacity:0}
+  ],{duration:p===ME?620:820,easing:'cubic-bezier(.25,.7,.3,1)',fill:'forwards'});
+  a.onfinish=()=>el.remove();setTimeout(()=>el.remove(),1500);
+}
 function tlOpen(on){document.body.classList.toggle('tl',on);if(on){TL_UNREAD=0;$('tlBadge').textContent='';$('tlClose').focus()}else $('tlTab').focus()}
-function tlNote(p,card,v){$('lastP').innerHTML=`<b>${NAME[p]}</b> · ${card.name} <em>${v>=0?'+':''}${v}</em> → ${G.gauge}`;
+function tlNote(p,card,v){
+  flyCard(p,v);
   if(isMobile()&&!document.body.classList.contains('tl')){TL_UNREAD++;$('tlBadge').textContent=TL_UNREAD>9?'9+':TL_UNREAD}}
 // 받침에 맞는 조사: jo('준','이','가') → '준이'
 const jo=(w,a,b)=>{const c=w.charCodeAt(w.length-1)-0xAC00;const bat=c>=0&&c<=11171&&c%28>0;if(a==='으로'&&c%28===8)return w+'로';return w+(bat?a:b)};
@@ -816,7 +844,7 @@ function ask(title,text,opts){
 function newGame(){G.round=0;G.score=[0,0];G.wins=[0,0];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
 function newRound(){
   G.round++;G.P=[freshPlayer(ME),freshPlayer(AI)];draw(ME,5);draw(AI,5);
-  G.gauge=0;G.target=31;G.stake=1;G.passes=0;G.cur=G.starter;$('feed').innerHTML='';$('lastP').textContent='';NET.ev({t:'clear'});
+  G.gauge=0;G.target=31;G.stake=1;G.passes=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
   log(`— ${G.round}판 시작. ${NAME[G.cur]} 선공 —`);startTurn();
 }
 
@@ -1188,8 +1216,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('guide').classLis
 $('tlTab').addEventListener('click',()=>tlOpen(true));
 $('tlClose').addEventListener('click',()=>tlOpen(false));
 $('tlBack').addEventListener('click',()=>tlOpen(false));
-$('lastP').addEventListener('click',()=>tlOpen(true));
-$('lastP').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tlOpen(true)}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('tl'))tlOpen(false)});
 $('deckBtn').addEventListener('click',showDeck);
 $('dvClose').addEventListener('click',hideDeck);
@@ -1198,6 +1224,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('deckView').class
 /* ---------- 입력 ---------- */
 $('hand').addEventListener('click',async e=>{
   const b=e.target.closest('.cardb');if(!b||b.disabled||G.cur!==ME||G.busy)return;
+  LAST_PICK={r:b.getBoundingClientRect(),t:performance.now()};
   const i=+b.dataset.i,c=G.P[ME].hand[i];let ch=null;
   const P=G.P[ME],d=(P.capture?1:0)-(P.soothe?1:0);
   if(c.choice)ch=await ask(c.name,'숫자를 골라.',c.choice.filter(n=>okV(P,n+d,c)).map(n=>({label:String(n+d),value:n})));
