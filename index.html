@@ -198,6 +198,12 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 .s-win .gk{background:#16121a;color:#fff}
 .s-tip{background:#ffd23f;--fg:#16121a;--tc:#ff2e8a;--ts:6px;--tsh:#16121a;--hl:#fff}
 .s-tip .gk{background:#16121a;color:#fff}
+.s-deck{background:#bdf1fb;--fg:#16121a;--tc:#16121a;--tsh:rgba(18,198,220,.35);--hl:#fff}
+.s-deck .gk{background:#16121a;color:#fff}
+.gpair.plus::before{content:"";position:absolute;left:50%;top:40%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#ffd23f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 5v14M5 12h14' fill='none' stroke='%2316121a' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") center/24px no-repeat;border:3px solid #16121a;z-index:2;box-shadow:3px 3px 0 #16121a}
+.gnote{position:absolute;left:0;right:0;bottom:78px;margin:0 auto;max-width:640px;padding:0 20px;text-align:center;word-break:keep-all;font:700 clamp(13px,1.6vw,16px)/1.45 "Noto Sans KR",sans-serif;color:var(--fg)}
+.gnote b{color:#ff2e8a}
+.s-deck{padding-bottom:118px}
 /* 내비 */
 .gx{position:absolute;right:14px;top:14px;z-index:3;width:44px;height:44px;border-radius:50%;border:3px solid #16121a;background:#fff;color:#16121a;font:700 18px/1 sans-serif;box-shadow:3px 3px 0 #16121a}
 .gnav{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px}
@@ -221,6 +227,9 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   .gpair figure:last-child figcaption{text-align:right}
   .gpair.arrow::before{width:36px;height:36px;margin:-18px 0 0 -18px;background-size:20px;top:50%;left:50%;transform:rotate(90deg)}
   .gtag{position:absolute;top:2px;left:6px;margin:0;z-index:3}
+  .gpair.plus::before{width:36px;height:36px;margin:-18px 0 0 -18px;background-size:20px;top:50%}
+  .gnote{bottom:74px;font-size:13px}
+  .s-deck{padding-bottom:112px}
   .gpair figure:last-child .gtag{left:auto;right:6px}
   .gp{border-radius:14px;box-shadow:5px 5px 0 #16121a;padding:6px}
   .s-bust .gp{box-shadow:5px 5px 0 #ff2e8a}
@@ -467,6 +476,15 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
           <figure><div class="gp"><img src="img/g_feed.jpg" alt="번갈아 올라오는 타임라인 포스트"></div><figcaption>매 턴 <mark>번갈아 가면서</mark><br>카드를 한 장씩 냅니다</figcaption></figure>
           <figure><div class="gp gp-wide"><img src="img/g_card.jpg" alt="왼쪽 위에 숫자 3이 적힌 카드"></div><figcaption>카드 <mark>왼쪽 위 숫자</mark>만큼<br>게이지가 올라갑니다</figcaption></figure>
         </div>
+      </section>
+      <section class="gs s-deck">
+        <span class="gk">저스트할래, 버스트할래?</span>
+        <h2 class="gt">덱 구성</h2>
+        <div class="gpair plus">
+          <figure><span class="gtag">공용 카드</span><div class="gp"><img src="img/g_deck_common.jpg" alt="공용 카드 떡상, 특종, 수정됨"><b class="gchip">12</b></div><figcaption>모든 캐스트가 똑같이 쓰는<br><mark>공용 카드 12장</mark></figcaption></figure>
+          <figure><span class="gtag">하루 전용</span><div class="gp"><img src="img/g_deck_cast.jpg" alt="하루 전용 카드 오므라이스, 볼 터치 셀카, 핸드드립"><b class="gchip">8</b></div><figcaption>캐스트마다 다른<br><mark>전용 카드 8장</mark></figcaption></figure>
+        </div>
+        <p class="gnote">합쳐서 <b>20장</b>. 판마다 새로 섞어 <b>5장</b> 들고 시작하고, 내 턴이 끝나면 <b>1장</b> 뽑습니다</p>
       </section>
       <section class="gs s-just">
         <span class="gk">저스트할래, 버스트할래?</span>
