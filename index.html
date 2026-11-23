@@ -230,13 +230,15 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   .tmini.wait{color:var(--sub);font-weight:500}
   .appbar{padding:10px 12px}
 }
-.flyc{position:fixed;left:0;top:0;z-index:5;pointer-events:none;transform-style:preserve-3d}
-.flyc .fc{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 10px 24px -6px rgba(0,0,0,.45)}
+.flyc{position:fixed;left:0;top:0;z-index:5;pointer-events:none}
+.flyc .fin{position:absolute;inset:0}
+.flyc .fc{position:absolute;inset:0;border-radius:12px;box-shadow:0 10px 24px -6px rgba(0,0,0,.45)}
 .flyc .front{display:grid;place-items:center;background:var(--card);border:3px solid var(--m)}
 .flyc .front b{font:400 clamp(30px,8vw,46px)/1 "Black Han Sans",sans-serif;color:var(--m)}
 .flyc .front.zero{border-color:var(--c)}.flyc .front.zero b{color:var(--c)}
 .flyc .front.neg{background:var(--k);border-color:var(--c)}.flyc .front.neg b{color:var(--c)}
-.flyc .back{transform:rotateY(180deg);background:repeating-linear-gradient(45deg,var(--backA,#7a4cc4) 0 8px,var(--backB,#4b2a85) 8px 16px);border:3px solid #fff}
+.flyc .fbk{background:repeating-linear-gradient(45deg,var(--backA,#7a4cc4) 0 8px,var(--backB,#4b2a85) 8px 16px);border:3px solid #fff}
+.flyc.b .front,.flyc:not(.b) .fbk{display:none}
 @keyframes vbeat{0%,100%{scale:1}12%{scale:1.22}24%{scale:.97}36%{scale:1.14}}
 @keyframes vglow{0%,100%{filter:brightness(1)}12%{filter:brightness(1.35)}36%{filter:brightness(1.2)}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.fly{display:none}}
@@ -641,18 +643,35 @@ function flyCard(p,v){
   else{const bk=$('aiBacks');src=(bk.lastElementChild||bk).getBoundingClientRect()}
   const W=Math.max(58,Math.min(84,ring.width*.32)),H=W*1.38;
   const sx=src.left+src.width/2-W/2,sy=src.top+src.height/2-H/2,dx=ring.left+ring.width/2-W/2,dy=ring.top+ring.height/2-H/2;
-  const el=document.createElement('div');el.className='flyc'+(p===ME?'':' opp');el.style.width=W+'px';el.style.height=H+'px';
+  const el=document.createElement('div');el.className='flyc'+(p===ME?'':' opp b');el.style.width=W+'px';el.style.height=H+'px';
   const cls=v<0?'neg':v===0?'zero':'';
-  el.innerHTML=`<div class="fc front ${cls}"><b>${v}</b></div><div class="fc back"></div>`;
-  document.body.appendChild(el);
-  const r0=p===ME?0:180,mx=(sx+dx)/2+(p===ME?-20:20),my=Math.min(sy,dy)-(p===ME?60:-10);
-  const a=el.animate([
-    {transform:`perspective(700px) translate(${sx}px,${sy}px) rotateY(${r0}deg) scale(.7)`,opacity:p===ME?1:.9},
-    {transform:`perspective(700px) translate(${mx}px,${my}px) rotateY(${r0/2}deg) rotate(${p===ME?-8:8}deg) scale(1)`,opacity:1,offset:.5},
-    {transform:`perspective(700px) translate(${dx}px,${dy}px) rotateY(0deg) scale(1.15)`,opacity:1,offset:.82},
-    {transform:`perspective(700px) translate(${dx}px,${dy}px) rotateY(0deg) scale(1.6)`,opacity:0}
-  ],{duration:p===ME?620:820,easing:'cubic-bezier(.25,.7,.3,1)',fill:'forwards'});
-  a.onfinish=()=>el.remove();setTimeout(()=>el.remove(),1500);
+  el.innerHTML=`<div class="fin"><div class="fc front ${cls}"><b>${v}</b></div><div class="fc fbk"></div></div>`;
+  document.body.appendChild(el);const fin=el.firstElementChild;
+  let frames,dur;
+  if(p===ME){
+    const mx=(sx+dx)/2-20,my=Math.min(sy,dy)-60;
+    frames=[
+      {transform:`translate(${sx}px,${sy}px) scale(.7)`,opacity:1},
+      {transform:`translate(${mx}px,${my}px) rotate(-8deg) scale(1)`,opacity:1,offset:.5},
+      {transform:`translate(${dx}px,${dy}px) scale(1.15)`,opacity:1,offset:.82},
+      {transform:`translate(${dx}px,${dy}px) scale(1.6)`,opacity:0}];
+    dur=620;
+  }else{
+    // 뒷면으로 슥 미끄러져 와서, 링 위에서 멈췄다가 뒤집힌다
+    const mx=(sx+dx)/2+16,my=(sy+dy)/2-10;
+    frames=[
+      {transform:`translate(${sx}px,${sy}px) rotate(6deg) scale(.6)`,opacity:1,easing:'cubic-bezier(.3,.6,.35,1)'},
+      {transform:`translate(${mx}px,${my}px) rotate(4deg) scale(.9)`,opacity:1,offset:.25},
+      {transform:`translate(${dx}px,${dy}px) rotate(0deg) scale(1.05)`,opacity:1,offset:.5},
+      {transform:`translate(${dx}px,${dy}px) scale(1.2)`,opacity:1,offset:.78},
+      {transform:`translate(${dx}px,${dy}px) scale(1.2)`,opacity:1,offset:.9},
+      {transform:`translate(${dx}px,${dy}px) scale(1.5)`,opacity:0}];
+    dur=1500;
+    const f1=fin.animate([{transform:'scaleX(1)'},{transform:'scaleX(0)'}],{duration:190,delay:dur*.56,easing:'ease-in',fill:'forwards'});
+    f1.onfinish=()=>{el.classList.remove('b');fin.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:220,easing:'cubic-bezier(.2,1.4,.4,1)',fill:'forwards'})};
+  }
+  const a=el.animate(frames,{duration:dur,easing:p===ME?'cubic-bezier(.25,.7,.3,1)':'linear',fill:'forwards'});
+  a.onfinish=()=>el.remove();setTimeout(()=>el.remove(),dur+600);
 }
 function tlOpen(on){document.body.classList.toggle('tl',on);if(on){TL_UNREAD=0;$('tlBadge').textContent='';$('tlClose').focus()}else $('tlTab').focus()}
 function tlNote(p,card,v){
