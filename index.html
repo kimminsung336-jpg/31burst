@@ -458,7 +458,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
         <li>덱은 공용 12장 + 캐스트 전용 8장. 판마다 새로 섞고 5장으로 시작. 덱을 다 쓰면 낸 카드를 다시 섞는다</li>
         <li>차례마다 1장 내고 1장 뽑는다. 낼 카드가 없으면 패스하고 1장 뽑기</li>
         <li>게이지를 목표에 딱 맞추면 저스트: 그 판 승리, 판돈만큼 득점</li>
-        <li>넘기면 버스트: 판돈 2배, 목표 +10 (흉조 캐스트가 있으면 +1 더)</li>
+        <li>넘기면 버스트: 판돈 2배, 목표 +10</li>
         <li>둘 다 연달아 패스하면 무승부</li>
         <li>정한 판 수(단판·3판·5판)의 총점 승부. 동점이면 이긴 판 수</li>
         <li>선공은 판마다 번갈아 바뀐다</li>
@@ -633,18 +633,27 @@ const CASTS={
  iri:{name:'아이리',handle:'@iri_cafe',type:'M · 갸루',deck:[...SHARED,...IRI],photoDraw:1,back:['#ff2e8a','#c41d68'],
   abil:'<b>셀카 장인</b> 사진을 포스트하면 한 장 뽑는다',
   style:'사진 포스트로 손을 계속 돌리고, 숫자를 유연하게 맞춘다'},
- miko:{name:'미코',handle:'@miko_occult',type:'K · 오컬트',deck:[...SHARED,...MIKO],bustPlus:1,bustDraw:2,back:['#7a4cc4','#4b2a85'],
-  abil:'<b>흉조</b> 버스트하면 판돈을 더 올리고, 두 장 뽑는다',
+ miko:{name:'미코',handle:'@miko_occult',type:'K · 오컬트',deck:[...SHARED,...MIKO],revMom:1,abName:'흉조',back:['#7a4cc4','#4b2a85'],
+  abil:'<b>흉조</b> 직전에 낸 내 카드보다 작은 숫자를 내면 상대가 한 장 버린다',
   style:'상대 손을 끊고, 판이 터지길 기다린다'},
  haru:{name:'하루',handle:'@haru_ne',type:'Y · 누님',deck:[...SHARED,...HARU],mirror:1,back:['#f5b800','#b98a00'],
   abil:'<b>받아주기</b> 상대가 직전에 낸 숫자와 같은 숫자를 내면 한 장 뽑는다',
   style:'판을 천천히 끌고 가다가 마지막 한 칸을 맞춘다'},
  mina:{name:'준',handle:'@jun_mvp',type:'C · 톰보이',deck:[...SHARED,...MINA],momentum:1,back:['#12c6dc','#0a8fa3'],
-  abil:'<b>기세</b> 직전에 낸 내 카드보다 큰 숫자를 내면 한 장 뽑는다. 턴마다 한 번',
+  abil:'<b>기세</b> 직전에 낸 내 카드보다 2 이상 큰 숫자를 내면 한 장 뽑는다',
   style:'큰 숫자로 몰아치다가 한 칸 넘친 걸 붙잡는다'}
 };
 let SEAT=['iri','miko'],DECK=[CASTS.iri.deck,CASTS.miko.deck];
-const abOf=k=>({photoDraw:CASTS[k].photoDraw,bustPlus:CASTS[k].bustPlus,bustDraw:CASTS[k].bustDraw,adjust:CASTS[k].adjust,momentum:CASTS[k].momentum,mirror:CASTS[k].mirror});
+// ---------- 레거시 능력 (지금은 안 씀, 나중에 다시 꺼내 쓰기용) ----------
+// 캐스트 객체에 플래그를 붙이면 엔진이 그대로 처리한다.
+const LEGACY_ABILITIES={
+  omenOld:{name:'흉조 (구)',flags:{bustPlus:1,bustDraw:2},text:'버스트하면 판돈을 더 올리고, 두 장 뽑는다',from:'미코'},
+  adultEase:{name:'어른의 여유',flags:{adjust:1},text:'판마다 한 번, 낸 카드 숫자를 1 올린다 (쓸지 고름)',from:'하루'},
+  catchBreath:{name:'숨 고르기',flags:{adjust:-1},text:'판마다 한 번, 낸 카드 숫자를 1 내린다 (쓸지 고름)',from:'준'},
+  curse:{name:'저주',flags:{curse:6},text:'상대 턴이 시작될 때 손패가 6장 이상이면 무작위로 1장 버린다',from:'미코 시안'},
+  bustDiscard:{name:'버스트 디스카드',flags:{bustDiscard:1},text:'버스트가 나면 상대가 무작위로 1장 버린다',from:'미코 시안'},
+};
+const abOf=k=>({photoDraw:CASTS[k].photoDraw,bustPlus:CASTS[k].bustPlus,bustDraw:CASTS[k].bustDraw,adjust:CASTS[k].adjust,momentum:CASTS[k].momentum,mirror:CASTS[k].mirror,curse:CASTS[k].curse,revMom:CASTS[k].revMom,bustDiscard:CASTS[k].bustDiscard});
 
 
 const POST={
@@ -1126,6 +1135,7 @@ async function startTurn(){
   render();const p=G.cur,P=G.P[p];
   if(P.skip){P.skip=false;log(`${NAME[p]} 차례는 침묵의 주문에 걸려 건너뜀`,p?'ai':'me');return next(p)}
   P.plays=1+P.extraNext;P.extraNext=0;if(CASTS[SEAT[p]].photoDraw)P.photoUsed=false;P.momUsed=false;
+  {const cu=CASTS[SEAT[1-p]].curse;if(cu&&P.hand.length>=cu){const c=P.hand.splice(Math.random()*P.hand.length|0,1)[0];P.used.push(c);log(`${CASTS[SEAT[1-p]].abName}: ${NAME[p]} 손패 「${c.name}」 버림`,p?'ai':'me')}}
   if(!anyPlayable(p)){
     log(`${NAME[p]} 낼 카드가 없어서 패스`,p?'ai':'me');draw(p,1);G.passes++;P.snipe=false;P.press=false;
     if(G.passes>=2){log('둘 다 패스. 이 판은 무승부');await sleep(500);return endRound(null)}
@@ -1142,8 +1152,9 @@ async function play(p,idx,choice,adj=0){
   const card=P.hand.splice(idx,1)[0];P.played.push(card.id);P.used.push(card);
   let v=valOf(p,card,choice);if(!card.lower){P.capture=false;P.soothe=false}
   if(adj){v+=adj;P.adjUsed=true;log(`${CASTS[SEAT[p]].abName}: ${NAME[p]} 숫자 ${adj>0?'+1':'−1'}`,cls)}
+  {const OP=G.P[1-p],rm=CASTS[SEAT[p]].revMom;if(rm&&P.lastP!==null&&v<=P.lastP-rm&&OP.hand.length){const c=OP.hand.splice(Math.random()*OP.hand.length|0,1)[0];OP.used.push(c);log(`흉조: ${NAME[1-p]} 손패 「${c.name}」 버림`,cls)}}
   {const OP=G.P[1-p];if(CASTS[SEAT[p]].mirror&&OP.lastP!==null&&v===OP.lastP){draw(p,1);log(`받아주기: ${NAME[p]} 1장 뽑음`,cls)}P.lastP=v}
-  if(CASTS[SEAT[p]].momentum&&!card.lower){if(P.lastV!==null&&v>P.lastV&&!P.momUsed){P.momUsed=true;draw(p,1);log(`기세: ${NAME[p]} 1장 뽑음`,cls)}P.lastV=v}
+  if(CASTS[SEAT[p]].momentum&&!card.lower){if(P.lastV!==null&&v>=P.lastV+2&&!P.momUsed){P.momUsed=true;draw(p,1);log(`기세: ${NAME[p]} 1장 뽑음`,cls)}P.lastV=v}
   const prev=G.gauge,ng=Math.max(0,prev+v);
   G.gauge=ng;if(card.photo)P.photoCount++;pop();render();
   const postEl=addPost(p,card,v);
@@ -1154,6 +1165,7 @@ async function play(p,idx,choice,adj=0){
     const plus=SEAT.filter(k=>CASTS[k].bustPlus).length;let k=0;
     do{const mult=k===0&&card.triple?3:2;G.stake=G.stake*mult+plus;G.target+=10;G.busts++;(G.stakeHist=G.stakeHist||[1]).push(G.stake);k++}while(G.gauge>=G.target);
     const drawers=[ME,AI].filter(q=>CASTS[SEAT[q]].bustDraw);drawers.forEach(q=>draw(q,CASTS[SEAT[q]].bustDraw));
+    [ME,AI].forEach(q=>{const H=G.P[1-q];if(CASTS[SEAT[q]].bustDiscard&&H.hand.length){const c=H.hand.splice(Math.random()*H.hand.length|0,1)[0];H.used.push(c);log(`${CASTS[SEAT[q]].abName}: ${NAME[1-q]} 손패 「${c.name}」 버림`,'sys')}});
     bustFx(postEl);render();bigBust(k);await sleep(2300);
     log(`버스트!${k>1?` ${k}연속,`:''} 묻고 ${card.triple?'트리플':'더블'}.${plus?' 흉조로 판돈 +1,':''} 판돈 ${G.stake}점, 목표 ${G.target}.${drawers.map(q=>` ${NAME[q]} 2장 뽑음`).join('')}`);
   }
@@ -1247,13 +1259,13 @@ function playLoop(R,AB,S,first){
     const p=R.cur,P=R.P[p],O=R.P[1-p];S.turns++;
     if(!mid){
     if(P.skip){P.skip=false;R.cur=1-p;continue}
-    P.plays=1+P.extraNext;P.extraNext=0;if(AB[p].photoDraw)P.photoUsed=false;P.momUsed=false;
+    P.plays=1+P.extraNext;P.extraNext=0;if(AB[p].photoDraw)P.photoUsed=false;P.momUsed=false;if(AB[1-p].curse&&P.hand.length>=AB[1-p].curse)(P.used=P.used||[]).push(P.hand.splice(Math.random()*P.hand.length|0,1)[0]);
     if(!P.hand.some(c=>playable(R,p,c))){draw(p,1);R.passes++;P.snipe=false;P.press=false;if(R.passes>=2)return{w:null,busted:R.busted};R.cur=1-p;continue}
     R.passes=0;}
     mid=false;
     while(first||(P.plays>0&&P.hand.some(c=>playable(R,p,c)))){
       let mv;if(first){mv=first;first=null}else mv=ai(R,p);const _opts=P.hand.filter(c=>playable(R,p,c));const _forced=_opts.every(c=>{const vs=c.choice||c.lower?.map(x=>-x)||[valOf(R,p,c,null)];return vs.every(x=>Math.max(0,R.gauge+x)>R.target)});const card=P.hand.splice(mv.i,1)[0];P.played.push(card.id);(P.used=P.used||[]).push(card);S.played[card.id]=(S.played[card.id]||0)+1;
-      let v=valOf(R,p,card,mv.ch);if(!card.lower){P.capture=false;P.soothe=false}if(mv.adj){v+=mv.adj;P.adjUsed=true;S.adj=(S.adj||0)+1}if(AB[p].mirror&&O.lastP!=null&&v===O.lastP){draw(p,1);S.mir=(S.mir||0)+1}P.lastP=v;if(AB[p].momentum&&!card.lower){if(P.lastV!=null&&v>P.lastV&&!P.momUsed){P.momUsed=true;draw(p,1);S.mom=(S.mom||0)+1}P.lastV=v}
+      let v=valOf(R,p,card,mv.ch);if(!card.lower){P.capture=false;P.soothe=false}if(mv.adj){v+=mv.adj;P.adjUsed=true;S.adj=(S.adj||0)+1}if(AB[p].revMom&&P.lastP!=null&&v<=P.lastP-AB[p].revMom&&O.hand.length)(O.used=O.used||[]).push(O.hand.splice(Math.random()*O.hand.length|0,1)[0]);if(AB[p].mirror&&O.lastP!=null&&v===O.lastP){draw(p,1);S.mir=(S.mir||0)+1}P.lastP=v;if(AB[p].momentum&&!card.lower){if(P.lastV!=null&&v>=P.lastV+2&&!P.momUsed){P.momUsed=true;draw(p,1);S.mom=(S.mom||0)+1}P.lastV=v}
       const prev=R.gauge,ng=Math.max(0,prev+v);R.gauge=ng;
       if(card.photo)P.photoCount++;
       if(ng===R.target&&!card.nofinish)return{w:p,stake:R.stake,card:card.id,busted:R.busted};
@@ -1261,7 +1273,7 @@ function playLoop(R,AB,S,first){
         const si=P.hand.findIndex(c=>c.id==='sorry');
         if(si>=0){S.undo=(S.undo||0)+1;P.hand.splice(si,1);P.hand.push(card);R.gauge=prev;if(card.photo)P.photoCount--;P.plays=0;break}
         {let k=0;do{const m=k===0&&card.triple?3:2;R.stake=R.stake*m+(AB[0].bustPlus?1:0)+(AB[1].bustPlus?1:0);R.target+=10;k++}while(R.gauge>=R.target)}R.busted=true;S.busts++;S.bc=S.bc||{};const _k=(R.gauge-v>R.target?'이미넘침':_forced?'강제':'선택')+':'+card.id;S.bc[_k]=(S.bc[_k]||0)+1;S.bb=S.bb||[0,0];S.bb[p]++;S.maxStake=Math.max(S.maxStake,R.stake);
-        for(const q of[0,1])if(AB[q].bustDraw)draw(q,AB[q].bustDraw);
+        for(const q of[0,1]){if(AB[q].bustDraw)draw(q,AB[q].bustDraw);const H=R.P[1-q];if(AB[q].bustDiscard&&H.hand.length)(H.used=H.used||[]).push(H.hand.splice(Math.random()*H.hand.length|0,1)[0])};
       }
       if(card.draw)draw(p,card.draw);
       if(card.extra)P.plays++;
@@ -1272,7 +1284,7 @@ function playLoop(R,AB,S,first){
         case'regular':if(P.hand.length<=3)draw(p,1);break;
         case'drip':{const top=P.deck.splice(-2);if(top.length){const gap=R.target-R.gauge;let k=top.findIndex(c=>c.v===gap);if(k<0)k=top.reduce((b,c,i)=>c.v>top[b].v&&c.v<=gap?i:b,0);P.hand.push(top.splice(k,1)[0]);P.deck.unshift(...top)}break}
         case'sub':if(P.hand.length){const k=P.hand.reduce((b,c,i)=>c.v>P.hand[b].v?i:b,0);P.deck.unshift(P.hand.splice(k,1)[0])}draw(p,1);break;
-        case'scoop_instant':{R.stake=R.stake*2+(AB[0].bustPlus?1:0)+(AB[1].bustPlus?1:0);R.busted=true;S.busts++;S.bc=S.bc||{};const _k=(R.gauge-v>R.target?'이미넘침':_forced?'강제':'선택')+':'+card.id;S.bc[_k]=(S.bc[_k]||0)+1;S.bb=S.bb||[0,0];S.bb[p]++;S.maxStake=Math.max(S.maxStake,R.stake);for(const q of[0,1])if(AB[q].bustDraw)draw(q,AB[q].bustDraw);break}
+        case'scoop_instant':{R.stake=R.stake*2+(AB[0].bustPlus?1:0)+(AB[1].bustPlus?1:0);R.busted=true;S.busts++;S.bc=S.bc||{};const _k=(R.gauge-v>R.target?'이미넘침':_forced?'강제':'선택')+':'+card.id;S.bc[_k]=(S.bc[_k]||0)+1;S.bb=S.bb||[0,0];S.bb[p]++;S.maxStake=Math.max(S.maxStake,R.stake);for(const q of[0,1]){if(AB[q].bustDraw)draw(q,AB[q].bustDraw);const H=R.P[1-q];if(AB[q].bustDiscard&&H.hand.length)(H.used=H.used||[]).push(H.hand.splice(Math.random()*H.hand.length|0,1)[0])};break}
         case'nail':if(P.hand.length){const k=P.hand.reduce((b,c,i)=>c.v>P.hand[b].v?i:b,0);P.deck.unshift(P.hand.splice(k,1)[0])}draw(p,2);break;
         case'f4f':draw(p,1);draw(1-p,1);break;
         case'snipe':O.snipe=true;break;case'charm':O.capture=true;break;
@@ -1325,7 +1337,7 @@ const widen=(S,d)=>{if(!d)return S;const T=new Set(S);S.forEach(x=>T.add(x+d));r
 function ai(R,p){
   const DF=(global.__diff&&global.__diff[p])||(global.__cov?'normal':'easy');const easy=DF==='easy',hard=DF==='hard';
   const P=R.P[p];const me=R.ab?.[p];const cand=[];
-  const AD=R.AB&&!P.adjUsed&&R.AB[p].adjust||0,MO=R.AB&&R.AB[p].momentum,MI=R.AB&&R.AB[p].mirror?R.P[1-p].lastP:null;
+  const AD=R.AB&&!P.adjUsed&&R.AB[p].adjust||0,MO=R.AB&&R.AB[p].momentum,MI=R.AB&&R.AB[p].mirror?R.P[1-p].lastP:null,RM=R.AB&&R.AB[p].revMom;
   P.hand.forEach((c,i)=>{
     if(!playable(R,p,c))return;
     for(const ch of c.choice||c.lower||[null]){
@@ -1345,7 +1357,7 @@ function ai(R,p){
         if(gap>12&&v<=2&&!c.draw&&!c.extra)s-=6}
       s+=BONUS[c.id]||0;if(c.id==='silence')s-=R.target-R.gauge>10?25:0;
       if(c.photo&&R.photoBias?.[p]&&!P.photoUsed)s+=6;
-      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&!P.momUsed&&P.lastV!=null&&v>P.lastV)s+=7;if(MI!=null&&v===MI)s+=7;
+      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&!P.momUsed&&P.lastV!=null&&v>=P.lastV+2)s+=7;if(MI!=null&&v===MI)s+=7;if(RM&&P.lastP!=null&&v<=P.lastP-RM)s+=7;
       s+=Math.random()*3;cand.push({i,ch,adj,s});
     }}
   });
@@ -1422,7 +1434,7 @@ const BONUS={story:8,vlog:8,hilite:8,nail:6,burst:9,repost:9,snipe:10,charm:8,do
 const widen=(S,d)=>{if(!d)return S;const T=new Set(S);S.forEach(x=>T.add(x+d));return T};
 function aiAct(p=AI,diff=DIFF){
   const P=G.P[p],O=1-p;const cand=[];const easy=diff!=='hard',hard=false;   // 쉬움·보통은 단순 계산, 어려움은 전체 계산
-  const AD=!P.adjUsed&&CASTS[SEAT[p]].adjust||0,MO=CASTS[SEAT[p]].momentum,MI=CASTS[SEAT[p]].mirror?G.P[1-p].lastP:null,d=(P.capture?1:0)-(P.soothe?1:0);
+  const AD=!P.adjUsed&&CASTS[SEAT[p]].adjust||0,MO=CASTS[SEAT[p]].momentum,MI=CASTS[SEAT[p]].mirror?G.P[1-p].lastP:null,RM=CASTS[SEAT[p]].revMom,d=(P.capture?1:0)-(P.soothe?1:0);
   P.hand.forEach((c,i)=>{
     if(!playable(p,c))return;
     for(const ch of c.choice||c.lower||[null]){
@@ -1451,7 +1463,7 @@ function aiAct(p=AI,diff=DIFF){
         }
       }
       s+=BONUS[c.id]||0;if(c.id==='silence')s-=G.target-G.gauge>10?25:0;
-      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&!P.momUsed&&P.lastV!=null&&v>P.lastV)s+=7;if(MI!=null&&v===MI)s+=7;
+      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&!P.momUsed&&P.lastV!=null&&v>=P.lastV+2)s+=7;if(MI!=null&&v===MI)s+=7;if(RM&&P.lastP!=null&&v<=P.lastP-RM)s+=7;
       s+=Math.random()*3;cand.push({i,ch,adj,s,bust:ng>G.target||(ng===G.target&&!!c.nofinish)});
     }}
   });
