@@ -1419,7 +1419,7 @@ function mcPick(p,cand,M=5,K=12){
 const BONUS={story:8,vlog:8,hilite:8,nail:6,burst:9,repost:9,snipe:10,charm:8,doll:10,convert:12,fortune:8,f4f:2,dm:2,ward:4,drip:8,calm:6,tea:7,regular:4,whistle:10,court:8,jog:9,sub:5};
 const widen=(S,d)=>{if(!d)return S;const T=new Set(S);S.forEach(x=>T.add(x+d));return T};
 function aiAct(p=AI,diff=DIFF){
-  const P=G.P[p],O=1-p;const cand=[];const easy=diff==='easy',hard=diff==='hard';
+  const P=G.P[p],O=1-p;const cand=[];const easy=diff!=='hard',hard=false;   // 쉬움·보통은 단순 계산, 어려움은 전체 계산
   const AD=!P.adjUsed&&CASTS[SEAT[p]].adjust||0,d=(P.capture?1:0)-(P.soothe?1:0);
   P.hand.forEach((c,i)=>{
     if(!playable(p,c))return;
@@ -1450,14 +1450,16 @@ function aiAct(p=AI,diff=DIFF){
       }
       s+=BONUS[c.id]||0;if(c.id==='silence')s-=G.target-G.gauge>10?25:0;
       if(adj&&s<10000)s-=8;
-      s+=Math.random()*3;cand.push({i,ch,adj,s});
+      s+=Math.random()*3;cand.push({i,ch,adj,s,bust:ng>G.target||(ng===G.target&&!!c.nofinish)});
     }}
   });
   if(!cand.length)return endTurn(p);
   cand.sort((a,b)=>b.s-a.s);
   let pick=cand[0];
-  if(hard&&cand.length>1&&pick.s<10000)pick=mcPick(p,cand);
-  if(easy&&cand.length>1&&pick.s<10000&&Math.random()<.3)pick=cand[1+(Math.random()*Math.min(2,cand.length-1)|0)];
+  if(diff==='easy'){   // 쉬움: 판돈 4점 전까지는 터뜨릴 수 있으면 버스트, 아니면 저스트, 그것도 아니면 아무 카드
+    const bu=G.stake<4?cand.filter(c=>c.bust):[],ju=cand.filter(c=>c.s>=10000),rest=cand.filter(c=>!c.bust),any=a=>a[Math.random()*a.length|0];
+    pick=bu.length?any(bu):ju.length?ju[0]:any(rest.length?rest:cand);
+  }else if(diff==='normal'&&cand.length>1&&pick.s<10000&&Math.random()<.3)pick=cand[1+(Math.random()*Math.min(2,cand.length-1)|0)];
   play(p,pick.i,pick.ch,pick.adj||0);
 }
 
