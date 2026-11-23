@@ -325,8 +325,8 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
   <h3>캐스트</h3>
   <div class="cast"><img src="img/iri_av.jpg" alt=""><b>M · 아이리 — 셀카 장인</b><span>내 차례마다 처음 올린 사진 포스트로 카드 한 장을 더 뽑습니다.</span></div>
   <div class="cast"><img src="img/miko_av.jpg" alt=""><b>K · 미코 — 흉조</b><span>누구든 버스트하면 배수를 적용한 뒤 판돈이 1점 더 오르고, 미코는 카드 두 장을 뽑습니다.</span></div>
-  <div class="cast"><img src="img/haru_av.jpg" alt=""><b>Y · 하루 — 어른의 여유</b><span>판마다 한 번, 내가 낸 포스트의 숫자를 1 올리거나 내릴 수 있습니다. 마지막 한 칸을 맞추는 데 쓰세요.</span></div>
-  <div class="cast"><img src="img/mina_av.jpg" alt=""><b>C · 준 — 기세</b><span>직전에 낸 내 포스트보다 큰 숫자를 내면 카드 한 장을 뽑습니다. 작은 숫자에서 큰 숫자로 몰아칠수록 손이 불어납니다.</span></div>
+  <div class="cast"><img src="img/haru_av.jpg" alt=""><b>Y · 하루 — 어른의 여유</b><span>판마다 한 번, 내가 낸 포스트의 숫자를 1 올릴 수 있습니다. 한 칸 모자랄 때 쓰세요.</span></div>
+  <div class="cast"><img src="img/mina_av.jpg" alt=""><b>C · 준 — 숨 고르기</b><span>판마다 한 번, 내가 낸 포스트의 숫자를 1 내릴 수 있습니다. 큰 숫자로 몰아치다 한 칸 넘쳤을 때 쓰세요.</span></div>
   <div class="ex"><b>특종!</b> 숫자가 무려 31인 포스트입니다. 이 카드로는 저스트할 수 없습니다. 손에 들어왔다면, 언제 판을 키울지 골라보세요.</div>
   <span class="note">카드별 숫자와 효과는 게임 중 ‘덱 리스트’에서 볼 수 있습니다.</span>
 </div></div>
@@ -401,15 +401,15 @@ const CASTS={
  miko:{name:'미코',handle:'@miko_occult',type:'K · 오컬트',deck:[...SHARED,...MIKO],bustPlus:1,bustDraw:2,back:['#7a4cc4','#4b2a85'],
   abil:'<b>흉조</b> 버스트가 나면 판돈이 1 더 오르고, 미코가 2장 뽑는다',
   style:'상대 손을 끊고, 판이 터지길 기다린다'},
- haru:{name:'하루',handle:'@haru_ne',type:'Y · 누님',deck:[...SHARED,...HARU],adjust:1,back:['#f5b800','#b98a00'],
-  abil:'<b>어른의 여유</b> 판마다 한 번, 낸 카드 숫자를 1 올리거나 내린다',
+ haru:{name:'하루',handle:'@haru_ne',type:'Y · 누님',deck:[...SHARED,...HARU],adjust:1,abName:'어른의 여유',back:['#f5b800','#b98a00'],
+  abil:'<b>어른의 여유</b> 판마다 한 번, 낸 카드 숫자를 1 올린다',
   style:'판을 천천히 끌고 가다가 마지막 한 칸을 맞춘다'},
- mina:{name:'준',handle:'@jun_mvp',type:'C · 톰보이',deck:[...SHARED,...MINA],momentum:1,back:['#12c6dc','#0a8fa3'],
-  abil:'<b>기세</b> 직전에 낸 내 카드보다 큰 숫자를 내면 1장 뽑는다',
-  style:'작은 숫자에서 큰 숫자로 몰아치며 손을 불린다'}
+ mina:{name:'준',handle:'@jun_mvp',type:'C · 톰보이',deck:[...SHARED,...MINA],adjust:-1,abName:'숨 고르기',back:['#12c6dc','#0a8fa3'],
+  abil:'<b>숨 고르기</b> 판마다 한 번, 낸 카드 숫자를 1 내린다',
+  style:'큰 숫자로 몰아치다가 한 칸 넘친 걸 붙잡는다'}
 };
 let SEAT=['iri','miko'],DECK=[CASTS.iri.deck,CASTS.miko.deck];
-const abOf=k=>({photoDraw:CASTS[k].photoDraw,bustPlus:CASTS[k].bustPlus,bustDraw:CASTS[k].bustDraw,adjust:CASTS[k].adjust,momentum:CASTS[k].momentum});
+const abOf=k=>({photoDraw:CASTS[k].photoDraw,bustPlus:CASTS[k].bustPlus,bustDraw:CASTS[k].bustDraw,adjust:CASTS[k].adjust});
 
 
 const POST={
@@ -693,7 +693,7 @@ function onNet(m){
     if(m.t==='cast'&&CASTS[m.k]&&m.k!==NET.hostCast){NET.guestCast=m.k;renderPick();netTryStart()}
     else if(m.t==='play'){
       if(G.cur!==AI||G.busy||G.over)return;const P=G.P[AI],c=P&&P.hand[m.i];if(!c||!playable(AI,c))return;
-      let adj=+m.adj||0;if(adj&&(!CASTS[SEAT[AI]].adjust||P.adjUsed||c.lower||Math.abs(adj)!==1))adj=0;
+      let adj=+m.adj||0;if(adj&&(adj!==CASTS[SEAT[AI]].adjust||P.adjUsed||c.lower))adj=0;
       let ch=m.ch;if(c.choice&&!c.choice.includes(ch))return;if(c.lower&&!c.lower.includes(ch))return;
       play(AI,m.i,ch,adj);
     }
@@ -778,7 +778,7 @@ function chips(p){
   if(P.skip)a.push('<span class="chip warn">침묵당함</span>');
   if(P.press)a.push('<span class="chip warn">휘슬: 2 이하 금지</span>');
   if(P.soothe)a.push('<span class="chip warn">다독다독: 다음 카드 −1</span>');
-  if(CASTS[SEAT[p]].adjust)a.push(`<span class="chip">${P.adjUsed?'여유 사용함':'여유 남음'}</span>`);
+  if(CASTS[SEAT[p]].adjust)a.push(`<span class="chip">${CASTS[SEAT[p]].abName} ${P.adjUsed?'사용함':'남음'}</span>`);
   a.push(`<span class="chip">덱 ${P.deck.length}</span>`);
   return a.join('');
 }
@@ -820,7 +820,7 @@ async function play(p,idx,choice,adj=0){
   G.busy=true;const P=G.P[p],O=G.P[1-p],cls=p?'ai':'me';
   const card=P.hand.splice(idx,1)[0];P.played.push(card.id);P.used.push(card);
   let v=valOf(p,card,choice);if(!card.lower){P.capture=false;P.soothe=false}
-  if(adj){v+=adj;P.adjUsed=true;log(`어른의 여유: ${NAME[p]} 숫자 ${adj>0?'+1':'−1'}`,cls)}
+  if(adj){v+=adj;P.adjUsed=true;log(`${CASTS[SEAT[p]].abName}: ${NAME[p]} 숫자 ${adj>0?'+1':'−1'}`,cls)}
   const prev=G.gauge,ng=Math.max(0,prev+v);
   G.gauge=ng;if(card.photo)P.photoCount++;pop();render();
   const postEl=addPost(p,card,v);
@@ -833,7 +833,6 @@ async function play(p,idx,choice,adj=0){
     log(`버스트! 묻고 ${mult===3?'트리플':'더블'}.${plus?' 흉조로 +1,':''} 판돈 ${G.stake}점, 목표 ${G.target}.${drawers.map(q=>` ${NAME[q]} 2장 뽑음`).join('')}`);
   }
   // 효과
-  if(CASTS[SEAT[p]].momentum&&!card.lower){if(P.lastV!==null&&v>P.lastV){draw(p,1);log(`기세: ${NAME[p]} 1장 뽑음`,cls)}P.lastV=v}
   if(card.draw)draw(p,card.draw);
   if(card.extra)P.plays++;
   switch(card.id){
@@ -945,7 +944,6 @@ function playLoop(R,AB,S,first){
         const m=card.triple?3:2;R.stake=R.stake*m+(AB[0].bustPlus?1:0)+(AB[1].bustPlus?1:0);if(global.__reset){R.gauge=0}else R.target+=10;R.busted=true;S.busts++;S.bc=S.bc||{};const _k=(R.gauge-v>R.target?'이미넘침':_forced?'강제':'선택')+':'+card.id;S.bc[_k]=(S.bc[_k]||0)+1;S.bb=S.bb||[0,0];S.bb[p]++;S.maxStake=Math.max(S.maxStake,R.stake);
         for(const q of[0,1])if(AB[q].bustDraw)draw(q,AB[q].bustDraw);
       }
-      if(AB[p].momentum&&!card.lower){if(P.lastV!=null&&v>P.lastV){draw(p,1);S.mom=(S.mom||0)+1}P.lastV=v}
       if(card.draw)draw(p,card.draw);
       if(card.extra)P.plays++;
       switch(card.id){
@@ -975,10 +973,10 @@ function playLoop(R,AB,S,first){
 
 function oppWin(R,me,gap,gAfter){
   const H=R.P[1-me];if(H.skip||gap<=0)return 0;
-  const add=dOf(H),ad=R.AB&&R.AB[1-me].adjust&&!H.adjUsed;
+  const add=dOf(H),ad=R.AB&&!H.adjUsed&&R.AB[1-me].adjust||0;
   const hit=c=>{if(c.reactive||c.lower||c.nofinish)return false;
     const base=(c.choice||[c.id==='trend'?(gAfter>=20?4:2):c.id==='fourcut'?(H.photoCount>=3?1:4):c.v]).map(x=>x+add);
-    const vs=ad?base.flatMap(x=>[x,x-1,x+1]):base;return vs.some(v=>v===gap&&okV(H,v,c))};
+    const vs=ad?base.flatMap(x=>[x,x+ad]):base;return vs.some(v=>v===gap&&okV(H,v,c))};
   let pool=H.def.filter(c=>!H.played.includes(c.id));let h=H.hand.length;if(!h)return 0;
   if(global.__diff&&global.__diff[me]==='hard'&&!global.__noMem){const M=R.P[me];M.known=M.known.filter(k=>H.hand.includes(k));
     if(M.known.some(hit))return 1;const kid=M.known.map(k=>k.id);pool=pool.filter(c=>!kid.includes(c.id)&&!M.out.includes(c.id));h-=M.known.length;if(h<=0)return 0}
@@ -1004,16 +1002,16 @@ function reachOf(P,hand,gAfter){
       if(d.extra)hand.forEach((e,k)=>{if(k===i||k===j)return;vals[i].forEach(x=>vals[j].forEach(y=>vals[k].forEach(z=>S.add(x+y+z))))})})});
   return S}
 const isStall=c=>!c.reactive&&(c.lower||c.v<=0||(c.choice&&c.choice.includes(0)));
-const widen=(S,on)=>{if(!on)return S;const T=new Set(S);S.forEach(x=>{T.add(x-1);T.add(x+1)});return T};
+const widen=(S,d)=>{if(!d)return S;const T=new Set(S);S.forEach(x=>T.add(x+d));return T};
 function ai(R,p){
   const DF=(global.__diff&&global.__diff[p])||(global.__cov?'normal':'easy');const easy=DF==='easy',hard=DF==='hard';
   const P=R.P[p];const me=R.ab?.[p];const cand=[];
-  const AD=R.AB&&R.AB[p].adjust&&!P.adjUsed,MO=R.AB&&R.AB[p].momentum;
+  const AD=R.AB&&!P.adjUsed&&R.AB[p].adjust||0;
   P.hand.forEach((c,i)=>{
     if(!playable(R,p,c))return;
     for(const ch of c.choice||c.lower||[null]){
     if(c.choice&&!okV(P,ch+dOf(P),c))continue;
-    for(const adj of AD&&!c.lower?[0,-1,1]:[0]){
+    for(const adj of AD&&!c.lower?[0,AD]:[0]){
       const v=valOf(R,p,c,ch)+adj;if(adj&&!okV(P,v,c))continue;const ng=Math.max(0,R.gauge+v);let s;
       if(ng===R.target&&!c.nofinish)s=10000;
       else if(ng>R.target||(ng===R.target&&c.nofinish)){const m=c.triple?3:2,gap=R.target+10-ng;const hs=P.hand.some(x=>x.id==='sorry');
@@ -1021,14 +1019,14 @@ function ai(R,p){
       else if(!easy){const gap=R.target-ng;let risk;
         const FL={charm:'capture',calm:'soothe',whistle:'press'}[c.id];if(FL){const H=R.P[1-p],keep=H[FL];H[FL]=true;risk=oppWin(R,p,gap,ng);H[FL]=keep}else risk=oppWin(R,p,gap,ng);
         if(c.id==='silence')risk=0;if(c.id==='snipe')risk*=.35;s=-100*risk;if(gap===0)s-=150;
-        const rest=P.hand.filter((_,j)=>j!==i);const RR=widen(reachOf(P,rest,ng),AD&&!adj);if(RR.has(gap))s+=18;
+        const rest=P.hand.filter((_,j)=>j!==i);const RR=widen(reachOf(P,rest,ng),adj?0:AD);if(RR.has(gap))s+=18;
         let cov=0;for(let k=1;k<=6;k++)if(RR.has(k))cov++;s+=4*cov;if(rest.some(isStall))s+=5;if(hard&&!global.__noSq&&gap>0&&gap<=12)s+=(global.__sqW??30)*squeeze(R,p,gap,ng,RR)}
       else{const gap=R.target-ng;let risk=oppWin(R,p,gap,ng);if(c.id==='silence')risk=0;if(c.id==='snipe')risk*=.35;s=-100*risk;
         const rest=P.hand.filter((_,j)=>j!==i);if(rest.some(x=>x.v===gap))s+=18;if(gap>12)s+=Math.max(0,v)*1.2;
         if(gap>12&&v<=2&&!c.draw&&!c.extra)s-=6}
       s+=BONUS[c.id]||0;if(c.id==='silence')s-=R.target-R.gauge>10?25:0;
       if(c.photo&&R.photoBias?.[p]&&!P.photoUsed)s+=6;
-      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&P.lastV!=null&&v>P.lastV)s+=7;
+      if(adj&&s<10000)s-=8;
       s+=Math.random()*3;cand.push({i,ch,adj,s});
     }}
   });
@@ -1043,11 +1041,11 @@ const curV=(P,c,g)=>c.id==='trend'?(g>=20?4:2):c.id==='fourcut'?(P.photoCount>=3
 // 상대(1-me)가 다음 차례에 gap을 딱 맞출 확률
 function oppWinProb(gap,gAfter,me=AI,diff=DIFF){
   const H=G.P[1-me];if(H.skip||gap<=0)return 0;
-  const add=(H.capture?1:0)-(H.soothe?1:0),ad=CASTS[SEAT[1-me]].adjust&&!H.adjUsed;
+  const add=(H.capture?1:0)-(H.soothe?1:0),ad=!H.adjUsed&&CASTS[SEAT[1-me]].adjust||0;
   const hit=c=>{
     if(c.reactive||c.lower||c.nofinish)return false;
     const base=(c.choice||[curV(H,c,gAfter)]).map(x=>x+add);
-    const vs=ad?base.flatMap(x=>[x,x-1,x+1]):base;return vs.some(v=>v===gap&&okV(H,v,c));
+    const vs=ad?base.flatMap(x=>[x,x+ad]):base;return vs.some(v=>v===gap&&okV(H,v,c));
   };
   let h=H.hand.length;if(!h)return 0;
   let pool=DECK[1-me].filter(c=>!H.played.includes(c.id));
@@ -1102,15 +1100,15 @@ function mcPick(p,cand,M=5,K=12){
   return best;
 }
 const BONUS={story:8,vlog:8,hilite:8,nail:6,burst:9,repost:9,snipe:10,charm:8,doll:10,convert:12,fortune:8,f4f:2,dm:2,ward:4,drip:8,calm:6,tea:7,regular:4,whistle:10,court:8,jog:9,sub:5};
-const widen=(S,on)=>{if(!on)return S;const T=new Set(S);S.forEach(x=>{T.add(x-1);T.add(x+1)});return T};
+const widen=(S,d)=>{if(!d)return S;const T=new Set(S);S.forEach(x=>T.add(x+d));return T};
 function aiAct(p=AI,diff=DIFF){
   const P=G.P[p],O=1-p;const cand=[];const easy=diff==='easy',hard=diff==='hard';
-  const AD=CASTS[SEAT[p]].adjust&&!P.adjUsed,MO=CASTS[SEAT[p]].momentum,d=(P.capture?1:0)-(P.soothe?1:0);
+  const AD=!P.adjUsed&&CASTS[SEAT[p]].adjust||0,d=(P.capture?1:0)-(P.soothe?1:0);
   P.hand.forEach((c,i)=>{
     if(!playable(p,c))return;
     for(const ch of c.choice||c.lower||[null]){
     if(c.choice&&!okV(P,ch+d,c))continue;
-    for(const adj of AD&&!c.lower?[0,-1,1]:[0]){
+    for(const adj of AD&&!c.lower?[0,AD]:[0]){
       const v=valOf(p,c,ch)+adj;if(adj&&!okV(P,v,c))continue;const ng=Math.max(0,G.gauge+v);let s;
       const rest=P.hand.filter((_,j)=>j!==i);
       if(ng===G.target&&!c.nofinish)s=10000;
@@ -1128,14 +1126,14 @@ function aiAct(p=AI,diff=DIFF){
           if(rest.some(x=>x.v===gap))s+=18;
           if(gap>12)s+=Math.max(0,v)*1.2;if(gap>12&&v<=2&&!c.draw&&!c.extra)s-=6;
         }else{
-          const R=widen(reachOf(p,rest,ng),AD&&!adj);
+          const R=widen(reachOf(p,rest,ng),adj?0:AD);
           if(R.has(gap))s+=18;
           let cov=0;for(let k=1;k<=6;k++)if(R.has(k))cov++;
           s+=4*cov;if(rest.some(isStall))s+=5;
         }
       }
       s+=BONUS[c.id]||0;if(c.id==='silence')s-=G.target-G.gauge>10?25:0;
-      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&P.lastV!==null&&v>P.lastV)s+=7;
+      if(adj&&s<10000)s-=8;
       s+=Math.random()*3;cand.push({i,ch,adj,s});
     }}
   });
@@ -1181,8 +1179,9 @@ $('hand').addEventListener('click',async e=>{
   if(c.lower)ch=await ask(c.name,'게이지를 얼마나 내릴까?',c.lower.map(n=>({label:'−'+n,value:n})));
   let adj=0;
   if(CASTS[SEAT[ME]].adjust&&!P.adjUsed&&!c.lower){const v=valOf(ME,c,ch);
-    const opts=[{label:`그대로 ${v}`,value:0},{label:`−1 → ${v-1}`,value:-1},{label:`+1 → ${v+1}`,value:1}].filter(o=>okV(P,v+o.value,c));
-    if(opts.length>1)adj=await ask('어른의 여유',`판마다 한 번. 지금 게이지 ${G.gauge}, 목표 ${G.target}.`,opts)}
+    const d=CASTS[SEAT[ME]].adjust;
+    const opts=[{label:`그대로 ${v}`,value:0},{label:`${d>0?'+1':'−1'} → ${v+d}`,value:d}].filter(o=>okV(P,v+o.value,c));
+    if(opts.length>1)adj=await ask(CASTS[SEAT[ME]].abName,`판마다 한 번. 지금 게이지 ${G.gauge}, 목표 ${G.target}.`,opts)}
   if(NET.role==='guest'){G.busy=true;render();NET.send({t:'play',i,ch,adj});return}
   play(ME,i,ch,adj);
 });
