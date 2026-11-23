@@ -55,7 +55,7 @@ button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 .cardb:hover:not(:disabled){transform:translateY(-3px);border-color:var(--m)}
 .cardb:disabled{opacity:.42;cursor:not-allowed}
 .cardb .v{position:absolute;left:10px;top:10px;width:38px;height:46px;border-radius:9px;display:grid;place-items:center;font:400 24px "Black Han Sans";background:var(--m);color:#fff}
-.cardb .v.neg{background:var(--k);color:var(--c)}.cardb .v.zero{background:var(--c);color:#16121a}
+.cardb .v.neg{background:var(--k);color:var(--c)}.cardb .v.q{background:var(--k);color:var(--y)}.cardb .v.zero{background:var(--c);color:#16121a}
 .cardb .n{display:block;font-weight:700;font-size:15px;line-height:1.25}
 .cardb .t{display:block;font-size:13px;color:var(--sub);margin-top:4px}
 .side{display:grid;gap:14px;align-content:start}
@@ -999,11 +999,11 @@ function render(){
   const P=G.P[ME];
   $('hand').innerHTML=P?P.hand.map((c,i)=>{
     const v=c.choice?null:c.lower?null:valOf(ME,c,null);
-    const label=c.choice?c.choice.map(x=>x+(P.capture?1:0)-(P.soothe?1:0)).join('/'):c.lower?'−':v;
-    const cls=c.lower||v<0?'neg':v===0?'zero':'';
+    const label=c.choice||c.lower?'?':v;
+    const cls=c.choice||c.lower?'q':v<0?'neg':v===0?'zero':'';
     const can=G.cur===ME&&!G.busy&&!G.over&&playable(ME,c);
     const tag=c.photo?'<span class="t" style="color:var(--m)">사진 포스트</span>':'';
-    return `<button class="cardb" data-i="${i}" ${can?'':'disabled'}><span class="v ${cls}" ${c.choice?'style="font-size:17px"':''}>${label}</span><span class="n">${c.name}</span><span class="t">${c.text}</span>${tag}</button>`
+    return `<button class="cardb" data-i="${i}" ${can?'':'disabled'}><span class="v ${cls}">${label}</span><span class="n">${c.name}</span><span class="t">${c.text}</span>${tag}</button>`
   }).join(''):'';
 }
 function chips(p){
