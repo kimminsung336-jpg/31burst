@@ -1194,7 +1194,7 @@ function renderPick(){
     else{foe=NET.hostCast;mine=NET.guestCast;lock=!foe||!!mine;sub=!foe?'방장이 캐스트를 고르는 중…':!mine?`방장은 ${CASTS[foe].name}. 내 캐스트를 골라.`:'곧 시작!'}}
   else{title=PICK_ME?'상대 캐스트 고르기':'캐스트 고르기';sub=PICK_ME?`${CASTS[PICK_ME].name}로 플레이. 상대는 AI가 맡아.`:'내가 플레이할 캐스트를 골라.';foe=PICK_ME}
   $('pickTitle').textContent=title;$('pickSub').textContent=sub;
-  $('pgrid').innerHTML=Object.entries(CASTS).map(([k,c])=>`<button class="pc ${k}${k===foe?' foe':''}${k===mine?' mine':''}" data-k="${k}" ${lock&&k!==mine?'disabled':''}><img src="img/${k}_selfie.jpg" alt="${c.name}"><span class="pi"><span class="pn">${c.name}</span><span class="ty">${c.type} · ${c.handle}</span><span class="ab">${c.abil}</span><span class="st">${c.style}</span></span></button>`).join('')
+  $('pgrid').innerHTML=Object.entries(CASTS).map(([k,c])=>`<button class="pc ${k}${k===foe?' foe':''}${k===mine?' mine':''}" data-k="${k}" ${lock&&k!==mine?'disabled':''}><img src="img/${k}_selfie.jpg" alt="${c.name}"><span class="pi"><span class="pn">${c.name}</span><span class="ty">${c.type} · ${c.handle}</span><span class="ab">${c.abil}</span></span></button>`).join('')
     +(!on&&PICK_ME?'<button class="pback" id="pBack" type="button">다시 고르기</button>':'');
 }
 $('diff').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;DIFF=b.dataset.d;
