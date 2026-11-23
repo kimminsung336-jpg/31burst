@@ -631,16 +631,16 @@ const MINA=[
 ];
 const CASTS={
  iri:{name:'아이리',handle:'@iri_cafe',type:'M · 갸루',deck:[...SHARED,...IRI],photoDraw:1,back:['#ff2e8a','#c41d68'],
-  abil:'<b>셀카 장인</b> 사진을 포스트하면 한 장 뽑는다',
+  abil:'<b>셀카 중독</b> 사진을 포스트하면 한 장 뽑는다',
   style:'사진 포스트로 손을 계속 돌리고, 숫자를 유연하게 맞춘다'},
  miko:{name:'미코',handle:'@miko_occult',type:'K · 오컬트',deck:[...SHARED,...MIKO],revMom:1,abName:'흉조',back:['#7a4cc4','#4b2a85'],
   abil:'<b>흉조</b> 직전에 낸 내 카드보다 작은 숫자를 내면 상대가 한 장 버린다',
   style:'상대 손을 끊고, 판이 터지길 기다린다'},
  haru:{name:'하루',handle:'@haru_ne',type:'Y · 누님',deck:[...SHARED,...HARU],mirror:1,back:['#f5b800','#b98a00'],
-  abil:'<b>받아주기</b> 상대가 직전에 낸 숫자와 같은 숫자를 내면 한 장 뽑는다',
+  abil:'<b>오냐오냐</b> 상대가 직전에 낸 숫자와 같은 숫자를 내면 한 장 뽑는다',
   style:'판을 천천히 끌고 가다가 마지막 한 칸을 맞춘다'},
  mina:{name:'준',handle:'@jun_mvp',type:'C · 톰보이',deck:[...SHARED,...MINA],momentum:1,back:['#12c6dc','#0a8fa3'],
-  abil:'<b>기세</b> 직전에 낸 내 카드보다 2 이상 큰 숫자를 내면 한 장 뽑는다',
+  abil:'<b>기세 올려!</b> 직전에 낸 내 카드보다 2 이상 큰 숫자를 내면 한 장 뽑는다',
   style:'큰 숫자로 몰아치다가 한 칸 넘친 걸 붙잡는다'}
 };
 let SEAT=['iri','miko'],DECK=[CASTS.iri.deck,CASTS.miko.deck];
@@ -1153,8 +1153,8 @@ async function play(p,idx,choice,adj=0){
   let v=valOf(p,card,choice);if(!card.lower){P.capture=false;P.soothe=false}
   if(adj){v+=adj;P.adjUsed=true;log(`${CASTS[SEAT[p]].abName}: ${NAME[p]} 숫자 ${adj>0?'+1':'−1'}`,cls)}
   {const OP=G.P[1-p],rm=CASTS[SEAT[p]].revMom;if(rm&&P.lastP!==null&&v<=P.lastP-rm&&OP.hand.length){const c=OP.hand.splice(Math.random()*OP.hand.length|0,1)[0];OP.used.push(c);log(`흉조: ${NAME[1-p]} 손패 「${c.name}」 버림`,cls)}}
-  {const OP=G.P[1-p];if(CASTS[SEAT[p]].mirror&&OP.lastP!==null&&v===OP.lastP){draw(p,1);log(`받아주기: ${NAME[p]} 1장 뽑음`,cls)}P.lastP=v}
-  if(CASTS[SEAT[p]].momentum&&!card.lower){if(P.lastV!==null&&v>=P.lastV+2&&!P.momUsed){P.momUsed=true;draw(p,1);log(`기세: ${NAME[p]} 1장 뽑음`,cls)}P.lastV=v}
+  {const OP=G.P[1-p];if(CASTS[SEAT[p]].mirror&&OP.lastP!==null&&v===OP.lastP){draw(p,1);log(`오냐오냐: ${NAME[p]} 1장 뽑음`,cls)}P.lastP=v}
+  if(CASTS[SEAT[p]].momentum&&!card.lower){if(P.lastV!==null&&v>=P.lastV+2&&!P.momUsed){P.momUsed=true;draw(p,1);log(`기세 올려!: ${NAME[p]} 1장 뽑음`,cls)}P.lastV=v}
   const prev=G.gauge,ng=Math.max(0,prev+v);
   G.gauge=ng;if(card.photo)P.photoCount++;pop();render();
   const postEl=addPost(p,card,v);
@@ -1212,7 +1212,7 @@ async function play(p,idx,choice,adj=0){
       const k=await pickFor(p,'점괘','덱 위 3장 중 1장을 손에 넣어.',top.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>{let k=top.findIndex(c=>c.v===gap);if(k<0)k=top.reduce((b,c,i)=>c.v>top[b].v&&c.v<=gap?i:b,0);return k});
       P.hand.push(top.splice(k,1)[0]);P.deck.push(...top);}break}
   }
-  if(CASTS[SEAT[p]].photoDraw&&card.photo&&!P.photoUsed){P.photoUsed=true;draw(p,1);log(`셀카 장인: ${NAME[p]} 1장 뽑음`,cls)}
+  if(CASTS[SEAT[p]].photoDraw&&card.photo&&!P.photoUsed){P.photoUsed=true;draw(p,1);log(`셀카 중독: ${NAME[p]} 1장 뽑음`,cls)}
   P.plays--;G.busy=false;render();
   if(P.plays>0&&anyPlayable(p)){if(p===AI&&!NET.on){await sleep(650);aiAct()}return}
   endTurn(p);
