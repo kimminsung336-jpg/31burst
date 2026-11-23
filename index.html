@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>31 버스트 프로토타입</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 콘카페 SNS 판, 시끄럽고 표독한데 정돈된 테스트 도구
+   IDEA: 타임라인 화제성 게이지를 둘이 같이 미는 판
+   PICTURE: 화면 가운데 큰 게이지 링과 숫자, 목표까지 남은 칸
+   COLOUR and TYPE: 마젠타 #ff2e8a 주도, 먹색 #16121a 받침, 시안 #19c6e6 날카로운 포인트 / Black Han Sans 숫자 + Noto Sans KR
+   LAYOUT: 위 점수줄, 가운데 게이지와 상대 손, 아래 내 손패, 옆 로그(좁으면 아래로) */
+:root{color-scheme:light dark;--bg:light-dark(#fff4f9,#16121a);--ink:light-dark(#16121a,#fbeef5);--sub:light-dark(#6b5a66,#b9a6b3);--m:#ff2e8a;--c:#19c6e6;--y:#ffd23f;--k:light-dark(#16121a,#000);--card:light-dark(#ffffff,#221b27);--line:light-dark(#f3cfe0,#3a2d40)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px max(4vw,14px);background:var(--k);color:#fbeef5}
+.top h1{margin:0;font:400 26px/1 "Black Han Sans",sans-serif;letter-spacing:.5px}
+.top h1 b{color:var(--m)}
+.score{display:flex;gap:10px;flex-wrap:wrap;font-size:14px}
+.pill{padding:6px 12px;border-radius:999px;background:#2a2230;white-space:nowrap}
+.pill strong{font:400 18px "Black Han Sans";margin-left:6px}
+.pill.me strong{color:var(--m)}.pill.ai strong{color:var(--c)}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;padding:20px max(4vw,14px);max-width:1240px;margin:0 auto}
+.board{display:grid;gap:18px}
+.opp{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.opp .backs{display:flex;gap:6px}
+.back{width:30px;height:42px;border-radius:6px;background:repeating-linear-gradient(45deg,var(--backA,#7a4cc4) 0 6px,var(--backB,#4b2a85) 6px 12px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.who{font-weight:700}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:13px;padding:3px 10px;border-radius:999px;background:var(--line);white-space:nowrap}
+.chip.warn{background:var(--y);color:#16121a}
+.gauge{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:22px;align-items:center;background:var(--card);border-radius:22px;padding:22px;box-shadow:0 10px 30px -18px rgba(255,46,138,.6)}
+.ring{position:relative;aspect-ratio:1}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .num b{font:400 clamp(56px,10vw,84px)/1 "Black Han Sans";color:var(--m);transition:transform .25s}
+.ring .num span{display:block;font-size:15px;color:var(--sub);margin-top:4px}
+.ring .num b.pop{transform:scale(1.15)}
+.info h2{margin:0 0 6px;font:400 30px/1.1 "Black Han Sans"}
+.info p{margin:0 0 10px;color:var(--sub)}
+.stake{display:inline-block;font:400 22px "Black Han Sans";padding:4px 14px;border-radius:10px;background:var(--m);color:#fff;margin-bottom:10px}
+.stake.hot{background:var(--k);color:var(--y)}
+.turn{font-weight:700;font-size:18px}
+.hand h3{margin:0 0 6px;font-size:16px}
+.abil{margin:4px 0 10px;font-size:13px;color:var(--sub)}
+.abil b{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:999px;background:var(--k);color:var(--y);font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.cardb{position:relative;text-align:left;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:12px 12px 12px 56px;min-height:112px;transition:transform .12s,border-color .12s}
+.cardb:hover:not(:disabled){transform:translateY(-3px);border-color:var(--m)}
+.cardb:disabled{opacity:.42;cursor:not-allowed}
+.cardb .v{position:absolute;left:10px;top:10px;width:38px;height:46px;border-radius:9px;display:grid;place-items:center;font:400 24px "Black Han Sans";background:var(--m);color:#fff}
+.cardb .v.neg{background:var(--k);color:var(--c)}.cardb .v.zero{background:var(--c);color:#16121a}
+.cardb .n{display:block;font-weight:700;font-size:15px;line-height:1.25}
+.cardb .t{display:block;font-size:13px;color:var(--sub);margin-top:4px}
+.side{display:grid;gap:14px;align-content:start}
+.rules{font-size:13px;color:var(--sub);background:var(--card);border-radius:16px;padding:14px}
+.rules summary{font-weight:700;color:var(--ink);cursor:pointer}
+.rules ul{padding-left:18px;margin:8px 0 0}
+.phone{position:sticky;top:16px;background:#0d0a10;border-radius:44px;padding:11px;height:min(720px,calc(100vh - 150px));min-height:480px;margin-bottom:24px;box-shadow:0 14px 30px -14px rgba(255,46,138,.55),inset 0 0 0 2px #2a2230}
+.screen{position:relative;background:var(--card);border-radius:34px;overflow:hidden;height:100%;display:flex;flex-direction:column}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:92px;height:24px;border-radius:14px;background:#0d0a10;z-index:2}
+.appbar{display:flex;align-items:center;gap:10px;padding:40px 16px 10px;border-bottom:1px solid var(--line)}
+.appbar b{font:400 20px "Black Han Sans"}
+.appbar .dot{width:30px;height:30px;border-radius:50%;background:conic-gradient(var(--c) 0 25%,var(--m) 0 50%,var(--y) 0 75%,var(--k) 0)}
+.note{font-size:12px;text-align:center;color:var(--sub);padding:8px 12px;border-bottom:1px solid var(--line);animation:drop .3s ease-out}
+.note.hot{color:var(--m);font-weight:700;font-size:13px}
+.feed{flex:1;overflow-y:auto;overscroll-behavior:contain}
+.feed:empty::before{content:"아직 올라온 글이 없어요";display:block;padding:18px;color:var(--sub);font-size:14px}
+.post{display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);animation:drop .35s ease-out}
+.post.bust{background:light-dark(#ffe6f1,#2e1524)}
+.av{width:40px;height:40px;border-radius:50%;object-fit:cover;display:block}
+.av.iri{box-shadow:0 0 0 2px var(--m)}.av.miko{box-shadow:0 0 0 2px #7a4cc4}.av.haru{box-shadow:0 0 0 2px #f5b800}.av.mina{box-shadow:0 0 0 2px #12c6dc}
+.ph{font-size:14px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.ph span{color:var(--sub)}
+.tag{font-size:12px;padding:1px 8px;border-radius:999px;background:var(--line);white-space:nowrap}
+.tag.b{background:var(--k);color:var(--y)}
+.pt{margin:3px 0 7px;overflow-wrap:anywhere}
+.pimg{margin:0 0 8px;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.pimg svg{display:block;width:100%;height:auto}
+.pimg img{display:block;width:100%;aspect-ratio:1;object-fit:cover;object-position:center 28%}
+.pa{display:flex;gap:20px;color:var(--sub);font-size:13px;align-items:center}
+.pa span{display:inline-flex;gap:5px;align-items:center;white-space:nowrap}
+.pa svg{width:16px;height:16px}
+.pa .h{color:var(--m)}.pa .r{color:var(--c)}
+@keyframes drop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+.fx{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden}
+.fly{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;animation:fly var(--d) cubic-bezier(.2,.7,.3,1) var(--w) forwards;opacity:0}
+.fly svg{width:100%;height:100%;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+@keyframes fly{0%{transform:translate(0,0) scale(.5);opacity:1}70%{opacity:1}100%{transform:translate(var(--x),var(--y)) scale(var(--s)) rotate(var(--r));opacity:0}}
+.bustbig{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:6;overflow:hidden}
+.bustbig::before{content:"";position:absolute;inset:0;background:radial-gradient(circle,rgba(255,210,63,.55),rgba(255,46,138,.35) 40%,transparent 70%);animation:flash 2.8s ease-out forwards}
+.bustbig .w{animation:bustIn 2.8s cubic-bezier(.2,1.5,.4,1) forwards}
+.bustbig .t{display:block;font:400 clamp(96px,19vw,230px)/.9 "Black Han Sans",sans-serif;color:var(--y);-webkit-text-stroke:clamp(3px,.6vw,7px) #16121a;paint-order:stroke fill;text-shadow:0 .06em 0 #ff2e8a,0 0 .4em rgba(255,46,138,.9);animation:jit .09s linear 16}
+.bustbig small{display:block;text-align:center;font:400 clamp(28px,5vw,60px)/1.1 "Black Han Sans",sans-serif;color:#fff;-webkit-text-stroke:2px #16121a;paint-order:stroke fill;text-shadow:0 4px 0 #16121a;margin-top:.15em}
+@keyframes bustIn{0%{transform:scale(0) rotate(-35deg);opacity:0}12%{transform:scale(1.3) rotate(-4deg);opacity:1}19%{transform:scale(.92) rotate(-11deg)}25%{transform:scale(1.06) rotate(-6deg)}30%,85%{transform:scale(1) rotate(-8deg);opacity:1}100%{transform:scale(1.5) rotate(-8deg);opacity:0}}
+@keyframes jit{0%,100%{translate:0 0}25%{translate:-7px 5px}50%{translate:6px -6px}75%{translate:-5px -4px}}
+@keyframes flash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+.quake{animation:quake .55s ease-out}
+@keyframes quake{0%,100%{transform:none}15%{transform:translate(-10px,6px) rotate(-.6deg)}30%{transform:translate(9px,-7px) rotate(.5deg)}45%{transform:translate(-7px,-4px)}60%{transform:translate(6px,5px)}80%{transform:translate(-3px,2px)}}
+.hit{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:6;overflow:hidden}
+.hit::before{content:"";position:absolute;inset:0;background:radial-gradient(circle,#fff 0,rgba(255,46,138,.5) 35%,transparent 70%);animation:flash 2.8s ease-out forwards}
+.hit .rays{position:absolute;left:50%;top:50%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;border-radius:50%;background:repeating-conic-gradient(rgba(255,210,63,.55) 0 7deg,transparent 7deg 18deg);-webkit-mask:radial-gradient(circle,#000 8%,transparent 55%);mask:radial-gradient(circle,#000 8%,transparent 55%);animation:spin 6s linear,raysFade 2.8s ease-out forwards}
+.hit .n{position:relative;font:400 clamp(100px,20vw,240px)/.9 "Black Han Sans",sans-serif;color:var(--m);-webkit-text-stroke:clamp(5px,.9vw,11px) #fff;paint-order:stroke fill;text-shadow:0 .05em 0 #16121a,0 0 .35em rgba(255,46,138,.85);animation:slam 2.8s cubic-bezier(.2,1.4,.3,1) forwards}
+@keyframes slam{0%{transform:scale(3.2) rotate(6deg);opacity:0}9%{transform:scale(.88) rotate(-3deg);opacity:1}15%{transform:scale(1.08) rotate(-3deg)}21%,85%{transform:scale(1) rotate(-3deg);opacity:1}100%{transform:scale(1.25) rotate(-3deg);opacity:0}}
+@keyframes spin{to{transform:rotate(90deg)}}
+@keyframes raysFade{0%{opacity:0}10%{opacity:1}80%{opacity:.8}100%{opacity:0}}
+.ring.near{animation:beat .85s ease-in-out infinite}
+.ring.near #arc{filter:drop-shadow(0 0 5px rgba(255,46,138,.9)) drop-shadow(0 0 12px rgba(255,46,138,.5))}
+@keyframes beat{0%,100%{transform:scale(1)}12%{transform:scale(1.06)}24%{transform:scale(.99)}36%{transform:scale(1.04)}}
+.pick{position:fixed;inset:0;z-index:7;background:rgba(10,6,12,.72);display:none;place-items:center;padding:16px;overflow:auto}
+.pick.on{display:grid}
+.pbox{background:var(--card);border-radius:24px;padding:24px;max-width:760px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.pbox h2{margin:0 0 4px;font:400 32px/1.1 "Black Han Sans",sans-serif}
+.pbox>p{margin:0;color:var(--sub)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:16px}
+.diff{display:flex;align-items:center;gap:8px;margin:0 0 14px;flex-wrap:wrap}.diff span{font-size:14px;color:var(--sub);margin-right:4px}.diff button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 16px;font-size:14px}.diff button.on{background:var(--k);color:var(--y);border-color:var(--k)}
+.deckbtn{border:0;color:var(--y);font:inherit;cursor:pointer}.deckbtn:hover{background:#3a2f42}
+.dv{max-width:900px}.dvh{display:flex;justify-content:space-between;align-items:center;gap:12px}.dvh h2{margin:0}
+.dvh button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 16px;font:inherit}
+.dvg{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:6px}
+.dvc h3{margin:0 0 8px;font:400 20px "Black Han Sans",sans-serif}.dvc h3 small{font:13px/1 inherit;color:var(--sub);margin-left:6px;font-family:inherit}
+.dvl{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.dvl li{display:grid;grid-template-columns:38px 1fr;gap:8px;align-items:center;padding:6px 8px;border-radius:10px;background:var(--bg)}
+.dvl li.gone{opacity:.38}.dvl li.hand{outline:2px solid var(--m);outline-offset:-2px}
+.dvl .nv{font:400 18px "Black Han Sans",sans-serif;text-align:center}
+.dvl .nm{font-size:14px}.dvl .nm small{display:block;font-size:12px;color:var(--sub)}
+.dvl .ex{display:inline-block;margin-left:6px;padding:0 6px;border-radius:999px;font-size:11px;background:var(--k);color:var(--y)}
+@media(max-width:600px){.dvg{grid-template-columns:1fr}}
+.pc{text-align:left;border:3px solid var(--line);border-radius:18px;background:var(--bg);padding:0;overflow:hidden;color:var(--ink);transition:transform .15s,border-color .15s}
+.pc:hover,.pc:focus-visible{border-color:var(--m);transform:translateY(-3px)}
+.pc.miko:hover,.pc.miko:focus-visible{border-color:#7a4cc4}
+.pc.haru:hover,.pc.haru:focus-visible{border-color:#f5b800}.pc.mina:hover,.pc.mina:focus-visible{border-color:#12c6dc}
+.phead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.guidebtn{border:2px solid var(--ink);background:var(--y);color:#16121a;border-radius:999px;padding:8px 18px;font:700 15px/1.2 inherit;font-family:inherit;cursor:pointer;min-height:44px}
+.guidebtn:hover,.guidebtn:focus-visible{background:var(--ink);color:var(--y)}
+.pick.guide{z-index:8;place-items:start center}
+.gd{max-width:720px;margin:auto 0}
+.gd .gtop{position:sticky;top:-24px;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--card);margin:-24px -24px 0;padding:18px 24px 12px;border-radius:24px 24px 0 0;border-bottom:2px solid var(--line)}
+.gd .gtop h2{margin:0}
+.gd .gtop button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 18px;font:inherit;min-height:44px;cursor:pointer;flex:none}
+.gd .lead{margin:16px 0 0;font:400 22px/1.3 "Black Han Sans",sans-serif;color:var(--m)}
+.gd h3{margin:26px 0 8px;font:400 21px/1.2 "Black Han Sans",sans-serif}
+.gd p,.gd li{font-size:16px;line-height:1.65;margin:0 0 8px;color:var(--ink)}
+.gd ol{margin:0 0 8px;padding-left:1.4em}
+.gd .ex{margin:12px 0 4px;padding:14px 16px;border-radius:16px;background:var(--bg);border:2px dashed var(--line)}
+.gd .ex b{color:var(--m)}
+.gd .cast{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:0 0 12px;align-items:start}
+.gd .cast img{width:48px;height:48px;border-radius:50%;grid-row:span 2}
+.gd .cast b{font-size:16px}.gd .cast span{font-size:15px;line-height:1.6}
+.gd .note{display:block;margin-top:14px;font-size:14px;color:var(--sub)}
+@media(max-width:600px){.gd .gtop h2{font-size:21px}.gd .gtop{top:-16px;margin:-16px -16px 0;padding:14px 16px 10px;border-radius:18px 18px 0 0}.gd .lead{font-size:19px}.gd h3{font-size:19px}.guidebtn{width:100%}}
+.online{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 6px;padding:10px 12px;border-radius:16px;background:var(--bg);border:2px dashed var(--line)}
+.online b{font-size:14px;margin-right:2px}
+.online button{min-height:40px;border:2px solid var(--c);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;font-weight:700}
+.online .olj{display:inline-flex;gap:6px}.online input{width:96px;min-height:40px;border:2px solid var(--line);border-radius:12px;padding:4px 10px;font:700 16px/1 inherit;font-family:inherit;background:var(--card);color:var(--ink);letter-spacing:2px}
+.olmsg{flex-basis:100%;font-size:14px;color:var(--sub)}.olmsg:empty{display:none}.olmsg b{font:400 22px/1 "Black Han Sans",sans-serif;color:var(--m);letter-spacing:3px}
+.online.live{border-style:solid;border-color:var(--c)}.online.live button,.online.live .olj{display:none}
+.pc.mine{border-color:var(--c);box-shadow:0 0 0 3px var(--c)}.pc:disabled{cursor:default}.pc:disabled:not(.mine){opacity:.55}
+.pc.foe{opacity:.45;pointer-events:none}.pback{border:0;background:none;color:var(--sub);font:inherit;text-decoration:underline;cursor:pointer;padding:8px 0}
+.pc img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;object-position:center 22%}
+.pc .pi{display:block;padding:12px 14px 16px}
+.pc .pn{display:block;font:400 26px/1.1 "Black Han Sans",sans-serif}
+.pc .ty{display:block;font-size:13px;color:var(--sub);margin-bottom:8px}
+.pc .ab{display:block;font-size:14px;margin-bottom:6px}
+.pc .ab b{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:999px;background:var(--k);color:var(--y);font-size:13px}
+.pc .st{display:block;font-size:13px;color:var(--sub)}
+@media(max-width:600px){.pbox{padding:16px;border-radius:18px}.pbox h2{font-size:24px}.pgrid{grid-template-columns:1fr 1fr;gap:10px}.pc img{aspect-ratio:1}.pc .pi{padding:8px 10px 12px}.pc .pn{font-size:20px}.pc .ab,.pc .st{font-size:12px}}
+.modal{position:fixed;inset:0;background:rgba(10,6,12,.6);display:none;place-items:center;padding:16px;z-index:5}
+.modal.on{display:grid}
+.box{background:var(--card);border-radius:20px;padding:22px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.box h3{margin:0 0 6px;font:400 26px "Black Han Sans"}
+.box p{margin:0 0 14px;color:var(--sub)}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button{min-height:44px;padding:8px 16px;border-radius:12px;border:2px solid var(--m);background:transparent;color:var(--ink);font-weight:700}
+.opts button.main{background:var(--m);color:#fff}
+@media(max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}.phone{position:relative;top:0;height:480px;min-height:0;max-width:420px;width:100%;margin:0 auto}}
+@media(max-width:600px){
+  .top{padding:8px 12px;gap:6px}.top h1{font-size:20px}.score{gap:6px;font-size:12px}.pill{padding:4px 9px}.pill strong{font-size:15px;margin-left:4px}
+  .wrap{display:flex;flex-direction:column;gap:8px;padding:8px 10px 0;height:calc(100dvh - 46px);overflow:hidden}
+  .board,.side{display:contents}
+  .opp{order:1;flex-wrap:nowrap;gap:8px}.opp .abil{margin:2px 0 0;font-size:11px}.opp .chips .chip{font-size:11px;padding:1px 7px}
+  .back{width:16px;height:24px;border-radius:4px}.opp .backs{gap:3px;flex:none}
+  .gauge{order:2;grid-template-columns:92px minmax(0,1fr);gap:12px;padding:10px 12px;border-radius:16px;text-align:left}
+  .ring{max-width:92px;margin:0}.ring .num b{font-size:38px}.ring .num span{font-size:11px;margin-top:0}
+  .info h2{font-size:20px;margin:0 0 2px}.info p{display:none}.stake{font-size:15px;padding:2px 10px;margin-bottom:4px}.turn{font-size:14px}
+  .phone{order:3;position:relative;top:0;flex:1;min-height:0;height:auto;max-width:none;margin:0;padding:0;background:none;border-radius:16px;box-shadow:0 0 0 1px var(--line)}
+  .screen{border-radius:16px}.notch{display:none}.appbar{padding:8px 12px}.appbar b{font-size:16px}.appbar .dot{width:20px;height:20px}
+  .post{padding:9px 11px;gap:8px;grid-template-columns:32px minmax(0,1fr)}.av{width:32px;height:32px}.pt{font-size:14px}
+  .pimg img{aspect-ratio:16/9}
+  .hand{order:4;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+  .hand h3{font-size:13px;margin:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.hand .abil{font-size:11px;margin:2px 0 6px}
+  .cards{display:flex;overflow-x:auto;gap:8px;scroll-snap-type:x mandatory;padding-bottom:4px}
+  .cardb{flex:0 0 128px;min-height:92px;padding:8px 8px 8px 44px;scroll-snap-align:start;border-radius:12px}
+  .cardb .v{left:7px;top:8px;width:30px;height:38px;font-size:19px;border-radius:7px}
+  .cardb .n{font-size:13px}.cardb .t{font-size:11px;line-height:1.35}
+  .rules{display:none}
+}
+.vbar,.tmini{display:none}
+@media(max-width:600px){
+  .wrap{display:grid;grid-template-columns:minmax(0,1fr) 44px;grid-template-rows:auto minmax(0,1fr) auto;gap:8px 8px}
+  .opp{grid-column:1/-1;grid-row:1}.phone{grid-column:1;grid-row:2}.hand{grid-column:1/-1;grid-row:3}
+  .gauge,.abil,.opp .abil,.hand .abil{display:none}
+  .opp{align-items:center}.opp .who{font-size:14px}
+  .vbar{grid-column:2;grid-row:2;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:0}
+  .vt{font:400 15px/1 "Black Han Sans",sans-serif;color:var(--ink);padding:4px 0 0}
+  .vt::before{content:"목표";display:block;font:500 10px/1.2 "Noto Sans KR",sans-serif;color:var(--sub);text-align:center}
+  .vtrack{position:relative;flex:1;width:22px;border-radius:999px;background:var(--line);box-shadow:inset 0 0 0 2px var(--line);min-height:0}
+  .vfill{position:absolute;left:0;right:0;bottom:0;height:0;border-radius:999px;background:linear-gradient(to top,var(--m),#ff7ab8);transition:height .35s cubic-bezier(.2,1.2,.4,1)}
+  .vbar.hot .vfill{background:linear-gradient(to top,var(--c),#8ae9f7)}
+  .vnum{position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);min-width:36px;padding:3px 0;border-radius:10px;background:var(--k);color:#fff;font:400 17px/1 "Black Han Sans",sans-serif;text-align:center;transition:bottom .35s cubic-bezier(.2,1.2,.4,1);box-shadow:0 0 0 2px var(--bg)}
+  .vbar.near .vnum{background:var(--m);animation:beat .85s ease-in-out infinite}
+  .vs{font:400 14px/1 "Black Han Sans",sans-serif;padding:5px 6px;border-radius:8px;background:var(--m);color:#fff;white-space:nowrap}
+  .vbar.hot .vs{background:var(--k);color:var(--y)}
+  .vs::before{content:"판돈";display:block;font:500 9px/1.3 "Noto Sans KR",sans-serif;opacity:.85;text-align:center}
+  .tmini{display:inline;font-size:12px;font-weight:700;color:var(--m)}
+  .tmini.wait{color:var(--sub);font-weight:500}
+  .appbar{padding:6px 12px}
+  body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+  .top{flex:none;flex-wrap:nowrap}.top h1{display:none}.score{flex-wrap:nowrap;overflow-x:auto;width:100%}
+  .wrap{flex:1;height:auto;min-height:0;width:100%}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.fly{display:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>31 <b>버스트</b></h1>
+  <div class="score">
+    <span class="pill" id="roundPill">1 / 5판</span>
+    <span class="pill me"><span id="nMe">아이리</span><strong id="sMe">0</strong></span>
+    <span class="pill ai"><span id="nAi">미코 (AI)</span><strong id="sAi">0</strong></span>
+    <button class="pill deckbtn" id="deckBtn" aria-haspopup="dialog">덱 리스트</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="board">
+    <div class="opp">
+      <div><span class="who" id="aiWho">미코 (AI)</span> <span class="chips" id="aiChips"></span><p class="abil" id="aiAbil"></p></div>
+      <div class="backs" id="aiBacks"></div>
+    </div>
+
+    <div class="gauge">
+      <div class="ring">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="12"/>
+          <circle id="arc" cx="60" cy="60" r="52" fill="none" stroke="var(--m)" stroke-width="12" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset .35s"/>
+        </svg>
+        <div class="num"><div><b id="gNum">0</b><span id="gTarget">목표 31</span></div></div>
+      </div>
+      <div class="info">
+        <div class="stake" id="stake">판돈 1점</div>
+        <h2 id="gapLine">31칸 남음</h2>
+        <p id="hint">딱 맞추면 저스트, 그 판을 먹는다. 넘기면 버스트, 묻고 더블.</p>
+        <div class="turn" id="turnLine">내 차례</div>
+      </div>
+    </div>
+
+    <div class="vbar" id="vbar" aria-hidden="true">
+      <span class="vt" id="vTarget">31</span>
+      <div class="vtrack"><div class="vfill" id="vFill"></div><span class="vnum" id="vNum">0</span></div>
+      <span class="vs" id="vStake">×1</span>
+    </div>
+    <div class="hand">
+      <h3>내 손패 <span class="tmini" id="turnMini"></span> <span class="chips" id="meChips"></span></h3><p class="abil" id="meAbil"></p>
+      <div class="cards" id="hand"></div>
+    </div>
+    <details class="rules">
+      <summary>룰 요약</summary>
+      <ul>
+        <li>덱은 공용 12장 + 캐스트 전용 8장. 판마다 새로 섞고 5장으로 시작. 덱을 다 쓰면 낸 카드를 다시 섞는다</li>
+        <li>차례마다 1장 내고 1장 뽑는다. 낼 카드가 없으면 패스하고 1장 뽑기</li>
+        <li>게이지를 목표에 딱 맞추면 저스트: 그 판 승리, 판돈만큼 득점</li>
+        <li>넘기면 버스트: 판돈 2배, 목표 +10 (흉조 캐스트가 있으면 +1 더)</li>
+        <li>둘 다 연달아 패스하면 무승부</li>
+        <li>5판 총점 승부. 동점이면 이긴 판 수</li>
+        <li>진 쪽이 다음 판 선공</li>
+      </ul>
+    </details>
+  </section>
+
+  <aside class="side">
+    <div class="phone">
+      <div class="screen">
+        <i class="notch"></i>
+        <div class="appbar"><span class="dot"></span><b>타임라인</b></div>
+        <div class="feed" id="feed" aria-live="polite"></div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div class="pick" id="pick" role="dialog" aria-modal="true" aria-labelledby="pickTitle"><div class="pbox">
+  <div class="phead"><div><h2 id="pickTitle">캐스트 고르기</h2><p id="pickSub">내가 플레이할 캐스트를 골라.</p></div><button class="guidebtn" id="guideBtn" type="button" aria-haspopup="dialog" aria-controls="guide">게임 설명서</button></div>
+  <div class="diff" id="diff" role="radiogroup" aria-label="AI 난이도"><span>AI 난이도</span><button data-d="easy" role="radio">쉬움</button><button data-d="normal" role="radio" class="on" aria-checked="true">보통</button><button data-d="hard" role="radio">어려움</button></div>
+  <div class="online" id="online"><b>온라인 2인</b><button type="button" id="olHost">방 만들기</button><span class="olj"><input id="olCode" inputmode="numeric" maxlength="4" placeholder="방 코드" aria-label="방 코드 네 자리"><button type="button" id="olJoin">참가</button></span><span class="olmsg" id="olMsg" role="status"></span></div>
+  <div class="pgrid" id="pgrid"></div></div></div>
+<div class="pick guide" id="guide" role="dialog" aria-modal="true" aria-labelledby="gTitle"><div class="pbox gd">
+  <div class="gtop"><h2 id="gTitle">31 버스트! 게임 설명서</h2><button id="gClose" type="button">닫기</button></div>
+  <p class="lead">저스트할래, 아니면 버스트할래?</p>
+  <p>두 캐스트가 하나의 타임라인에 번갈아 포스트를 올립니다. 첫 목표는 <b>열기 31</b>. 딱 맞히면 그 판의 판돈을 가져갑니다. 목표를 넘기면 판돈이 두 배로 오르고 승부가 이어집니다.</p>
+  <h3>게임 준비</h3>
+  <p>AI 난이도(쉬움·보통·어려움)를 정하고, 내 캐스트와 상대 캐스트를 차례로 고르세요. 상대는 AI가 맡고, 게임은 <b>다섯 판</b>으로 진행합니다. 각 캐스트는 고유 능력 하나와 덱 20장(공용 12장, 전용 8장)을 씁니다. 매 판 덱을 새로 섞고 손에 5장을 받습니다. <b>열기 0 · 목표 31 · 판돈 1점</b>으로 시작합니다.</p>
+  <h3>온라인 2인</h3>
+  <p>캐스트 고르기 화면의 <b>방 만들기</b>를 누르면 네 자리 방 코드가 나옵니다. 상대가 그 코드를 넣고 <b>참가</b>를 누르면 연결됩니다. 방장이 먼저 캐스트를 고르고, 상대는 남은 캐스트 중에서 고릅니다. 판 진행과 판정은 방장 화면이 맡습니다.</p>
+  <h3>내 차례</h3>
+  <ol>
+    <li>손에서 포스트 한 장을 냅니다. 리포스트처럼 ‘1장 더 낸다’ 효과가 있으면 이어서 더 낼 수 있습니다.</li>
+    <li>두 사람이 함께 쓰는 열기 게이지에 포스트의 숫자를 더하고 효과를 적용합니다. 음수는 열기를 낮추고, 열기는 0 아래로 내려가지 않습니다.</li>
+    <li>열기가 목표와 같으면 <b>저스트!</b> 현재 판돈만큼 점수를 얻고 그 판이 끝납니다.</li>
+    <li>열기가 목표보다 높으면 <b>버스트!</b> 열기는 그 자리에 두고 목표를 10 올립니다. 판돈은 두 배가 되고(불길한 예언으로 터지면 세 배), 새 목표에서 승부를 이어갑니다.</li>
+    <li>포스트를 다 냈으면 카드 한 장을 뽑고 차례를 넘깁니다.</li>
+  </ol>
+  <p>‘저스트 불가’ 카드(해명문, 특종!, 결계, 마감 설거지)로 목표에 딱 맞히면 저스트가 아니라 버스트입니다.</p>
+  <div class="ex"><b>지금 열기가 28이라면?</b> 신메뉴 홍보(+3)를 올리면 31로 저스트! 떡상(+5)을 올리면 33으로 버스트! 이제 열기 33에서 목표 41을 노립니다. 내가 키운 판돈도 상대가 먼저 41을 맞히면 상대 몫입니다.</div>
+  <h3>판이 끝나면</h3>
+  <p>첫 판의 선공은 무작위로 정하고, 다음 판부터는 직전 판에서 진 쪽이 먼저 냅니다. 무승부였다면 선공이 바뀝니다. 다섯 판을 모두 마치면 <b>총점이 높은 쪽</b>이 승리합니다. 총점이 같으면 저스트를 더 많이 한 쪽이 이기고, 그것도 같으면 무승부입니다.</p>
+  <p>낼 수 있는 카드가 없으면 카드 한 장을 뽑고 패스합니다. 두 사람이 연달아 패스하면 그 판은 무승부입니다. 덱이 비었을 때 카드를 뽑아야 한다면, 그 판에 낸 카드를 다시 섞어 덱으로 씁니다.</p>
+  <h3>캐스트</h3>
+  <div class="cast"><img src="img/iri_av.jpg" alt=""><b>M · 아이리 — 셀카 장인</b><span>매 판 처음으로 사진 포스트를 올리면 카드 한 장을 더 뽑습니다.</span></div>
+  <div class="cast"><img src="img/miko_av.jpg" alt=""><b>K · 미코 — 흉조</b><span>누구든 버스트하면 배수를 적용한 뒤 판돈이 1점 더 오르고, 미코는 카드 두 장을 뽑습니다.</span></div>
+  <div class="cast"><img src="img/haru_av.jpg" alt=""><b>Y · 하루 — 어른의 여유</b><span>판마다 한 번, 내가 낸 포스트의 숫자를 1 올리거나 내릴 수 있습니다. 마지막 한 칸을 맞추는 데 쓰세요.</span></div>
+  <div class="cast"><img src="img/mina_av.jpg" alt=""><b>C · 미나 — 기세</b><span>직전에 낸 내 포스트보다 큰 숫자를 내면 카드 한 장을 뽑습니다. 작은 숫자에서 큰 숫자로 몰아칠수록 손이 불어납니다.</span></div>
+  <div class="ex"><b>특종!</b> 숫자가 무려 31인 포스트입니다. 이 카드로는 저스트할 수 없습니다. 손에 들어왔다면, 언제 판을 키울지 골라보세요.</div>
+  <span class="note">카드별 숫자와 효과는 게임 중 ‘덱 리스트’에서 볼 수 있습니다.</span>
+</div></div>
+<div class="pick" id="deckView" role="dialog" aria-modal="true" aria-labelledby="dvTitle"><div class="pbox dv">
+  <div class="dvh"><h2 id="dvTitle">덱 리스트</h2><button id="dvClose" aria-label="닫기">닫기</button></div>
+  <p>흐리게 보이는 카드는 이번 판에 이미 나온 카드, 분홍 테두리는 지금 내 손패야.</p>
+  <div class="dvg" id="dvGrid"></div></div></div>
+<div class="fx" id="fx" aria-hidden="true"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true"><div class="box"><h3 id="mTitle"></h3><p id="mText"></p><div class="opts" id="mOpts"></div></div></div>
+
+<script>
+{
+const C=(id,name,v,text,o={})=>({id,name,v,text,...o});
+const SHARED=[
+ C('shot','오늘의 출근샷',1,'효과 없음',{photo:1}),
+ C('selfie','셀카 업로드',2,'효과 없음',{photo:1}),
+ C('menu','신메뉴 홍보',3,'효과 없음',{photo:1}),
+ C('boom','떡상',5,'효과 없음'),
+ C('edit','수정됨',1,'낼 때 숫자를 0·1·2 중에서 고른다',{choice:[0,1,2]}),
+ C('excuse','해명문',-3,'저스트 불가. 목표에 딱 맞으면 버스트',{nofinish:1}),
+ C('trend','실검 1위',2,'게이지가 20 이상이면 숫자가 4'),
+ C('story','스토리 올리기',2,'카드 1장을 뽑는다',{photo:1,draw:1}),
+ C('dm','DM 염탐',1,'상대 손패 1장을 본다'),
+ C('snipe','저격글',2,'상대는 다음 턴에 3 이상인 카드를 못 낸다'),
+ C('repost','리포스트',1,'이번 턴에 1장 더 낸다',{extra:1}),
+ C('scoop','특종!',31,'저스트 불가. 목표에 딱 맞으면 버스트',{nofinish:1}),
+];
+const IRI=[
+ C('burst','셀카 연사',1,'이번 턴에 1장 더 낸다',{photo:1,extra:1}),
+ C('nail','네일 자랑',2,'손패 1장을 덱 맨 아래에 넣고 2장 뽑는다',{photo:1}),
+ C('fourcut','인생네컷',4,'이번 판에 사진 포스트를 3장 이상 냈으면 숫자가 1',{photo:1}),
+ C('filter','필터 과다',1,'낼 때 숫자를 1이나 2 중에서 고른다',{photo:1,choice:[1,2]}),
+ C('f4f','맞팔 이벤트',2,'양쪽 다 1장씩 뽑는다'),
+ C('vlog','브이로그',3,'효과 없음',{photo:1}),
+ C('hilite','스토리 하이라이트',0,'카드 1장을 뽑는다',{photo:1,draw:1}),
+ C('viral','바이럴 영상',5,'효과 없음',{photo:1}),
+];
+const MIKO=[
+ C('omen','흉',6,'효과 없음'),
+ C('doll','저주 인형',1,'상대 손패 1장을 보고, 3 이상이면 버리게 한다'),
+ C('charm','부적',0,'상대가 다음에 내는 카드는 숫자 +1'),
+ C('ward','결계',0,'게이지를 1~3 내린다. 저스트 불가, 목표에 딱 맞으면 버스트',{lower:[1,2,3],nofinish:1}),
+ C('silence','침묵의 주문',0,'상대의 다음 차례를 건너뛴다. 판마다 한 번',{once:1}),
+ C('prophecy','불길한 예언',4,'이 카드로 버스트하면 판돈 3배',{triple:1}),
+ C('fortune','점괘',1,'덱 위 3장 중 1장을 골라 손에 넣는다'),
+ C('convert','포교',2,'상대 손패 1장을 무작위로 버리게 한다'),
+];
+const HARU=[
+ C('cheek','볼 터치 셀카',2,'낼 때 숫자를 2나 3 중에서 고른다',{photo:1,choice:[2,3]}),
+ C('welcome','오픈 인사',2,'효과 없음',{photo:1}),
+ C('omurice','오므라이스',3,'효과 없음',{photo:1}),
+ C('tea','야간 티타임',1,'다음 내 차례에 1장 더 낸다',{photo:1}),
+ C('drip','핸드드립',0,'덱 위 2장 중 1장을 손에 넣고, 나머지는 덱 맨 아래로'),
+ C('calm','다독다독',0,'상대가 다음에 내는 카드는 숫자 −1'),
+ C('dishes','마감 설거지',0,'게이지를 1~2 내린다. 저스트 불가, 목표에 딱 맞으면 버스트',{lower:[1,2],nofinish:1}),
+ C('regular','단골 손님',2,'낸 뒤 손패가 3장 이하면 1장 뽑는다'),
+];
+const MINA=[
+ C('mvp','오늘의 MVP',3,'낼 때 숫자를 3이나 5 중에서 고른다',{photo:1,choice:[3,5]}),
+ C('jog','아침 조깅',1,'이번 턴에 1장 더 낸다',{photo:1,extra:1}),
+ C('shake','프로틴 쉐이크',3,'효과 없음',{photo:1}),
+ C('court','야간 농구',0,'카드 1장을 뽑는다',{photo:1,draw:1}),
+ C('dunk','덩크',6,'효과 없음'),
+ C('combo','연속 득점',2,'낼 때 숫자를 2나 4 중에서 고른다',{choice:[2,4]}),
+ C('whistle','휘슬',1,'상대는 다음 턴에 2 이하인 카드를 못 낸다'),
+ C('sub','선수 교체',1,'손패 1장을 덱 맨 아래에 넣고 1장 뽑는다'),
+];
+const CASTS={
+ iri:{name:'아이리',handle:'@iri_cafe',type:'M · 갸루',deck:[...SHARED,...IRI],photoDraw:1,back:['#ff2e8a','#c41d68'],
+  abil:'<b>셀카 장인</b> 사진 포스트를 내면 1장 뽑는다. 판마다 한 번',
+  style:'사진 포스트로 손을 계속 돌리고, 숫자를 유연하게 맞춘다'},
+ miko:{name:'미코',handle:'@miko_occult',type:'K · 오컬트',deck:[...SHARED,...MIKO],bustPlus:1,bustDraw:2,back:['#7a4cc4','#4b2a85'],
+  abil:'<b>흉조</b> 버스트가 나면 판돈이 1 더 오르고, 미코가 2장 뽑는다',
+  style:'상대 손을 끊고, 판이 터지길 기다린다'},
+ haru:{name:'하루',handle:'@haru_ne',type:'Y · 누님',deck:[...SHARED,...HARU],adjust:1,back:['#f5b800','#b98a00'],
+  abil:'<b>어른의 여유</b> 판마다 한 번, 낸 카드 숫자를 1 올리거나 내린다',
+  style:'판을 천천히 끌고 가다가 마지막 한 칸을 맞춘다'},
+ mina:{name:'미나',handle:'@mina_mvp',type:'C · 톰보이',deck:[...SHARED,...MINA],momentum:1,back:['#12c6dc','#0a8fa3'],
+  abil:'<b>기세</b> 직전에 낸 내 카드보다 큰 숫자를 내면 1장 뽑는다',
+  style:'작은 숫자에서 큰 숫자로 몰아치며 손을 불린다'}
+};
+let SEAT=['iri','miko'],DECK=[CASTS.iri.deck,CASTS.miko.deck];
+const abOf=k=>({photoDraw:CASTS[k].photoDraw,bustPlus:CASTS[k].bustPlus,bustDraw:CASTS[k].bustDraw,adjust:CASTS[k].adjust,momentum:CASTS[k].momentum});
+
+
+const POST={
+ shot:'출근 완료! 오늘도 잘 부탁해요~',
+ selfie:'오늘 앞머리 대성공한 날',
+ menu:'신메뉴 딸기 라떼 나왔어요. 첫 주문엔 체키 한 장 서비스',
+ boom:'어제 올린 거 조회수 왜 이래? 다들 고마워',
+ algo:'알림이 안 멈춰… 폰 터질 것 같음',
+ edit:'오타 고쳤어요 ㅎㅎ',
+ excuse:'오해가 있었던 것 같아서 글 남깁니다',
+ trend:'실검에 우리 가게 이름 있는 거 실화?',
+ water:'다들 다른 얘기 하자! 오늘 날씨 좋다~',
+ story:'스토리에 메이킹 올렸으니 보러 와',
+ draft:'쓰다가 임시저장… 이건 나중에 올릴게',
+ sched:'내일 9시에 중대 발표 있습니다',
+ dm:'어머 실수로 DM 열어봤네 미안~',
+ snipe:'누구라고는 안 하겠는데 요즘 좀 그렇더라',
+ capture:'캡처 떠놨으니 지우지 마세요^^',
+ report:'이 계정 신고 부탁드려요',
+ repost:'이거 우리 가게 얘기 아님? 공유함',
+ ignore:'(읽음)',
+ bold:'네 제가 그랬습니다. 그래서 뭐요',
+ sorry:'심려를 끼쳐드려 죄송합니다',
+ burst:'연사로 찍었는데 다 잘 나와서 못 고르겠어',
+ nail:'새로 한 네일 봐봐! 반짝반짝',
+ fourcut:'인생네컷 찍고 옴 ㅎㅎ 오늘 텐션 최고',
+ filter:'필터 좀 세게 넣었나…? 아무튼 귀여움',
+ f4f:'맞팔 이벤트! 팔로우하면 나도 바로 감~',
+ vlog:'출근 브이로그 올렸어요. 끝까지 봐줘',
+ hilite:'하이라이트 정리했어! 프로필 보러 와',
+ viral:'이거 왜 터짐?? 다들 어디서 보고 온 거야',
+ omen:'오늘은… 흉이 나왔어요. 조심하세요. 으흐흐',
+ doll:'이 인형… 누구 닮았는지 알아요?',
+ charm:'부적 하나 붙여드렸어요. 떼면 안 돼요',
+ ward:'결계를 쳤어요. 잠깐만 조용히 해주세요',
+ silence:'쉿.',
+ prophecy:'곧 큰일이 날 거예요. 예언이에요',
+ fortune:'오늘의 점괘가 나왔어요… 궁금해요?',
+ convert:'우리 가게로 오세요… 구원받을 수 있어요',
+ scoop:'특종!! 오늘 우리 가게 미쳤음 다들 와'
+};
+const HEART='<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3.3 5 6.8 5c2 0 3.4 1.1 4.2 2.4C11.8 6.1 13.2 5 15.2 5c3.5 0 5.6 3.6 4.3 6.8C19.5 16.4 12 21 12 21z"/></svg>';
+const REPLY='<svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H10l-5 4v-4H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>';
+/* 사진 첨부 포스트. 지금은 임시 일러스트, 나중에 실제 캐릭터 그림으로 교체 */
+const SKIN='#ffe3d6';
+const hairOf=p=>CASTS[SEAT[p]].back[0];
+function face(cx,cy,r,p,wink){
+  const h=hairOf(p);
+  return `<path d="M${cx-r*1.15} ${cy+r*1.5} Q${cx-r*1.3} ${cy-r*1.2} ${cx} ${cy-r*1.25} Q${cx+r*1.3} ${cy-r*1.2} ${cx+r*1.15} ${cy+r*1.5} Z" fill="${h}"/>
+  <ellipse cx="${cx}" cy="${cy+r*.05}" rx="${r*.92}" ry="${r}" fill="${SKIN}"/>
+  <path d="M${cx-r*.95} ${cy-r*.2} Q${cx-r*.3} ${cy-r*1.35} ${cx+r*.95} ${cy-r*.35} Q${cx+r*.2} ${cy-r*.65} ${cx-r*.95} ${cy-r*.2}Z" fill="${h}"/>
+  ${wink?`<path d="M${cx-r*.5} ${cy+r*.12} q${r*.17} -${r*.14} ${r*.34} 0" stroke="#3a2230" stroke-width="${r*.09}" fill="none" stroke-linecap="round"/>`:`<ellipse cx="${cx-r*.33}" cy="${cy+r*.12}" rx="${r*.1}" ry="${r*.16}" fill="#3a2230"/>`}
+  <ellipse cx="${cx+r*.33}" cy="${cy+r*.12}" rx="${r*.1}" ry="${r*.16}" fill="#3a2230"/>
+  <ellipse cx="${cx-r*.52}" cy="${cy+r*.42}" rx="${r*.16}" ry="${r*.08}" fill="#ff9ec4" opacity=".7"/>
+  <ellipse cx="${cx+r*.52}" cy="${cy+r*.42}" rx="${r*.16}" ry="${r*.08}" fill="#ff9ec4" opacity=".7"/>
+  <path d="M${cx-r*.15} ${cy+r*.5} q${r*.15} ${r*.17} ${r*.3} 0" stroke="#3a2230" stroke-width="${r*.07}" fill="none" stroke-linecap="round"/>`;
+}
+const svg=(body,bg)=>`<svg viewBox="0 0 320 190" role="img" aria-label="첨부 사진"><rect width="320" height="190" fill="${bg}"/>${body}</svg>`;
+const IMG={
+  selfie:p=>svg(`<circle cx="60" cy="40" r="30" fill="#fff" opacity=".35"/><circle cx="270" cy="150" r="46" fill="#fff" opacity=".25"/>
+    ${face(160,95,48,p,true)}
+    <rect x="212" y="98" width="13" height="38" rx="6" fill="${SKIN}" transform="rotate(-14 218 117)"/><rect x="228" y="100" width="13" height="38" rx="6" fill="${SKIN}" transform="rotate(12 234 119)"/><rect x="210" y="128" width="36" height="30" rx="12" fill="${SKIN}"/>
+    <text x="22" y="174" font-size="15" fill="#fff" font-family="Black Han Sans">오늘의 셀카 ♡</text>`,p?'#bdf1fb':'#ffc6de'),
+  shot:p=>svg(`<rect x="40" y="58" width="240" height="132" fill="#fff"/>
+    ${[0,1,2,3,4,5,6,7].map(i=>`<rect x="${40+i*30}" y="44" width="30" height="34" fill="${i%2?'#fff':hairOf(p)}"/>`).join('')}
+    <path d="M40 78 ${[0,1,2,3,4,5,6,7].map(i=>`q15 14 30 0`).join(' ')}" fill="${hairOf(p)}"/>
+    <rect x="70" y="100" width="70" height="90" rx="6" fill="#2a2230"/><rect x="170" y="100" width="84" height="56" rx="6" fill="#d9f4fb"/>
+    <rect x="90" y="120" width="30" height="16" rx="3" fill="#ffd23f"/><text x="105" y="132" font-size="10" text-anchor="middle" fill="#16121a" font-weight="700">OPEN</text>
+    ${face(212,138,18,p,false)}`,'#ffeaf3'),
+  menu:p=>svg(`<rect x="0" y="140" width="320" height="50" fill="#f3d6c4"/>
+    <path d="M120 40 h80 l-10 130 h-60 z" fill="#fff" opacity=".9"/><path d="M124 80 h72 l-7 90 h-58 z" fill="#ff9ec4"/><path d="M128 120 h64 l-4 50 h-56 z" fill="#ff5ea8"/>
+    <ellipse cx="160" cy="40" rx="40" ry="8" fill="#fff"/><rect x="176" y="8" width="6" height="40" rx="3" fill="${hairOf(p)}" transform="rotate(14 179 28)"/>
+    <path d="M224 140 q16 -26 32 0 q-16 26 -32 0z" fill="#ff2e5e"/><path d="M234 128 l6 8 l6 -8" stroke="#3aa35b" stroke-width="4" fill="none"/>
+    <text x="22" y="34" font-size="16" fill="#16121a" font-family="Black Han Sans">NEW 딸기 라떼</text>`,'#fff6ee'),
+  story:p=>svg(`<rect x="110" y="8" width="100" height="174" rx="14" fill="#16121a"/>
+    ${[0,1,2].map(i=>`<rect x="${120+i*28}" y="16" width="24" height="3" rx="1.5" fill="#fff" opacity="${i?'.4':'1'}"/>`).join('')}
+    <rect x="118" y="26" width="84" height="150" rx="8" fill="${p?'#bdf1fb':'#ffc6de'}"/>${face(160,98,26,p,false)}
+    <rect x="128" y="150" width="64" height="16" rx="8" fill="#fff"/><text x="160" y="162" font-size="9" text-anchor="middle" fill="#16121a" font-weight="700">메이킹 보러 오기</text>
+    <circle cx="50" cy="60" r="26" fill="#fff" opacity=".5"/><circle cx="270" cy="130" r="34" fill="#fff" opacity=".5"/>`,'#f3e9ff'),
+  boom:p=>svg(`${[0,1,2,3,4,5].map(i=>`<rect x="${40+i*42}" y="${160-[20,26,22,40,78,130][i]}" width="28" height="${[20,26,22,40,78,130][i]}" rx="4" fill="${i>3?hairOf(p):'#d8cbd2'}"/>`).join('')}
+    <path d="M54 140 L96 134 L138 138 L180 118 L222 80 L264 30" stroke="#16121a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M252 26 l14 2 l-4 14" stroke="#16121a" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <text x="24" y="34" font-size="16" fill="#16121a" font-family="Black Han Sans">조회수 ↑ 2,840%</text>`,'#fff'),
+  trend:p=>svg(`<text x="24" y="34" font-size="15" fill="#16121a" font-family="Black Han Sans">실시간 검색어</text>
+    ${[0,1,2,3,4].map(i=>`<rect x="24" y="${48+i*27}" width="272" height="22" rx="6" fill="${i?'#f1ecef':hairOf(p)}"/><text x="36" y="${64+i*27}" font-size="13" font-weight="700" fill="${i?'#6b5a66':'#fff'}">${i+1}</text><rect x="58" y="${55+i*27}" width="${i?[0,150,120,170,100][i]:190}" height="8" rx="4" fill="${i?'#d8cbd2':'#fff'}" opacity="${i?1:.85}"/>`).join('')}`,'#fff'),
+  capture:p=>svg(`<rect x="34" y="20" width="252" height="150" rx="10" fill="#fff" stroke="#d8cbd2"/>
+    ${[0,1,2,3,4].map(i=>`<rect x="52" y="${40+i*24}" width="${[200,170,210,140,180][i]}" height="10" rx="5" fill="#d8cbd2"/>`).join('')}
+    <ellipse cx="150" cy="92" rx="88" ry="20" fill="none" stroke="#ff2e2e" stroke-width="4"/>
+    <text x="244" y="160" font-size="14" fill="#ff2e2e" font-family="Black Han Sans" transform="rotate(-8 244 160)">박제 완료</text>`,'#f6f1f4')
+};
+const OWNPH={burst:'iri_selfie',nail:'iri_selfie',fourcut:'iri_selfie',filter:'iri_selfie',vlog:'iri_shot',hilite:'iri_story',fortune:'miko_story',
+ cheek:'haru_selfie',welcome:'haru_shot',omurice:'haru_menu',tea:'haru_story',mvp:'mina_selfie',jog:'mina_shot',shake:'mina_menu',court:'mina_story'};
+const photoOf=(p,id)=>['selfie','shot','menu','story'].includes(id)?`${SEAT[p]}_${id}`:OWNPH[id];
+IMG.viral=IMG.boom;
+const POST_MIKO={
+ selfie:'으흐흐… 오늘도 찍혀버렸다',
+ shot:'오늘도… 문 열었어요… 들어올 거죠?',
+ menu:'신메뉴 저주 소다. 마시면 행운이 와요. 아마도',
+ story:'오늘의 운세 봐드립니다. 피하면 더 나빠져요',
+ excuse:'오해예요… 저주는 안 걸었어요… 아직은',
+ snipe:'누군가 오늘 밤 악몽을 꾸겠네요… 으흐흐',
+ sorry:'죄송합니다… 부적이 잘못 붙었어요',
+ scoop:'특종입니다… 예언이 맞았어요. 으흐흐'
+};
+const POST_HARU={
+ shot:'하루네 문 열었어요. 천천히 들렀다 가요',
+ selfie:'오늘은 볕이 좋아서 한 장. 다들 밥은 챙겨 먹었어요?',
+ menu:'오늘의 메뉴는 오므라이스. 케첩 하트는 서비스예요',
+ story:'마감하고 혼자 차 한 잔. 오늘도 수고했어요',
+ boom:'어제 올린 사진이 왜 이렇게 퍼졌지… 다들 고마워요',
+ excuse:'오해가 있었나 봐요. 차 한 잔 하면서 천천히 얘기해요',
+ snipe:'누구라고는 안 할게요. 그래도 그러면 못써요',
+ scoop:'어머, 오늘 손님이 왜 이렇게 많지? 다들 고마워요',
+ cheek:'셀카는 아직 좀 어색하네요. 그래도 한 장',
+ welcome:'어서 와요. 오늘도 와줘서 고마워요',
+ omurice:'오므라이스 나왔습니다. 하트는 제가 직접 그렸어요',
+ tea:'오늘 밤은 캐모마일. 같이 마실래요?',
+ drip:'원두 새로 들어왔어요. 지금 천천히 내리는 중',
+ calm:'괜찮아요, 그렇게 서두르지 않아도 돼요',
+ dishes:'마감 설거지 끝. 이제 좀 쉬어야겠다',
+ regular:'단골 손님 오셨네요. 늘 드시던 걸로 드릴게요'
+};
+const POST_MINA={
+ shot:'아침 조깅 끝! MVP 오늘도 오픈한다',
+ selfie:'오늘 컨디션 최고. 다들 운동했냐?',
+ menu:'신메뉴 프로틴 쉐이크! 마시고 같이 뛰자',
+ story:'야간 농구 한 판 하고 옴. 내일도 이긴다',
+ boom:'뭐야 조회수 왜 이래? 다들 고마워!',
+ excuse:'아니 그게 아니라… 오해야 오해!',
+ snipe:'누구라고는 안 하는데 그렇게 하면 반칙이지',
+ scoop:'특종! 오늘 MVP 완전 터졌다. 다들 와!',
+ mvp:'오늘의 MVP는 누구? 당연히 나지',
+ jog:'아침 조깅 인증! 땀 흘리는 게 최고야',
+ shake:'프로틴 쉐이크 원샷. 근육아 기다려라',
+ court:'밤 코트 분위기 진짜 좋다. 한 판 더?',
+ dunk:'덩크 성공. 봤냐?',
+ combo:'연속 득점 간다! 흐름 탔어',
+ whistle:'삐익! 거기 반칙!',
+ sub:'선수 교체! 다음 타자 들어간다'
+};
+const POSTS={miko:POST_MIKO,haru:POST_HARU,mina:POST_MINA};
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const fmt=n=>n>=10000?(n/10000).toFixed(1)+'만':n>=1000?(n/1000).toFixed(1)+'천':String(n);
+
+function spawn(x,y,n,spread,big){
+  const fx=document.getElementById('fx');
+  for(let i=0;i<n;i++){
+    const el=document.createElement('span'),isH=Math.random()<.62;
+    el.className='fly';el.innerHTML=isH?HEART:REPLY;
+    el.style.color=isH?'var(--m)':'var(--c)';
+    const sx=big?rnd(0,innerWidth):x,sy=big?rnd(innerHeight*.35,innerHeight+20):y;
+    el.style.left=sx+'px';el.style.top=sy+'px';
+    el.style.setProperty('--x',rnd(-spread,spread)+'px');
+    el.style.setProperty('--y',-rnd(spread*.6,spread*1.8)+'px');
+    el.style.setProperty('--r',rnd(-40,40)+'deg');
+    el.style.setProperty('--s',rnd(.9,big?2.2:1.5));
+    el.style.setProperty('--d',rnd(.8,big?2:1.3)+'s');
+    el.style.setProperty('--w',rnd(0,big?.9:.25)+'s');
+    fx.appendChild(el);setTimeout(()=>el.remove(),3200);
+  }
+}
+function addPost(p,card,v){
+  NET.ev({t:'post',p,id:card.id,v});
+  const feed=document.getElementById('feed');
+  const heat=Math.abs(v)+1;
+  const likes=Math.round(heat*rnd(6,14)*(G.stake)),reps=Math.round(heat*rnd(1,4)*G.stake);
+  const el=document.createElement('article');el.className='post';
+  el.innerHTML=`<img class="av ${SEAT[p]}" src="img/${SEAT[p]}_av.jpg" alt=""><div>
+    <div class="ph"><b>${NAME[p]}</b><span>${CASTS[SEAT[p]].handle} · 방금</span><span class="tag">${card.name} ${v>=0?'+':''}${v} → ${G.gauge}</span></div>
+    <p class="pt">${(POSTS[SEAT[p]]||{})[card.id]||POST[card.id]}</p>${photoOf(p,card.id)?`<div class="pimg"><img src="img/${photoOf(p,card.id)}.jpg" alt="${NAME[p]}의 사진"></div>`:IMG[card.id]?`<div class="pimg">${IMG[card.id](p)}</div>`:''}
+    <div class="pa"><span class="r">${REPLY}<em>${fmt(reps)}</em></span><span class="h">${HEART}<em>${fmt(likes)}</em></span></div></div>`;
+  feed.prepend(el);while(feed.children.length>30)feed.lastChild.remove();
+  feed.scrollTop=0;
+  requestAnimationFrame(()=>{const r=el.querySelector('.h').getBoundingClientRect();spawn(r.left+8,r.top+8,4+Math.min(10,Math.abs(v)*2),70)});
+  return el;
+}
+function bigHit(n){
+  NET.ev({t:'hit'});
+  const d=document.createElement('div');d.className='hit';
+  d.innerHTML=`<div class="rays"></div><span class="n">JUST!</span>`;
+  document.body.appendChild(d);setTimeout(()=>d.remove(),3000);
+  setTimeout(()=>{const m=document.querySelector('main');m.classList.remove('quake');void m.offsetWidth;m.classList.add('quake');
+    spawn(innerWidth/2,innerHeight/2,70,340);spawn(0,0,50,240,true)},230);
+}
+function bigBust(mult){
+  NET.ev({t:'bust'});
+  const d=document.createElement('div');d.className='bustbig';
+  d.innerHTML=`<div class="w"><span class="t">BUST!</span></div>`;
+  document.body.appendChild(d);setTimeout(()=>d.remove(),3000);
+  const m=document.querySelector('main');m.classList.remove('quake');void m.offsetWidth;m.classList.add('quake');
+}
+function bustFx(el){
+  NET.ev({t:'bustfx'});
+  if(el){
+    el.classList.add('bust');
+    el.querySelector('.ph').insertAdjacentHTML('beforeend','<span class="tag b">버스트</span>');
+    el.querySelectorAll('.pa em').forEach(e=>{e.textContent=fmt(Math.round(rnd(4000,30000)*G.stake/2))});
+  }
+  spawn(0,0,90,260,true);
+}
+
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const ME=0,AI=1,NAME=['아이리','미코'];
+
+const G={round:0,score:[0,0],wins:[0,0],starter:ME,cur:ME,gauge:0,target:31,stake:1,passes:0,busy:false,over:false,P:[]};
+
+/* ---------- 온라인 2인 (PeerJS, 방장이 판정) ---------- */
+const NET={on:false,role:null,peer:null,conn:null,code:'',hostCast:null,guestCast:null,lastEl:null,last:'',aid:0,wait:{},
+  send(m){if(this.conn&&this.conn.open)this.conn.send(m)},
+  ev(m){if(this.role==='host'&&this.on)this.send(m)},
+  state(){if(this.role!=='host'||!this.on)return;const st=snap(),j=JSON.stringify(st);if(j===this.last)return;this.last=j;this.send({t:'state',s:st})}};
+const PH={id:'?',name:'?',v:0,text:''};
+function snap(){
+  const mask=(P,hide)=>({...P,deck:P.deck.length,hand:hide?P.hand.length:P.hand,used:[],known:hide?[]:P.known});
+  return{round:G.round,score:G.score,wins:G.wins,starter:G.starter,cur:G.cur,gauge:G.gauge,target:G.target,stake:G.stake,busy:G.busy,over:G.over,
+    P:G.P.length?[mask(G.P[0],true),mask(G.P[1],false)]:[]};
+}
+function applySnap(s){
+  Object.assign(G,{round:s.round,score:[s.score[1],s.score[0]],wins:[s.wins[1],s.wins[0]],starter:1-s.starter,cur:1-s.cur,gauge:s.gauge,target:s.target,stake:s.stake,busy:s.busy,over:s.over});
+  const fix=P=>({...P,deck:Array(P.deck).fill(null),hand:typeof P.hand==='number'?Array(P.hand).fill(PH):P.hand});
+  if(s.P.length)G.P=[fix(s.P[1]),fix(s.P[0])];
+  render();
+}
+const ALLC=[...SHARED,...IRI,...MIKO,...HARU,...MINA];
+const flipCls=c=>c==='me'?'ai':c==='ai'?'me':c;
+function pickFor(p,title,text,opts,auto){
+  if(p===ME)return ask(title,text,opts);
+  if(!NET.on)return Promise.resolve(auto());
+  const id=++NET.aid;NET.send({t:'ask',id,title,text,labels:opts.map(o=>o.label)});
+  return new Promise(r=>{NET.wait[id]=k=>r(opts[k]?opts[k].value:opts[0].value)});
+}
+function netMsg(h){$('olMsg').innerHTML=h}
+function netErr(e){
+  const t=e&&e.type;
+  if(t==='peer-unavailable')return netMsg('그 코드로 열린 방이 없어. 코드를 다시 확인해줘.');
+  if(t==='unavailable-id'){netReset();return netHost()}
+  netMsg('연결에 실패했어. 이 화면에선 온라인 연결이 막혀 있을 수 있으니 GitHub 주소로 열어줘.');netReset(true);
+}
+function netReset(keepMsg){try{NET.conn&&NET.conn.close()}catch(e){}try{NET.peer&&NET.peer.destroy()}catch(e){}
+  Object.assign(NET,{on:false,role:null,peer:null,conn:null,code:'',hostCast:null,guestCast:null,last:'',wait:{}});
+  $('online').classList.remove('live');if(!keepMsg)netMsg('');$('diff').hidden=false}
+function netHost(){
+  if(!window.Peer)return netMsg('연결 도구를 못 불러왔어. GitHub 주소로 열어줘.');
+  netReset();const code=String(1000+Math.random()*9000|0);NET.peer=new Peer('burst31-'+code);NET.role='host';
+  NET.peer.on('open',()=>{NET.code=code;netMsg(`방 코드 <b>${code}</b> · 상대에게 이 숫자를 알려줘. 기다리는 중…`)});
+  NET.peer.on('connection',c=>{if(NET.conn){c.close();return}bindConn(c)});
+  NET.peer.on('error',netErr);
+}
+function netJoin(){
+  if(!window.Peer)return netMsg('연결 도구를 못 불러왔어. GitHub 주소로 열어줘.');
+  const code=$('olCode').value.trim();if(!/^\d{4}$/.test(code))return netMsg('방 코드 네 자리를 넣어줘.');
+  netReset();NET.role='guest';NET.peer=new Peer();netMsg('연결하는 중…');
+  NET.peer.on('open',()=>bindConn(NET.peer.connect('burst31-'+code,{reliable:true})));
+  NET.peer.on('error',netErr);
+}
+function bindConn(c){
+  NET.conn=c;
+  c.on('open',()=>{NET.on=true;$('online').classList.add('live');$('diff').hidden=true;renderPick()});
+  c.on('data',onNet);c.on('close',netLost);c.on('error',netLost);
+}
+function netLost(){if(!NET.on)return;netReset(true);$('modal').classList.remove('on');G.over=true;
+  ask('연결 끊김','상대와 연결이 끊겼어. 다시 방을 만들거나 AI와 플레이해.',[{label:'확인',value:1}]).then(()=>{showPick();netMsg('연결이 끊겼어.')})}
+function seatSetup(){
+  const[me,op]=SEAT;DECK=[CASTS[me].deck,CASTS[op].deck];NAME[ME]=CASTS[me].name;NAME[AI]=CASTS[op].name;
+  const tag=NET.on?' (상대)':' (AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]+')';
+  $('nMe').textContent=NAME[ME];$('nAi').textContent=NAME[AI]+tag;$('aiWho').textContent=NAME[AI]+(NET.on?' (상대)':' (AI)');
+  $('meAbil').innerHTML=CASTS[me].abil;$('aiAbil').innerHTML=CASTS[op].abil;
+  document.documentElement.style.setProperty('--backA',CASTS[op].back[0]);document.documentElement.style.setProperty('--backB',CASTS[op].back[1]);
+  $('pick').classList.remove('on');
+}
+function netTryStart(){
+  if(NET.role!=='host'||!NET.hostCast||!NET.guestCast)return;
+  SEAT=[NET.hostCast,NET.guestCast];seatSetup();NET.send({t:'start',seat:SEAT});NET.last='';newGame();
+}
+function onNet(m){
+  if(!m||typeof m!=='object')return;
+  if(NET.role==='host'){
+    if(m.t==='cast'&&CASTS[m.k]&&m.k!==NET.hostCast){NET.guestCast=m.k;renderPick();netTryStart()}
+    else if(m.t==='play'){
+      if(G.cur!==AI||G.busy||G.over)return;const P=G.P[AI],c=P&&P.hand[m.i];if(!c||!playable(AI,c))return;
+      let adj=+m.adj||0;if(adj&&(!CASTS[SEAT[AI]].adjust||P.adjUsed||c.lower||Math.abs(adj)!==1))adj=0;
+      let ch=m.ch;if(c.choice&&!c.choice.includes(ch))return;if(c.lower&&!c.lower.includes(ch))return;
+      play(AI,m.i,ch,adj);
+    }
+    else if(m.t==='ans'&&NET.wait[m.id]){const f=NET.wait[m.id];delete NET.wait[m.id];f(+m.k)}
+    return;
+  }
+  switch(m.t){
+    case'hostcast':NET.hostCast=m.k;renderPick();break;
+    case'start':SEAT=[m.seat[1],m.seat[0]];seatSetup();$('feed').innerHTML='';break;
+    case'state':applySnap(m.s);break;
+    case'clear':$('feed').innerHTML='';break;
+    case'post':{const c=ALLC.find(x=>x.id===m.id);if(c)NET.lastEl=addPost(1-m.p,c,m.v);break}
+    case'hit':bigHit();break;
+    case'bust':bigBust();break;
+    case'bustfx':bustFx(NET.lastEl);break;
+    case'log':log(m.msg,flipCls(m.cls),1);break;
+    case'ask':ask(m.title,m.text,m.labels.map((l,k)=>({label:l,value:k}))).then(k=>NET.send({t:'ans',id:m.id,k}));break;
+    case'notice':ask(m.title,m.text,[{label:'확인',value:1}]);break;
+    case'end':NET.hostCast=null;NET.guestCast=null;ask(m.title,m.text,[{label:'캐스트 다시 고르기',value:1}]).then(showPick);break;
+  }
+}
+
+function freshPlayer(p){return{deck:shuffle(DECK[p].map(c=>({...c}))),hand:[],played:[],skip:false,snipe:false,capture:false,extraNext:0,plays:0,usedOnce:false,photoUsed:false,photoCount:0,used:[],known:[],out:[],soothe:false,press:false,adjUsed:false,lastV:null}}
+function draw(p,n){const P=G.P[p];for(let i=0;i<n;i++){if(!P.deck.length&&P.used.length){P.deck=shuffle(P.used);P.used=[];log(`${NAME[p]} 덱을 다 써서 낸 카드를 다시 섞음`,p?'ai':'me')}if(!P.deck.length)return;P.hand.push(P.deck.pop())}}
+function log(msg,cls='sys',local){if(!local)NET.ev({t:'log',msg,cls});const d=document.createElement('div');d.className='note'+(cls==='sys'?' hot':'');d.textContent=msg;const f=$('feed');f.prepend(d);while(f.children.length>40)f.lastChild.remove();f.scrollTop=0}
+
+function valOf(p,c,ch){
+  const P=G.P[p];let v;
+  if(c.choice)v=ch;else if(c.lower)v=-ch;
+  else if(c.id==='trend')v=G.gauge>=20?4:2;
+  else if(c.id==='fourcut')v=P.photoCount>=3?1:4;
+  else v=c.v;
+  if(P.capture&&!c.lower)v+=1;
+  if(P.soothe&&!c.lower)v-=1;
+  return v;
+}
+// 휘슬: 2 이하 금지, 저격: 3 이상 금지
+const okV=(P,v,c)=>!(P.snipe&&!c.lower&&v>=3)&&!(P.press&&(c.lower||v<=2));
+function playable(p,c){
+  const P=G.P[p];
+  if(c.reactive)return false;
+  if(c.once&&P.usedOnce)return false;
+  const d=(P.capture?1:0)-(P.soothe?1:0);
+  if(c.choice)return c.choice.some(x=>okV(P,x+d,c));
+  if(c.lower)return okV(P,-1,c);
+  return okV(P,valOf(p,c,null),c);
+}
+const anyPlayable=p=>G.P[p].hand.some(c=>playable(p,c));
+
+function render(){
+  NET.state();
+  $('roundPill').textContent=`${Math.max(G.round,1)} / 5판`;
+  $('sMe').textContent=G.score[ME];$('sAi').textContent=G.score[AI];
+  $('gNum').textContent=G.gauge;$('gTarget').textContent='목표 '+G.target;
+  const base=G.target-31,frac=Math.min(1,Math.max(0,(G.gauge-base)/(G.target-base)));
+  $('arc').style.strokeDashoffset=326.7*(1-frac);
+  $('arc').style.stroke=G.stake>1?'var(--c)':'var(--m)';
+  const vp=(frac*100).toFixed(1)+'%';$('vFill').style.height=vp;$('vNum').style.bottom=vp;$('vNum').textContent=G.gauge;
+  $('vTarget').textContent=G.target;$('vStake').textContent=G.stake+'점';
+  const vb=$('vbar');vb.classList.toggle('hot',G.stake>1);vb.classList.toggle('near',G.target-G.gauge>0&&G.target-G.gauge<=5&&!G.over);
+  const tm=$('turnMini');tm.textContent=G.over?'게임 끝':G.cur===ME?'· 내 차례':`· ${NAME[AI]} 차례`;tm.classList.toggle('wait',G.cur!==ME||G.over);
+  const st=$('stake');st.textContent=`판돈 ${G.stake}점`;st.classList.toggle('hot',G.stake>1);
+  const gap=G.target-G.gauge;$('gapLine').textContent=gap>0?`${gap}칸 남음`:'목표 도달';
+  document.querySelector('.ring').classList.toggle('near',gap>0&&gap<=5&&!G.over);
+  $('turnLine').textContent=G.over?'게임 끝':G.cur===ME?'내 차례':`${NAME[AI]}가 고민 중…`;
+  $('aiBacks').innerHTML=G.P[AI]?G.P[AI].hand.map(()=>'<i class="back"></i>').join(''):'';
+  $('aiChips').innerHTML=chips(AI);$('meChips').innerHTML=chips(ME);
+  const P=G.P[ME];
+  $('hand').innerHTML=P?P.hand.map((c,i)=>{
+    const v=c.choice?null:c.lower?null:valOf(ME,c,null);
+    const label=c.choice?c.choice.map(x=>x+(P.capture?1:0)-(P.soothe?1:0)).join('/'):c.lower?'−':v;
+    const cls=c.lower||v<0?'neg':v===0?'zero':'';
+    const can=G.cur===ME&&!G.busy&&!G.over&&playable(ME,c);
+    const tag=c.photo?'<span class="t" style="color:var(--m)">사진 포스트</span>':'';
+    return `<button class="cardb" data-i="${i}" ${can?'':'disabled'}><span class="v ${cls}" ${c.choice?'style="font-size:17px"':''}>${label}</span><span class="n">${c.name}</span><span class="t">${c.text}</span>${tag}</button>`
+  }).join(''):'';
+}
+function chips(p){
+  const P=G.P[p];if(!P)return'';const a=[];
+  if(P.snipe)a.push('<span class="chip warn">저격당함: 3 이상 금지</span>');
+  if(P.capture)a.push('<span class="chip warn">부적: 다음 카드 +1</span>');
+  if(P.skip)a.push('<span class="chip warn">침묵당함</span>');
+  if(P.press)a.push('<span class="chip warn">휘슬: 2 이하 금지</span>');
+  if(P.soothe)a.push('<span class="chip warn">다독다독: 다음 카드 −1</span>');
+  if(CASTS[SEAT[p]].adjust)a.push(`<span class="chip">${P.adjUsed?'여유 사용함':'여유 남음'}</span>`);
+  a.push(`<span class="chip">덱 ${P.deck.length}</span>`);
+  return a.join('');
+}
+function pop(){const b=$('gNum');b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),220)}
+
+function ask(title,text,opts){
+  return new Promise(res=>{
+    $('mTitle').textContent=title;$('mText').textContent=text;
+    $('mOpts').innerHTML=opts.map((o,i)=>`<button data-k="${i}" class="${i===0?'main':''}">${o.label}</button>`).join('');
+    $('modal').classList.add('on');
+    $('mOpts').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('modal').classList.remove('on');res(opts[+b.dataset.k].value)};
+    $('mOpts').querySelector('button').focus();
+  });
+}
+
+function newGame(){G.round=0;G.score=[0,0];G.wins=[0,0];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
+function newRound(){
+  G.round++;G.P=[freshPlayer(ME),freshPlayer(AI)];draw(ME,5);draw(AI,5);
+  G.gauge=0;G.target=31;G.stake=1;G.passes=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
+  log(`— ${G.round}판 시작. ${NAME[G.cur]} 선공 —`);startTurn();
+}
+
+async function startTurn(){
+  render();const p=G.cur,P=G.P[p];
+  if(P.skip){P.skip=false;log(`${NAME[p]} 차례는 침묵의 주문에 걸려 건너뜀`,p?'ai':'me');return next(p)}
+  P.plays=1+P.extraNext;P.extraNext=0;
+  if(!anyPlayable(p)){
+    log(`${NAME[p]} 낼 카드가 없어서 패스`,p?'ai':'me');draw(p,1);G.passes++;P.snipe=false;P.press=false;
+    if(G.passes>=2){log('둘 다 패스. 이 판은 무승부');await sleep(500);return endRound(null)}
+    return next(p);
+  }
+  G.passes=0;render();
+  if(p===AI&&!NET.on){await sleep(750);aiAct()}
+}
+function next(p){G.cur=1-p;setTimeout(startTurn,p===AI?250:400)}
+function endTurn(p){const P=G.P[p];draw(p,1);P.snipe=false;P.press=false;next(p)}
+
+async function play(p,idx,choice,adj=0){
+  G.busy=true;const P=G.P[p],O=G.P[1-p],cls=p?'ai':'me';
+  const card=P.hand.splice(idx,1)[0];P.played.push(card.id);P.used.push(card);
+  let v=valOf(p,card,choice);if(!card.lower){P.capture=false;P.soothe=false}
+  if(adj){v+=adj;P.adjUsed=true;log(`어른의 여유: ${NAME[p]} 숫자 ${adj>0?'+1':'−1'}`,cls)}
+  const prev=G.gauge,ng=Math.max(0,prev+v);
+  G.gauge=ng;if(card.photo)P.photoCount++;pop();render();
+  const postEl=addPost(p,card,v);
+
+  if(ng===G.target&&!card.nofinish){bigHit(G.target);await sleep(2600);G.busy=false;return endRound(p)}
+  if(ng>G.target||(ng===G.target&&card.nofinish)){   // 저스트 불가 카드로 목표에 딱 맞으면 버스트
+    const mult=card.triple?3:2,plus=SEAT.filter(k=>CASTS[k].bustPlus).length;G.stake=G.stake*mult+plus;G.target+=10;
+    const drawers=[ME,AI].filter(q=>CASTS[SEAT[q]].bustDraw);drawers.forEach(q=>draw(q,CASTS[SEAT[q]].bustDraw));
+    bustFx(postEl);render();bigBust(mult);await sleep(2300);
+    log(`버스트! 묻고 ${mult===3?'트리플':'더블'}.${plus?' 흉조로 +1,':''} 판돈 ${G.stake}점, 목표 ${G.target}.${drawers.map(q=>` ${NAME[q]} 2장 뽑음`).join('')}`);
+  }
+  // 효과
+  if(CASTS[SEAT[p]].momentum&&!card.lower){if(P.lastV!==null&&v>P.lastV){draw(p,1);log(`기세: ${NAME[p]} 1장 뽑음`,cls)}P.lastV=v}
+  if(card.draw)draw(p,card.draw);
+  if(card.extra)P.plays++;
+  switch(card.id){
+    case'tea':P.extraNext=1;break;
+    case'calm':O.soothe=true;break;
+    case'whistle':O.press=true;break;
+    case'regular':if(P.hand.length<=3){draw(p,1);log(`단골 손님: ${NAME[p]} 1장 뽑음`,cls)}break;
+    case'drip':{const top=P.deck.splice(-2);if(top.length){
+      let k;const gap=G.target-G.gauge;
+      k=await pickFor(p,'핸드드립','덱 위 2장 중 1장을 손에 넣어. 나머지는 덱 맨 아래로.',top.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>{let k=top.findIndex(c=>c.v===gap);if(k<0)k=top.reduce((b,c,i)=>c.v>top[b].v&&c.v<=gap?i:b,0);return k});
+      P.hand.push(top.splice(k,1)[0]);P.deck.unshift(...top);}break}
+    case'sub':{
+      if(P.hand.length){
+        let k;
+        k=await pickFor(p,'선수 교체','덱 맨 아래로 보낼 카드를 골라.',P.hand.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>P.hand.reduce((b,c,i)=>c.v>P.hand[b].v?i:b,0));
+        P.deck.unshift(P.hand.splice(k,1)[0]);
+      }
+      draw(p,1);break;}
+    case'nail':{
+      if(P.hand.length){
+        let k;
+        k=await pickFor(p,'네일 자랑','덱 맨 아래로 보낼 카드를 골라.',P.hand.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>P.hand.reduce((b,c,i)=>c.v>P.hand[b].v?i:b,0));
+        P.deck.unshift(P.hand.splice(k,1)[0]);
+      }
+      draw(p,2);break;}
+    case'f4f':draw(p,1);draw(1-p,1);log('맞팔 이벤트: 둘 다 1장씩 뽑음',cls);break;
+    case'dm':if(O.hand.length){const c=O.hand[Math.random()*O.hand.length|0];P.known.push(c);
+      const seen=`염탐 결과: ${NAME[1-p]} 손에 「${c.name}」(${deckLabel(c)})`,peek=`${NAME[p]}가 네 손패 한 장을 훔쳐봤다`;
+      if(p===ME){log(seen,cls,1);NET.ev({t:'log',msg:peek,cls})}else{log(peek,cls,1);NET.ev({t:'log',msg:seen,cls})}}break;
+    case'snipe':O.snipe=true;break;
+    case'charm':O.capture=true;break;
+    case'silence':O.skip=true;P.usedOnce=true;break;
+    case'doll':if(O.hand.length){const k=Math.random()*O.hand.length|0,c=O.hand[k];
+      const cv=c.choice?Math.max(...c.choice):c.lower?0:valOf(1-p,c,null);
+      if(cv>=3){O.hand.splice(k,1);P.out.push(c.id);log(`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv}) 버려짐`,cls)}
+      else{P.known.push(c);log(`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv})는 살아남음`,cls)}}break;
+    case'convert':if(O.hand.length){const c=O.hand.splice(Math.random()*O.hand.length|0,1)[0];P.out.push(c.id);log(`포교: ${NAME[1-p]} 손에서 「${c.name}」 버려짐`,cls)}break;
+    case'fortune':{const top=P.deck.splice(-3);if(top.length){
+      const gap=G.target-G.gauge;
+      const k=await pickFor(p,'점괘','덱 위 3장 중 1장을 손에 넣어.',top.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>{let k=top.findIndex(c=>c.v===gap);if(k<0)k=top.reduce((b,c,i)=>c.v>top[b].v&&c.v<=gap?i:b,0);return k});
+      P.hand.push(top.splice(k,1)[0]);P.deck.push(...top);}break}
+  }
+  if(CASTS[SEAT[p]].photoDraw&&card.photo&&!P.photoUsed){P.photoUsed=true;draw(p,1);log(`셀카 장인: ${NAME[p]} 1장 뽑음`,cls)}
+  P.plays--;G.busy=false;render();
+  if(P.plays>0&&anyPlayable(p)){if(p===AI&&!NET.on){await sleep(650);aiAct()}return}
+  endTurn(p);
+}
+
+async function endRound(w){
+  if(w!==null){G.score[w]+=G.stake;G.wins[w]++;G.starter=1-w;log(`저스트! ${NAME[w]} ${G.round}판 승리, +${G.stake}점`)}
+  else G.starter=1-G.starter;
+  render();
+  if(G.round>=5){
+    G.over=true;render();
+    let res;const[a,b]=G.score;
+    if(a!==b)res=a>b?`${NAME[ME]} 승리!`:`${NAME[AI]} 승리…`;
+    else res=G.wins[0]===G.wins[1]?'완전 무승부':(G.wins[0]>G.wins[1]?`동점, 판 수로 ${NAME[ME]} 승리`:`동점, 판 수로 ${NAME[AI]} 승리`);
+    NET.ev({t:'end',title:res,text:`최종 ${a} : ${b} (이긴 판 ${G.wins[0]} : ${G.wins[1]})`});
+    await ask(res,`최종 ${a} : ${b} (이긴 판 ${G.wins[0]} : ${G.wins[1]})`,[{label:'캐스트 다시 고르기',value:1}]);
+    return showPick();
+  }
+  const msg=w===null?'무승부':`${NAME[w]} 승리, +${G.stake}점`;
+  NET.ev({t:'notice',title:`${G.round}판 끝`,text:`${msg}. 상대가 다음 판을 열 거야.`});
+  await ask(`${G.round}판 끝`,`${msg}. 현재 ${G.score[0]} : ${G.score[1]}`,[{label:'다음 판',value:1}]);
+  newRound();
+}
+
+/* ---------- 어려움 AI용 판 시뮬레이터 (판 끝까지 굴려보기) ---------- */
+const MCE=(()=>{
+const global={__recycle:true,__diff:['normal','normal'],__cov:true};
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+function valOf(R,p,c,ch){
+  const P=R.P[p];let v;
+  if(c.choice)v=ch;else if(c.lower)v=-ch;
+  else if(c.id==='trend')v=R.gauge>=20?4:2;
+  else if(c.id==='fourcut')v=P.photoCount>=3?1:4;
+  else v=c.v;
+  if(P.capture&&!c.lower)v+=1;
+  if(P.soothe&&!c.lower)v-=1;
+  return v;
+}
+const okV=(P,v,c)=>!(P.snipe&&!c.lower&&v>=3)&&!(P.press&&(c.lower||v<=2));
+const dOf=P=>(P.capture?1:0)-(P.soothe?1:0);
+function playable(R,p,c){const P=R.P[p];if(c.reactive)return false;if(c.once&&P.usedOnce)return false;
+  if(c.choice)return c.choice.some(x=>okV(P,x+dOf(P),c));if(c.lower)return okV(P,-1,c);return okV(P,valOf(R,p,c,null),c)}
+
+function cloneR(R){return{...R,P:R.P.map(P=>({...P,deck:[...P.deck],hand:[...P.hand],played:[...P.played],used:[...(P.used||[])],known:[...(P.known||[])],out:[...(P.out||[])]}))}}
+function mkDraw(R){return(p,n)=>{const P=R.P[p];for(let i=0;i<n;i++){if(!P.deck.length&&global.__recycle&&P.used&&P.used.length){P.deck=shuffle(P.used);P.used=[]}if(!P.deck.length)return;P.hand.push(P.deck.pop())}}}
+function playLoop(R,AB,S,first){
+  const draw=mkDraw(R);
+  let guard=0,mid=!!first;
+  while(guard++<600){
+    const p=R.cur,P=R.P[p],O=R.P[1-p];S.turns++;
+    if(!mid){
+    if(P.skip){P.skip=false;R.cur=1-p;continue}
+    P.plays=1+P.extraNext;P.extraNext=0;
+    if(!P.hand.some(c=>playable(R,p,c))){draw(p,1);R.passes++;P.snipe=false;P.press=false;if(R.passes>=2)return{w:null,busted:R.busted};R.cur=1-p;continue}
+    R.passes=0;}
+    mid=false;
+    while(P.plays>0&&P.hand.some(c=>playable(R,p,c))){
+      let mv;if(first){mv=first;first=null}else mv=ai(R,p);const _opts=P.hand.filter(c=>playable(R,p,c));const _forced=_opts.every(c=>{const vs=c.choice||c.lower?.map(x=>-x)||[valOf(R,p,c,null)];return vs.every(x=>Math.max(0,R.gauge+x)>R.target)});const card=P.hand.splice(mv.i,1)[0];P.played.push(card.id);(P.used=P.used||[]).push(card);S.played[card.id]=(S.played[card.id]||0)+1;
+      let v=valOf(R,p,card,mv.ch);if(!card.lower){P.capture=false;P.soothe=false}if(mv.adj){v+=mv.adj;P.adjUsed=true;S.adj=(S.adj||0)+1}
+      const prev=R.gauge,ng=Math.max(0,prev+v);R.gauge=ng;
+      if(card.photo)P.photoCount++;
+      if(ng===R.target&&!card.nofinish)return{w:p,stake:R.stake,card:card.id,busted:R.busted};
+      if(ng>R.target||(ng===R.target&&card.nofinish)){
+        const si=P.hand.findIndex(c=>c.id==='sorry');
+        if(si>=0){S.undo=(S.undo||0)+1;P.hand.splice(si,1);P.hand.push(card);R.gauge=prev;if(card.photo)P.photoCount--;P.plays=0;break}
+        const m=card.triple?3:2;R.stake=R.stake*m+(AB[0].bustPlus?1:0)+(AB[1].bustPlus?1:0);if(global.__reset){R.gauge=0}else R.target+=10;R.busted=true;S.busts++;S.bc=S.bc||{};const _k=(R.gauge-v>R.target?'이미넘침':_forced?'강제':'선택')+':'+card.id;S.bc[_k]=(S.bc[_k]||0)+1;S.bb=S.bb||[0,0];S.bb[p]++;S.maxStake=Math.max(S.maxStake,R.stake);
+        for(const q of[0,1])if(AB[q].bustDraw)draw(q,AB[q].bustDraw);
+      }
+      if(AB[p].momentum&&!card.lower){if(P.lastV!=null&&v>P.lastV){draw(p,1);S.mom=(S.mom||0)+1}P.lastV=v}
+      if(card.draw)draw(p,card.draw);
+      if(card.extra)P.plays++;
+      switch(card.id){
+        case'tea':P.extraNext=1;break;
+        case'calm':O.soothe=true;break;
+        case'whistle':O.press=true;break;
+        case'regular':if(P.hand.length<=3)draw(p,1);break;
+        case'drip':{const top=P.deck.splice(-2);if(top.length){const gap=R.target-R.gauge;let k=top.findIndex(c=>c.v===gap);if(k<0)k=top.reduce((b,c,i)=>c.v>top[b].v&&c.v<=gap?i:b,0);P.hand.push(top.splice(k,1)[0]);P.deck.unshift(...top)}break}
+        case'sub':if(P.hand.length){const k=P.hand.reduce((b,c,i)=>c.v>P.hand[b].v?i:b,0);P.deck.unshift(P.hand.splice(k,1)[0])}draw(p,1);break;
+        case'scoop_instant':{R.stake=R.stake*2+(AB[0].bustPlus?1:0)+(AB[1].bustPlus?1:0);R.busted=true;S.busts++;S.bc=S.bc||{};const _k=(R.gauge-v>R.target?'이미넘침':_forced?'강제':'선택')+':'+card.id;S.bc[_k]=(S.bc[_k]||0)+1;S.bb=S.bb||[0,0];S.bb[p]++;S.maxStake=Math.max(S.maxStake,R.stake);for(const q of[0,1])if(AB[q].bustDraw)draw(q,AB[q].bustDraw);break}
+        case'nail':if(P.hand.length){const k=P.hand.reduce((b,c,i)=>c.v>P.hand[b].v?i:b,0);P.deck.unshift(P.hand.splice(k,1)[0])}draw(p,2);break;
+        case'f4f':draw(p,1);draw(1-p,1);break;
+        case'snipe':O.snipe=true;break;case'charm':O.capture=true;break;
+        case'silence':O.skip=true;P.usedOnce=true;break;
+        case'doll':if(O.hand.length){const k=Math.random()*O.hand.length|0;{const c=O.hand[k];const cv=c.choice?Math.max(...c.choice):c.lower?0:valOf(R,1-p,c,null);if(cv>=3){O.hand.splice(k,1);P.out.push(c.id)}else P.known.push(c)}}break;
+        case'convert':if(O.hand.length)P.out.push(O.hand.splice(Math.random()*O.hand.length|0,1)[0].id);break;
+        case'dm':if(O.hand.length)P.known.push(O.hand[Math.random()*O.hand.length|0]);break;
+        case'fortune':{const top=P.deck.splice(-3);if(top.length){const gap=R.target-R.gauge;let k=top.findIndex(c=>c.v===gap);if(k<0)k=top.reduce((b,c,i)=>c.v>top[b].v&&c.v<=gap?i:b,0);P.hand.push(top.splice(k,1)[0]);P.deck.push(...top)}break}
+      }
+      if(AB[p].photoDraw&&card.photo&&!P.photoUsed){P.photoUsed=true;draw(p,1)}
+      P.plays--;
+    }
+    draw(p,1);P.snipe=false;P.press=false;R.cur=1-p;
+  }
+  return{w:null,busted:R.busted};
+}
+
+function oppWin(R,me,gap,gAfter){
+  const H=R.P[1-me];if(H.skip||gap<=0)return 0;
+  const add=dOf(H),ad=R.AB&&R.AB[1-me].adjust&&!H.adjUsed;
+  const hit=c=>{if(c.reactive||c.lower||c.nofinish)return false;
+    const base=(c.choice||[c.id==='trend'?(gAfter>=20?4:2):c.id==='fourcut'?(H.photoCount>=3?1:4):c.v]).map(x=>x+add);
+    const vs=ad?base.flatMap(x=>[x,x-1,x+1]):base;return vs.some(v=>v===gap&&okV(H,v,c))};
+  let pool=H.def.filter(c=>!H.played.includes(c.id));let h=H.hand.length;if(!h)return 0;
+  if(global.__diff&&global.__diff[me]==='hard'&&!global.__noMem){const M=R.P[me];M.known=M.known.filter(k=>H.hand.includes(k));
+    if(M.known.some(hit))return 1;const kid=M.known.map(k=>k.id);pool=pool.filter(c=>!kid.includes(c.id)&&!M.out.includes(c.id));h-=M.known.length;if(h<=0)return 0}
+  const N=pool.length;if(!N)return 0;const n=pool.filter(hit).length;
+  return 1-Math.pow((N-n)/N,Math.min(h,N));
+}
+function squeeze(R,me,gap,ng,RR){   // 상대 손패가 전부 '나한테 끝낼 칸을 주는 카드'일 확률
+  const H=R.P[1-me];let pool=H.def.filter(c=>!H.played.includes(c.id)&&!c.reactive);let h=H.hand.length;
+  const M=R.P[me];const known=(M.known||[]).filter(k=>H.hand.includes(k));
+  const vOf=c=>c.choice||(c.lower?c.lower.map(x=>-x):[c.id==='trend'?(ng>=20?4:2):c.id==='fourcut'?(H.photoCount>=3?1:4):c.v]);
+  const safe=c=>vOf(c).some(x=>x!==gap&&!RR.has(gap-x));   // 넘기거나 버티거나 구멍으로 피할 수 있음
+  if(known.some(safe))return 0;
+  const kid=known.map(k=>k.id);pool=pool.filter(c=>!kid.includes(c.id)&&!(M.out||[]).includes(c.id));h-=known.length;
+  const N=pool.length;if(!N||h<=0)return known.length?1:0;
+  const sc=pool.filter(safe).length;return Math.pow((N-sc)/N,Math.min(h,N));
+}
+const BONUS={scoop:-4,story:8,vlog:8,hilite:8,nail:6,burst:9,repost:9,snipe:10,charm:8,doll:10,convert:12,fortune:8,f4f:2,dm:2,ward:4,drip:8,calm:6,tea:7,regular:4,whistle:10,court:8,jog:9,sub:5};
+function reachOf(P,hand,gAfter){
+  const vals=hand.map(c=>{if(c.reactive||c.lower||c.nofinish)return[];if(c.choice)return c.choice;
+    if(c.id==='trend')return[gAfter>=20?4:2];if(c.id==='fourcut')return[P.photoCount>=3?1:4];return[c.v]});
+  const S=new Set();hand.forEach((c,i)=>{vals[i].forEach(x=>S.add(x));if(!c.extra)return;
+    hand.forEach((d,j)=>{if(j===i)return;vals[i].forEach(x=>vals[j].forEach(y=>S.add(x+y)));
+      if(d.extra)hand.forEach((e,k)=>{if(k===i||k===j)return;vals[i].forEach(x=>vals[j].forEach(y=>vals[k].forEach(z=>S.add(x+y+z))))})})});
+  return S}
+const isStall=c=>!c.reactive&&(c.lower||c.v<=0||(c.choice&&c.choice.includes(0)));
+const widen=(S,on)=>{if(!on)return S;const T=new Set(S);S.forEach(x=>{T.add(x-1);T.add(x+1)});return T};
+function ai(R,p){
+  const DF=(global.__diff&&global.__diff[p])||(global.__cov?'normal':'easy');const easy=DF==='easy',hard=DF==='hard';
+  const P=R.P[p];const me=R.ab?.[p];const cand=[];
+  const AD=R.AB&&R.AB[p].adjust&&!P.adjUsed,MO=R.AB&&R.AB[p].momentum;
+  P.hand.forEach((c,i)=>{
+    if(!playable(R,p,c))return;
+    for(const ch of c.choice||c.lower||[null]){
+    if(c.choice&&!okV(P,ch+dOf(P),c))continue;
+    for(const adj of AD&&!c.lower?[0,-1,1]:[0]){
+      const v=valOf(R,p,c,ch)+adj;if(adj&&!okV(P,v,c))continue;const ng=Math.max(0,R.gauge+v);let s;
+      if(ng===R.target&&!c.nofinish)s=10000;
+      else if(ng>R.target||(ng===R.target&&c.nofinish)){const m=c.triple?3:2,gap=R.target+10-ng;const hs=P.hand.some(x=>x.id==='sorry');
+        s=-140*oppWin(R,p,gap,ng)*m-15*m+(R.bustLike?.[p]?12:0)+(hs?-60:0)+(easy&&oppWin(R,p,R.target-R.gauge,R.gauge)>.5?60:0);if(!easy&&gap<=0)s-=30}
+      else if(!easy){const gap=R.target-ng;let risk;
+        const FL={charm:'capture',calm:'soothe',whistle:'press'}[c.id];if(FL){const H=R.P[1-p],keep=H[FL];H[FL]=true;risk=oppWin(R,p,gap,ng);H[FL]=keep}else risk=oppWin(R,p,gap,ng);
+        if(c.id==='silence')risk=0;if(c.id==='snipe')risk*=.35;s=-100*risk;if(gap===0)s-=150;
+        const rest=P.hand.filter((_,j)=>j!==i);const RR=widen(reachOf(P,rest,ng),AD&&!adj);if(RR.has(gap))s+=18;
+        let cov=0;for(let k=1;k<=6;k++)if(RR.has(k))cov++;s+=4*cov;if(rest.some(isStall))s+=5;if(hard&&!global.__noSq&&gap>0&&gap<=12)s+=(global.__sqW??30)*squeeze(R,p,gap,ng,RR)}
+      else{const gap=R.target-ng;let risk=oppWin(R,p,gap,ng);if(c.id==='silence')risk=0;if(c.id==='snipe')risk*=.35;s=-100*risk;
+        const rest=P.hand.filter((_,j)=>j!==i);if(rest.some(x=>x.v===gap))s+=18;if(gap>12)s+=Math.max(0,v)*1.2;
+        if(gap>12&&v<=2&&!c.draw&&!c.extra)s-=6}
+      s+=BONUS[c.id]||0;if(c.id==='silence')s-=R.target-R.gauge>10?25:0;
+      if(c.photo&&R.photoBias?.[p]&&!P.photoUsed)s+=6;
+      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&P.lastV!=null&&v>P.lastV)s+=7;
+      s+=Math.random()*3;cand.push({i,ch,adj,s});
+    }}
+  });
+  cand.sort((a,b)=>b.s-a.s);if(hard&&global.__mc&&R.AB&&cand.length>1&&cand[0].s<10000)return mcPick(R,p,cand);if(easy&&global.__diff&&cand.length>1&&cand[0].s<10000&&Math.random()<.3)return cand[1+(Math.random()*Math.min(2,cand.length-1)|0)];return cand[0];
+}
+
+return{playLoop,cloneR,shuffle,global};
+})();
+/* ---------- AI ---------- */
+let DIFF='normal';
+const curV=(P,c,g)=>c.id==='trend'?(g>=20?4:2):c.id==='fourcut'?(P.photoCount>=3?1:4):c.v;
+// 상대(1-me)가 다음 차례에 gap을 딱 맞출 확률
+function oppWinProb(gap,gAfter,me=AI,diff=DIFF){
+  const H=G.P[1-me];if(H.skip||gap<=0)return 0;
+  const add=(H.capture?1:0)-(H.soothe?1:0),ad=CASTS[SEAT[1-me]].adjust&&!H.adjUsed;
+  const hit=c=>{
+    if(c.reactive||c.lower||c.nofinish)return false;
+    const base=(c.choice||[curV(H,c,gAfter)]).map(x=>x+add);
+    const vs=ad?base.flatMap(x=>[x,x-1,x+1]):base;return vs.some(v=>v===gap&&okV(H,v,c));
+  };
+  let h=H.hand.length;if(!h)return 0;
+  let pool=DECK[1-me].filter(c=>!H.played.includes(c.id));
+  if(diff==='hard'){   // 본 카드와 버리게 한 카드를 기억한다
+    const M=G.P[me];M.known=M.known.filter(k=>H.hand.includes(k));
+    if(M.known.some(hit))return 1;
+    const kid=M.known.map(k=>k.id);
+    pool=pool.filter(c=>!kid.includes(c.id)&&!M.out.includes(c.id));h-=M.known.length;if(h<=0)return 0;
+  }
+  const N=pool.length;if(!N)return 0;
+  const n=pool.filter(hit).length;
+  return 1-Math.pow((N-n)/N,Math.min(h,N));
+}
+// 손패로 한 턴에 낼 수 있는 숫자들 (연사·리포스트 연결 포함)
+function reachOf(p,hand,gAfter){
+  const P=G.P[p];
+  const vals=hand.map(c=>{
+    if(c.reactive||c.lower||c.nofinish)return[];
+    if(c.choice)return c.choice;
+    return[curV(P,c,gAfter)];
+  });
+  const S=new Set();
+  hand.forEach((c,i)=>{vals[i].forEach(x=>S.add(x));
+    if(!c.extra)return;
+    hand.forEach((d,j)=>{if(j===i)return;
+      vals[i].forEach(x=>vals[j].forEach(y=>S.add(x+y)));
+      if(d.extra)hand.forEach((e,k)=>{if(k===i||k===j)return;vals[i].forEach(x=>vals[j].forEach(y=>vals[k].forEach(z=>S.add(x+y+z))))});
+    });
+  });
+  return S;
+}
+const isStall=c=>!c.reactive&&(c.lower||c.v<=0||(c.choice&&c.choice.includes(0)));
+function toR(p){
+  const ab=abOf;
+  const tp=q=>{const P=G.P[q];return{def:DECK[q],deck:[...P.deck],hand:[...P.hand],played:[...P.played],used:[...P.used],skip:P.skip,snipe:P.snipe,capture:P.capture,extraNext:P.extraNext,plays:P.plays,usedOnce:P.usedOnce,photoUsed:P.photoUsed,photoCount:P.photoCount,known:[...P.known],out:[...P.out],soothe:P.soothe,press:P.press,adjUsed:P.adjUsed,lastV:P.lastV}};
+  return{P:[tp(0),tp(1)],gauge:G.gauge,target:G.target,stake:G.stake,cur:p,passes:0,busted:G.stake>1,AB:[ab(SEAT[0]),ab(SEAT[1])]};
+}
+// 어려움: 후보 수마다 상대 손패를 여러 번 가정해서 판 끝까지 굴려보고, 기대 점수가 가장 높은 수를 둔다
+function mcPick(p,cand,M=5,K=12){
+  const base=toR(p);let best=cand[0],bv=-1e9;
+  for(const c of cand.slice(0,M)){let tot=0;
+    for(let k=0;k<K;k++){
+      const R2=MCE.cloneR(base),O=R2.P[1-p];
+      const kn=O.hand.filter(x=>G.P[p].known.includes(x));
+      const hid=MCE.shuffle([...O.hand.filter(x=>!kn.includes(x)),...O.deck]);const hn=O.hand.length-kn.length;
+      O.hand=[...kn,...hid.slice(0,hn)];O.deck=hid.slice(hn);R2.P[p].deck=MCE.shuffle(R2.P[p].deck);
+      const res=MCE.playLoop(R2,R2.AB,{turns:0,played:{},busts:0,maxStake:0},{i:c.i,ch:c.ch,adj:c.adj});
+      tot+=res.w===p?res.stake:res.w===null?0:-res.stake;
+    }
+    const v=tot/K+c.s*1e-4;if(v>bv){bv=v;best=c}
+  }
+  return best;
+}
+const BONUS={story:8,vlog:8,hilite:8,nail:6,burst:9,repost:9,snipe:10,charm:8,doll:10,convert:12,fortune:8,f4f:2,dm:2,ward:4,drip:8,calm:6,tea:7,regular:4,whistle:10,court:8,jog:9,sub:5};
+const widen=(S,on)=>{if(!on)return S;const T=new Set(S);S.forEach(x=>{T.add(x-1);T.add(x+1)});return T};
+function aiAct(p=AI,diff=DIFF){
+  const P=G.P[p],O=1-p;const cand=[];const easy=diff==='easy',hard=diff==='hard';
+  const AD=CASTS[SEAT[p]].adjust&&!P.adjUsed,MO=CASTS[SEAT[p]].momentum,d=(P.capture?1:0)-(P.soothe?1:0);
+  P.hand.forEach((c,i)=>{
+    if(!playable(p,c))return;
+    for(const ch of c.choice||c.lower||[null]){
+    if(c.choice&&!okV(P,ch+d,c))continue;
+    for(const adj of AD&&!c.lower?[0,-1,1]:[0]){
+      const v=valOf(p,c,ch)+adj;if(adj&&!okV(P,v,c))continue;const ng=Math.max(0,G.gauge+v);let s;
+      const rest=P.hand.filter((_,j)=>j!==i);
+      if(ng===G.target&&!c.nofinish)s=10000;
+      else if(ng>G.target||(ng===G.target&&c.nofinish)){
+        const m=c.triple?3:2,gap=G.target+10-ng;
+        s=-140*oppWinProb(gap,ng,p,diff)*m-15*m+(CASTS[SEAT[p]].bustDraw?12:0);
+        if(easy)s+=oppWinProb(G.target-G.gauge,G.gauge,p,diff)>.5?60:0;   // 쉬움: 질 것 같으면 판부터 키운다
+        else if(gap<=0)s-=30;   // 버스트 뒤에도 넘친 상태면 연쇄 버스트
+      }else{
+        const gap=G.target-ng;let risk;
+        const FL={charm:'capture',calm:'soothe',whistle:'press'}[c.id];if(FL&&!easy){const H=G.P[O],keep=H[FL];H[FL]=true;risk=oppWinProb(gap,ng,p,diff);H[FL]=keep}
+        else risk=oppWinProb(gap,ng,p,diff);
+        if(c.id==='silence')risk=0;if(c.id==='snipe')risk*=.35;s=-100*risk;
+        if(easy){   // 쉬움: 멀면 큰 숫자부터 턴다
+          if(rest.some(x=>x.v===gap))s+=18;
+          if(gap>12)s+=Math.max(0,v)*1.2;if(gap>12&&v<=2&&!c.draw&&!c.extra)s-=6;
+        }else{
+          const R=widen(reachOf(p,rest,ng),AD&&!adj);
+          if(R.has(gap))s+=18;
+          let cov=0;for(let k=1;k<=6;k++)if(R.has(k))cov++;
+          s+=4*cov;if(rest.some(isStall))s+=5;
+        }
+      }
+      s+=BONUS[c.id]||0;if(c.id==='silence')s-=G.target-G.gauge>10?25:0;
+      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&P.lastV!==null&&v>P.lastV)s+=7;
+      s+=Math.random()*3;cand.push({i,ch,adj,s});
+    }}
+  });
+  if(!cand.length)return endTurn(p);
+  cand.sort((a,b)=>b.s-a.s);
+  let pick=cand[0];
+  if(hard&&cand.length>1&&pick.s<10000)pick=mcPick(p,cand);
+  if(easy&&cand.length>1&&pick.s<10000&&Math.random()<.3)pick=cand[1+(Math.random()*Math.min(2,cand.length-1)|0)];
+  play(p,pick.i,pick.ch,pick.adj||0);
+}
+
+
+function deckLabel(c){return c.choice?c.choice.join('/'):c.lower?'−'+c.lower[0]+'~'+c.lower[c.lower.length-1]:String(c.v)}
+function deckCol(p,title){
+  const P=G.P[p];const played=P?P.played:[];const inHand=p===ME&&P?P.hand.map(c=>c.id):[];
+  const cards=[...DECK[p]];
+  return `<div class="dvc"><h3>${title}<small>${cards.length}장</small></h3><ul class="dvl">${cards.map(c=>{
+    const cls=played.includes(c.id)?'gone':inHand.includes(c.id)?'hand':'';
+    const own=!SHARED.some(x=>x.id===c.id);
+    return `<li class="${cls}"><span class="nv">${deckLabel(c)}</span><span class="nm">${c.name}${own?'<span class="ex">전용</span>':''}${c.photo?'<span class="ex" style="background:var(--m);color:#fff">사진</span>':''}<small>${c.text}</small></span></li>`}).join('')}</ul></div>`;
+}
+function showDeck(){
+  $('dvGrid').innerHTML=deckCol(ME,`내 덱 · ${NAME[ME]}`)+deckCol(AI,`상대 덱 · ${NAME[AI]}`);
+  $('deckView').classList.add('on');$('dvClose').focus();
+}
+function hideDeck(){$('deckView').classList.remove('on');$('deckBtn').focus()}
+function showGuide(){$('guide').classList.add('on');$('guide').scrollTop=0;$('gClose').focus()}
+function hideGuide(){$('guide').classList.remove('on');$('guideBtn').focus()}
+$('guideBtn').addEventListener('click',showGuide);
+$('gClose').addEventListener('click',hideGuide);
+$('guide').addEventListener('click',e=>{if(e.target.id==='guide')hideGuide()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('guide').classList.contains('on'))hideGuide()});
+$('deckBtn').addEventListener('click',showDeck);
+$('dvClose').addEventListener('click',hideDeck);
+$('deckView').addEventListener('click',e=>{if(e.target.id==='deckView')hideDeck()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('deckView').classList.contains('on'))hideDeck()});
+/* ---------- 입력 ---------- */
+$('hand').addEventListener('click',async e=>{
+  const b=e.target.closest('.cardb');if(!b||b.disabled||G.cur!==ME||G.busy)return;
+  const i=+b.dataset.i,c=G.P[ME].hand[i];let ch=null;
+  const P=G.P[ME],d=(P.capture?1:0)-(P.soothe?1:0);
+  if(c.choice)ch=await ask(c.name,'숫자를 골라.',c.choice.filter(n=>okV(P,n+d,c)).map(n=>({label:String(n+d),value:n})));
+  if(c.lower)ch=await ask(c.name,'게이지를 얼마나 내릴까?',c.lower.map(n=>({label:'−'+n,value:n})));
+  let adj=0;
+  if(CASTS[SEAT[ME]].adjust&&!P.adjUsed&&!c.lower){const v=valOf(ME,c,ch);
+    const opts=[{label:`그대로 ${v}`,value:0},{label:`−1 → ${v-1}`,value:-1},{label:`+1 → ${v+1}`,value:1}].filter(o=>okV(P,v+o.value,c));
+    if(opts.length>1)adj=await ask('어른의 여유',`판마다 한 번. 지금 게이지 ${G.gauge}, 목표 ${G.target}.`,opts)}
+  if(NET.role==='guest'){G.busy=true;render();NET.send({t:'play',i,ch,adj});return}
+  play(ME,i,ch,adj);
+});
+
+let PICK_ME=null;
+function showPick(){PICK_ME=null;if(NET.role!=='guest'){NET.hostCast=null;NET.guestCast=null}renderPick();$('pick').classList.add('on');$('pgrid').querySelector('button').focus()}
+function renderPick(){
+  const on=NET.on,host=NET.role==='host';let title,sub,foe=null,mine=null,lock=false;
+  if(on){title='캐스트 고르기 · 온라인';
+    if(host){mine=NET.hostCast;foe=NET.guestCast;lock=!!mine;sub=!mine?'내 캐스트를 먼저 골라.':!foe?'상대가 고르는 중…':'곧 시작!'}
+    else{foe=NET.hostCast;mine=NET.guestCast;lock=!foe||!!mine;sub=!foe?'방장이 캐스트를 고르는 중…':!mine?`방장은 ${CASTS[foe].name}. 내 캐스트를 골라.`:'곧 시작!'}}
+  else{title=PICK_ME?'상대 캐스트 고르기':'캐스트 고르기';sub=PICK_ME?`${CASTS[PICK_ME].name}로 플레이. 상대는 AI가 맡아.`:'내가 플레이할 캐스트를 골라.';foe=PICK_ME}
+  $('pickTitle').textContent=title;$('pickSub').textContent=sub;
+  $('pgrid').innerHTML=Object.entries(CASTS).map(([k,c])=>`<button class="pc ${k}${k===foe?' foe':''}${k===mine?' mine':''}" data-k="${k}" ${lock&&k!==mine?'disabled':''}><img src="img/${k}_selfie.jpg" alt="${c.name}"><span class="pi"><span class="pn">${c.name}</span><span class="ty">${c.type} · ${c.handle}</span><span class="ab">${c.abil}</span><span class="st">${c.style}</span></span></button>`).join('')
+    +(!on&&PICK_ME?'<button class="pback" id="pBack" type="button">다시 고르기</button>':'');
+}
+$('diff').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;DIFF=b.dataset.d;
+  $('diff').querySelectorAll('button').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})});
+$('olHost').addEventListener('click',netHost);
+$('olJoin').addEventListener('click',netJoin);
+$('olCode').addEventListener('keydown',e=>{if(e.key==='Enter')netJoin()});
+$('pgrid').addEventListener('click',e=>{
+  if(e.target.id==='pBack'){PICK_ME=null;renderPick();return}
+  const b=e.target.closest('.pc');if(!b||b.disabled)return;const k=b.dataset.k;
+  if(NET.on){
+    if(NET.role==='host'&&!NET.hostCast&&k!==NET.guestCast){NET.hostCast=k;NET.send({t:'hostcast',k});renderPick();netTryStart()}
+    else if(NET.role==='guest'&&NET.hostCast&&!NET.guestCast&&k!==NET.hostCast){NET.guestCast=k;NET.send({t:'cast',k});renderPick()}
+    return;
+  }
+  if(!PICK_ME){PICK_ME=k;renderPick();$('pgrid').querySelector('.pc:not(.foe)').focus();return}
+  const me=PICK_ME,ai=k;if(ai===me)return;
+  SEAT=[me,ai];seatSetup();newGame();
+});
+showPick();
+}
+</script>
+</body>
+</html>
