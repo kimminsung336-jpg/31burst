@@ -639,12 +639,12 @@ const CASTS={
  haru:{name:'하루',handle:'@haru_ne',type:'Y · 누님',deck:[...SHARED,...HARU],adjust:1,abName:'어른의 여유',back:['#f5b800','#b98a00'],
   abil:'<b>어른의 여유</b> 낸 카드 숫자를 1 올린다',
   style:'판을 천천히 끌고 가다가 마지막 한 칸을 맞춘다'},
- mina:{name:'준',handle:'@jun_mvp',type:'C · 톰보이',deck:[...SHARED,...MINA],adjust:-1,abName:'숨 고르기',back:['#12c6dc','#0a8fa3'],
-  abil:'<b>숨 고르기</b> 낸 카드 숫자를 1 내린다',
+ mina:{name:'준',handle:'@jun_mvp',type:'C · 톰보이',deck:[...SHARED,...MINA],momentum:1,back:['#12c6dc','#0a8fa3'],
+  abil:'<b>기세</b> 직전에 낸 내 카드보다 큰 숫자를 내면 한 장 뽑는다',
   style:'큰 숫자로 몰아치다가 한 칸 넘친 걸 붙잡는다'}
 };
 let SEAT=['iri','miko'],DECK=[CASTS.iri.deck,CASTS.miko.deck];
-const abOf=k=>({photoDraw:CASTS[k].photoDraw,bustPlus:CASTS[k].bustPlus,bustDraw:CASTS[k].bustDraw,adjust:CASTS[k].adjust});
+const abOf=k=>({photoDraw:CASTS[k].photoDraw,bustPlus:CASTS[k].bustPlus,bustDraw:CASTS[k].bustDraw,adjust:CASTS[k].adjust,momentum:CASTS[k].momentum});
 
 
 const POST={
@@ -1142,6 +1142,7 @@ async function play(p,idx,choice,adj=0){
   const card=P.hand.splice(idx,1)[0];P.played.push(card.id);P.used.push(card);
   let v=valOf(p,card,choice);if(!card.lower){P.capture=false;P.soothe=false}
   if(adj){v+=adj;P.adjUsed=true;log(`${CASTS[SEAT[p]].abName}: ${NAME[p]} 숫자 ${adj>0?'+1':'−1'}`,cls)}
+  if(CASTS[SEAT[p]].momentum&&!card.lower){if(P.lastV!==null&&v>P.lastV){draw(p,1);log(`기세: ${NAME[p]} 1장 뽑음`,cls)}P.lastV=v}
   const prev=G.gauge,ng=Math.max(0,prev+v);
   G.gauge=ng;if(card.photo)P.photoCount++;pop();render();
   const postEl=addPost(p,card,v);
@@ -1251,7 +1252,7 @@ function playLoop(R,AB,S,first){
     mid=false;
     while(first||(P.plays>0&&P.hand.some(c=>playable(R,p,c)))){
       let mv;if(first){mv=first;first=null}else mv=ai(R,p);const _opts=P.hand.filter(c=>playable(R,p,c));const _forced=_opts.every(c=>{const vs=c.choice||c.lower?.map(x=>-x)||[valOf(R,p,c,null)];return vs.every(x=>Math.max(0,R.gauge+x)>R.target)});const card=P.hand.splice(mv.i,1)[0];P.played.push(card.id);(P.used=P.used||[]).push(card);S.played[card.id]=(S.played[card.id]||0)+1;
-      let v=valOf(R,p,card,mv.ch);if(!card.lower){P.capture=false;P.soothe=false}if(mv.adj){v+=mv.adj;P.adjUsed=true;S.adj=(S.adj||0)+1}
+      let v=valOf(R,p,card,mv.ch);if(!card.lower){P.capture=false;P.soothe=false}if(mv.adj){v+=mv.adj;P.adjUsed=true;S.adj=(S.adj||0)+1}if(AB[p].momentum&&!card.lower){if(P.lastV!=null&&v>P.lastV){draw(p,1);S.mom=(S.mom||0)+1}P.lastV=v}
       const prev=R.gauge,ng=Math.max(0,prev+v);R.gauge=ng;
       if(card.photo)P.photoCount++;
       if(ng===R.target&&!card.nofinish)return{w:p,stake:R.stake,card:card.id,busted:R.busted};
@@ -1323,7 +1324,7 @@ const widen=(S,d)=>{if(!d)return S;const T=new Set(S);S.forEach(x=>T.add(x+d));r
 function ai(R,p){
   const DF=(global.__diff&&global.__diff[p])||(global.__cov?'normal':'easy');const easy=DF==='easy',hard=DF==='hard';
   const P=R.P[p];const me=R.ab?.[p];const cand=[];
-  const AD=R.AB&&!P.adjUsed&&R.AB[p].adjust||0;
+  const AD=R.AB&&!P.adjUsed&&R.AB[p].adjust||0,MO=R.AB&&R.AB[p].momentum;
   P.hand.forEach((c,i)=>{
     if(!playable(R,p,c))return;
     for(const ch of c.choice||c.lower||[null]){
@@ -1343,7 +1344,7 @@ function ai(R,p){
         if(gap>12&&v<=2&&!c.draw&&!c.extra)s-=6}
       s+=BONUS[c.id]||0;if(c.id==='silence')s-=R.target-R.gauge>10?25:0;
       if(c.photo&&R.photoBias?.[p]&&!P.photoUsed)s+=6;
-      if(adj&&s<10000)s-=8;
+      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&P.lastV!=null&&v>P.lastV)s+=7;
       s+=Math.random()*3;cand.push({i,ch,adj,s});
     }}
   });
@@ -1420,7 +1421,7 @@ const BONUS={story:8,vlog:8,hilite:8,nail:6,burst:9,repost:9,snipe:10,charm:8,do
 const widen=(S,d)=>{if(!d)return S;const T=new Set(S);S.forEach(x=>T.add(x+d));return T};
 function aiAct(p=AI,diff=DIFF){
   const P=G.P[p],O=1-p;const cand=[];const easy=diff!=='hard',hard=false;   // 쉬움·보통은 단순 계산, 어려움은 전체 계산
-  const AD=!P.adjUsed&&CASTS[SEAT[p]].adjust||0,d=(P.capture?1:0)-(P.soothe?1:0);
+  const AD=!P.adjUsed&&CASTS[SEAT[p]].adjust||0,MO=CASTS[SEAT[p]].momentum,d=(P.capture?1:0)-(P.soothe?1:0);
   P.hand.forEach((c,i)=>{
     if(!playable(p,c))return;
     for(const ch of c.choice||c.lower||[null]){
@@ -1449,7 +1450,7 @@ function aiAct(p=AI,diff=DIFF){
         }
       }
       s+=BONUS[c.id]||0;if(c.id==='silence')s-=G.target-G.gauge>10?25:0;
-      if(adj&&s<10000)s-=8;
+      if(adj&&s<10000)s-=8;if(MO&&!c.lower&&P.lastV!=null&&v>P.lastV)s+=7;
       s+=Math.random()*3;cand.push({i,ch,adj,s,bust:ng>G.target||(ng===G.target&&!!c.nofinish)});
     }}
   });
