@@ -54,8 +54,9 @@ const SPR_SCALE={iri:.86,miko:1,haru:1,mina:1};
 const spr=(k,x,y,h,st='',foot=false)=>{const f=SPR_SCALE[k]||1,h2=Math.round(h*f);
   return `<img class="spr" src="img/p/${k}.webp" alt="${CASTS[k].name}" style="left:${Math.round(x+h*(1-f)*.3)}px;top:${Math.round(y+(h-h2)*(foot?1:.55))}px;height:${h2}px;${st}">`};
 const sceneBg=(night)=>`<img class="bgi" src="img/p/${night?'bg_night':'bg_day'}.webp" alt="" style="filter:blur(${night?0:1.6}px)">`;
-const counter=(props=[],night)=>`<img class="ctrimg" src="img/p/counter.webp" alt="">`+
-  props.map(([n,x])=>{const P={cake:[187,106],cups:[123,97],jar:[144,149],tin:[182,109]}[n];return `<img class="spr" src="img/p/prop_${n}.webp" alt="" style="left:${x}px;top:${483-P[1]}px;width:${P[0]}px">`}).join('')+
+const CTR_SVG=`<svg class="ctrsvg" viewBox="0 0 1280 270" width="1280" height="270" aria-hidden="true"><defs><pattern id="ctrDot" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="1.6" fill="#c41d68" opacity=".28"/></pattern></defs><rect x="-10" y="34" width="1300" height="250" fill="#ff4f9e" stroke="#1e1a22" stroke-width="4"/><rect x="-10" y="34" width="1300" height="250" fill="url(#ctrDot)"/><rect x="-10" y="34" width="1300" height="12" fill="#c41d68" opacity=".55"/><rect x="26" y="64" width="268" height="148" rx="18" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3"/><rect x="38" y="76" width="244" height="124" rx="12" fill="#ff7ab8" opacity=".35"/><rect x="334" y="64" width="268" height="148" rx="18" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3"/><rect x="346" y="76" width="244" height="124" rx="12" fill="#ff7ab8" opacity=".35"/><rect x="678" y="64" width="268" height="148" rx="18" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3"/><rect x="690" y="76" width="244" height="124" rx="12" fill="#ff7ab8" opacity=".35"/><rect x="986" y="64" width="268" height="148" rx="18" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3"/><rect x="998" y="76" width="244" height="124" rx="12" fill="#ff7ab8" opacity=".35"/><rect x="-10" y="226" width="1300" height="60" fill="#1e1a22"/><rect x="-10" y="226" width="1300" height="6" fill="#ffd23f"/><rect x="-14" y="2" width="1308" height="34" rx="10" fill="#fff4e0" stroke="#1e1a22" stroke-width="4"/><rect x="8" y="9" width="1264" height="6" rx="3" fill="#fff" opacity=".9"/></svg>`;
+const counter=(props=[],night)=>CTR_SVG+
+  props.map(([n,x])=>{const P={cake:[166,168],cups:[120,106]}[n];return `<img class="spr" src="img/p/prop_${n}.webp" alt="" style="left:${x}px;top:${474-P[1]}px;width:${P[0]}px">`}).join('')+
   `<div class="plate"><i>CAFE</i><b>31</b></div>`+(night?'<div style="position:absolute;left:0;top:495px;width:1280px;height:260px;background:rgba(30,16,70,.5)"></div>':'');
 const ICO={
   story:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>',
@@ -273,7 +274,7 @@ S.story.bind=s=>{s.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>Scree
 
 /* 스토리 장면: 마감 후 가게 + 폰 DM. 대사마다 표정이 바뀐다 */
 S.scene=()=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k;
-  return `${sceneBg(true)}<div id="scSpr" class="scspr">${spr(k,200,70,640).replace(`img/p/${k}.webp`,exImg(k,'base'))}</div>${counter([['cups',40],['jar',560]],true)}
+  return `${sceneBg(true)}<div id="scSpr" class="scspr">${spr(k,200,70,640).replace(`img/p/${k}.webp`,exImg(k,'base'))}</div>${counter([['cups',50],['cake',560]],true)}
 <div class="phn" style="left:740px;top:30px;width:360px;height:660px"><div class="in">
  <div class="hd"><img id="scFace" src="${faceImg(k)}" alt="" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--ink2);object-fit:cover;background:#fff"><div><b style="font-size:14px">${CASTS[k].name}</b><div style="font-size:11px">마감 중</div></div><span style="margin-left:auto;font-size:11px;font-weight:900">${chLabel(st)}</span></div>
  <div class="msgs" id="scMsgs" aria-live="polite"></div>
@@ -388,6 +389,9 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;
   if(document.querySelector('.modal.on,.res.on,.gview.on,#deckView.on,#pick.on'))return;
   if(Screens.cur==='online'){netReset();OL_CODE='';return Screens.go('match')}
   if(['match','story','cast','dex','settings','reward'].includes(Screens.cur))Screens.go('home')});
+
+/* 플레이 화면 바 테이블도 같은 그림으로 */
+$('playCtr').innerHTML=CTR_SVG;
 
 /* 스테이지를 창 크기에 맞춘다 */
 function fitStage(){document.documentElement.style.setProperty('--sc',Math.min(innerWidth/1280,innerHeight/720))}
