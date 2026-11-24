@@ -21,12 +21,17 @@ const Progress=(()=>{
   // 스토리: 1장은 처음부터, 다음 장은 앞 장을 깨면
   const chapter=(k,n)=>STORY.find(x=>x.k===k&&x.ch===n);
   const storyDone=id=>!!d().story[id];
-  function storyOpen(st){if(st.ch===1)return true;const p=chapter(st.k,st.ch-1);return!!p&&storyDone(p.id)}
+  // 캐스트 해금: 처음엔 아이리만. 각 캐스트 스토리 2장을 깨면 그 라이벌이 열린다 (설정의 전원 해금으로 다 열 수도 있다)
+  const CAST_FROM={miko:'iri',haru:'miko',mina:'haru'};
+  const castOpen=k=>!CAST_FROM[k]||!!d().allCast||storyDone(CAST_FROM[k]+'2');
+  const castCond=k=>CAST_FROM[k]?`${CASTS[CAST_FROM[k]].name} 스토리 2장 클리어`:'';
+  function storyOpen(st){if(!castOpen(st.k))return false;if(st.ch===1)return true;const p=chapter(st.k,st.ch-1);return!!p&&storyDone(p.id)}
   const nextStory=k=>STORY.filter(x=>x.k===k).find(x=>storyOpen(x)&&!storyDone(x.id));
   // 두 번째 캐스트(더미): 같은 색 캐스트 3장을 깨면 합류
   const secondOpen=k=>{const c=chapter(k,3);return!!c&&storyDone(c.id)};
   // 지금 열려 있는 것들의 목록 (새로 열린 걸 찾으려고 대전 전후를 비교한다)
   function snapshot(){const s=new Set();
+    CAST_KEYS.forEach(k=>castOpen(k)&&s.add('cast:'+k));
     Object.keys(CARD).forEach(id=>cardOpen(id)&&s.add('card:'+id));
     STORY.forEach(st=>storyOpen(st)&&s.add('story:'+st.id));
     CAST_KEYS.forEach(k=>{secondOpen(k)&&s.add('cast2:'+k);s.add('lv:'+k+':'+lv(k))});
@@ -34,6 +39,7 @@ const Progress=(()=>{
   function label(key){const[t,a,b]=key.split(':');
     if(t==='card')return`카드 「${BYID[a].name}」`;
     if(t==='story'){const st=STORY.find(x=>x.id===a);return`스토리 「${CASTS[st.k].name} ${st.ch}장」`}
+    if(t==='cast')return`캐스트 「${CASTS[a].name}」`;
     if(t==='cast2')return`${CASTS[a].name}의 동료 캐스트`;
     if(t==='lv')return`${CASTS[a].name} 호감도 Lv${b}`;
     return key}
@@ -62,5 +68,5 @@ const Progress=(()=>{
     const a=Object.entries(ACH).find(([id])=>!d().ach[id]);if(a)return`업적 「${a[1].name}」: ${a[1].cond}`;
     return'';
   }
-  return{AFF_LV,ACH,CARD,aff,lv,nextLv,condText,cardOpen,storyOpen,storyDone,nextStory,secondOpen,onMatchEnd,hint,get last(){return last}};
+  return{AFF_LV,ACH,CARD,castOpen,castCond,aff,lv,nextLv,condText,cardOpen,storyOpen,storyDone,nextStory,secondOpen,onMatchEnd,hint,get last(){return last}};
 })();

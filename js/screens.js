@@ -5,9 +5,9 @@
 const SAVE_KEY='31burst.save';
 const Save=(()=>{
   let d={};try{d=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')}catch(e){}
-  d.duty=d.duty||'haru';d.decks=d.decks||{};d.story=d.story||{};d.manager=d.manager||'';d.speed=d.speed||1;
+  d.duty=d.duty||'iri';d.decks=d.decks||{};d.story=d.story||{};d.manager=d.manager||'';d.speed=d.speed||1;
   const put=()=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(d))}catch(e){}};
-  return{get d(){return d},put,reset(){d={duty:'haru',decks:{},story:{},aff:{},ach:{},manager:'',speed:1};put()}};
+  return{get d(){return d},put,reset(){d={duty:'iri',decks:{},story:{},aff:{},ach:{},manager:'',speed:1};put()}};
 })();
 SPEED=Save.d.speed;
 
@@ -92,7 +92,7 @@ S.title.bind=s=>{const go=()=>{if(TOUCH&&!FS.on())FS.enter();Screens.go('home')}
   const k=e=>{if(Screens.cur!=='title'){removeEventListener('keydown',k);return}if(e.key==='Tab')return;e.preventDefault();removeEventListener('keydown',k);setTimeout(go,0)};addEventListener('keydown',k)};
 
 /* 메인: 왼쪽 위 매니저 명패, 가운데 오늘 근무 캐스트, 오른쪽 메뉴 버튼 */
-S.home=()=>{const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save.d.manager;
+S.home=()=>{if(!Progress.castOpen(Save.d.duty)){Save.d.duty='iri';Save.put()}const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save.d.manager;
   const unread=STORY.filter(x=>Progress.storyOpen(x)&&!Progress.storyDone(x.id)).length,done=STORY.filter(x=>Progress.storyDone(x.id)).length;
   const cards=Object.keys(BYID).filter(id=>Progress.cardOpen(id)).length;
   const noGuide=!Save.d.guide;
@@ -107,7 +107,7 @@ S.home=()=>{const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save
   return `${scene}
 <div class="hmplate">
  <div class="row2" style="gap:12px"><img src="${av(k)}" alt="" class="hmav"><div style="min-width:0"><div class="hmnm">${Save.d.manager}<small>매니저</small></div><div class="hmsub">CAFE 31 · 스토리 ${done}/${STORY.length} · 카드 ${cards}/${Object.keys(BYID).length}</div></div></div>
- <div class="hmduty"><span>오늘 근무</span>${CAST_KEYS.map(x=>`<button data-duty="${x}" class="${x===k?'on':''}" aria-label="${CASTS[x].name}"><img src="${av(x)}" alt=""></button>`).join('')}</div>
+ <div class="hmduty"><span>오늘 근무</span>${CAST_KEYS.map(x=>Progress.castOpen(x)?`<button data-duty="${x}" class="${x===k?'on':''}" aria-label="${CASTS[x].name}"><img src="${av(x)}" alt=""></button>`:`<button data-lock="${x}" class="lock" aria-label="${CASTS[x].name} 잠김" title="${Progress.castCond(x)}"><img src="${av(x)}" alt=""><svg class="lk" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="3" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="#ffd23f"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>`).join('')}</div>
 </div>
 <div class="hmtop"><button class="hmic" id="hFull" aria-label="전체 화면" title="전체 화면 (F11)">${FS.on()?ICO.fsx:ICO.fs}</button><button class="hmic${noGuide?' new':''}" id="hGuide" aria-label="게임 설명서" title="게임 설명서">?</button><button class="hmic" data-go="settings" aria-label="설정" title="설정">${ICO.set}</button></div>
 <button class="hmsay" id="hDm"><img src="${faceImg(k,ex)}" alt="" class="facei"><span><b>${c.name}${noGuide?' <i>설명서</i>':st?` <i>스토리 ${st.ch}장</i>`:''}</b>${line}</span></button>
@@ -126,6 +126,7 @@ S.home.bind=s=>{
   s.querySelector('#hFull').onclick=()=>FS.toggle();
   s.querySelector('#hDm').onclick=()=>{if(!Save.d.guide)return showGuide();const st=Progress.nextStory(Save.d.duty);Screens.go('story',{sel:st&&st.id})};
   s.querySelectorAll('[data-duty]').forEach(b=>b.onclick=()=>{Save.d.duty=b.dataset.duty;Save.put();Screens.go('home')});
+  s.querySelectorAll('[data-lock]').forEach(b=>b.onclick=()=>Screens.toast(`${CASTS[b.dataset.lock].name}: ${Progress.castCond(b.dataset.lock)}하면 열려요`));
 };
 
 /* 대전 준비 */
@@ -207,8 +208,9 @@ S.online=()=>{const on=NET.on,host=NET.role==='host',k=Save.d.duty;
   return landPhone('온라인 2인',`<div class="olbody" style="padding:26px 40px">
   <div class="row2" style="justify-content:space-between;align-items:flex-end"><div><span class="lab">연결됨 · ${host?`방장 · ${MATCH_OPT.rounds===1?'단판':MATCH_OPT.rounds+'판'}`:'참가자'}</span><div class="serif" style="font-size:30px;margin-top:2px">${sub}</div></div><button class="btn" id="olLeave">나가기</button></div>
   <div class="olgrid">${CAST_KEYS.map(x=>{const c=CASTS[x],me=x===mine,fo=x===foe;
-   return `<button class="olc c${CAST_COL[x]}${me?' mine':''}${fo?' foe':''}" data-k="${x}" ${(lock&&!me)||fo?'disabled':''}>
-    <span class="olsp">${spr(x,0,0,420)}</span>${me?'<span class="oltag">나</span>':fo?'<span class="oltag f">상대</span>':''}
+   const shut=!Progress.castOpen(x)&&!me&&!fo;
+   return `<button class="olc c${CAST_COL[x]}${me?' mine':''}${fo?' foe':''}" data-k="${x}" ${(lock&&!me)||fo||shut?'disabled':''}>
+    <span class="olsp">${spr(x,0,0,420)}</span>${me?'<span class="oltag">나</span>':fo?'<span class="oltag f">상대</span>':shut?'<span class="oltag">잠김</span>':''}
     <span class="olnm"><b class="serif">${c.name}</b></span><span class="olab">${c.abil}</span></button>`}).join('')}</div>
   ${msg}</div>`,'match')};
 S.online.bind=s=>{
@@ -268,9 +270,9 @@ S.reward.bind=s=>{const r=s.querySelector('#rAgain');if(r)r.onclick=()=>startMat
 function storyMatch(st){Save.d.duty=st.k;Save.put();startMatch({mode:'ai',diff:st.diff||'normal',rounds:st.rounds||3,opp:st.vs,story:st.id})}
 S.story=()=>{const pick=Screens.ctx.sel&&STORY.find(x=>x.id===Screens.ctx.sel);
   const sel=pick&&Progress.storyOpen(pick)?pick:Progress.nextStory(Save.d.duty)||STORY.find(x=>x.k===Save.d.duty);
-  const li=CAST_KEYS.map(k=>`<div class="lab" style="margin:10px 4px 4px">${CASTS[k].name}</div>`+STORY.filter(x=>x.k===k).map(x=>{const open=Progress.storyOpen(x),done=Progress.storyDone(x.id);
+  const li=CAST_KEYS.map(k=>`<div class="lab" style="margin:10px 4px 4px">${CASTS[k].name}${Progress.castOpen(k)?'':` · ${Progress.castCond(k)}하면 열림`}</div>`+STORY.filter(x=>x.k===k).map(x=>{const open=Progress.storyOpen(x),done=Progress.storyDone(x.id);
     return open?`<button class="${x===sel?'on':''}" data-sel="${x.id}"><img src="${av(x.k)}" alt=""><span class="nm">${x.ch}장 ${x.title}</span><span class="st ${done?'':'new'}">${done?'완료':'NEW'}</span></button>`
-      :`<button disabled><span class="q">?</span><span class="nm">${x.ch}장</span><span class="st">${x.ch-1}장 후</span></button>`}).join('')).join('');
+      :`<button disabled><span class="q">?</span><span class="nm">${x.ch}장</span><span class="st">${Progress.castOpen(x.k)?`${x.ch-1}장 후`:'잠김'}</span></button>`}).join('')).join('');
   const goal=sel.goal&&sel.goal.stake?`승리 + 판돈 ${sel.goal.stake}점 이상으로 저스트`:'승리';
   return landPhone('스토리',`<div class="lrow strow" style="flex:1;display:flex;min-height:0">
  <div class="side2"><div class="lst">${li}</div></div>
@@ -320,11 +322,11 @@ S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.query
 
 /* 캐스트: 프로필 / 덱 편집 */
 const CAST_UI={k:null,tab:'prof',sel:null};
-S.cast=()=>{const k=CAST_UI.k||Save.d.duty,c=CASTS[k],tab=CAST_UI.tab;CAST_UI.k=k;
+S.cast=()=>{const k=CAST_UI.k||Save.d.duty,c=CASTS[k];if(!Progress.castOpen(k))CAST_UI.tab='prof';const tab=CAST_UI.tab;CAST_UI.k=k;
   const tabs=['prof','deck'].map(t=>`<button class="chip2 ${t===tab?'on':''}" data-tab="${t}">${t==='prof'?'프로필':'덱 편집'}</button>`).join('');
-  const head=`<div class="row2" style="height:56px;flex:none;padding:0 24px;border-bottom:3px solid var(--ink2);background:#fff"><span class="serif" style="font-size:24px">${c.name}</span><span style="margin-left:auto" class="row2">${tabs}</span></div>`;
+  const head=`<div class="row2" style="height:56px;flex:none;padding:0 24px;border-bottom:3px solid var(--ink2);background:#fff"><span class="serif" style="font-size:24px">${c.name}</span><span style="margin-left:auto" class="row2">${Progress.castOpen(k)?tabs:''}</span></div>`;
   if(tab==='deck')return landPhone('캐스트',`<div class="grow col">${head}${deckEditor(k)}</div>`);
-  const li=CAST_KEYS.map(x=>`<button class="${x===k?'on':''}" data-ck="${x}"><img src="${av(x)}" alt=""><span class="nm">${CASTS[x].name}</span><span class="st">${x===Save.d.duty?'근무 중':''}</span></button>`).join('')
+  const li=CAST_KEYS.map(x=>`<button class="${x===k?'on':''}${Progress.castOpen(x)?'':' lock'}" data-ck="${x}"><img src="${av(x)}" alt=""><span class="nm">${CASTS[x].name}</span><span class="st">${!Progress.castOpen(x)?'잠김':x===Save.d.duty?'근무 중':''}</span></button>`).join('')
    +'<div class="lab" style="margin:12px 4px 4px">동료 캐스트</div>'+CAST_KEYS.map(x=>Progress.secondOpen(x)?`<button disabled><span class="q" style="border-style:solid;color:var(--ink2)">!</span><span class="nm" style="font-size:13px">새 캐스트</span><span class="st">합류 예정</span></button>`:`<button disabled><span class="q">?</span><span class="nm" style="font-size:13px">???</span><span class="st">${CASTS[x].name} 3장 후</span></button>`).join('');
   return landPhone('캐스트',`<div class="lrow carow" style="flex:1;display:flex;min-height:0"><div class="side2" style="width:210px"><div class="lst">${li}</div></div>
   <div class="grow col">${head}<div style="flex:1;position:relative;overflow:hidden">
@@ -334,7 +336,7 @@ S.cast=()=>{const k=CAST_UI.k||Save.d.duty,c=CASTS[k],tab=CAST_UI.tab;CAST_UI.k=
     <div class="panel" style="padding:14px 16px"><div class="row2" style="justify-content:space-between"><span class="lab">호감도</span><b style="font-size:14px">Lv${Progress.lv(k)}</b></div>${(()=>{const L=Progress.AFF_LV,l=Progress.lv(k),n=L[l],p=L[l-1],a=Progress.aff(k);return `<div class="affbar"><i style="width:${n?Math.round(100*(a-p)/(n-p)):100}%"></i></div><div style="font-size:12px;color:var(--sub2);font-weight:700;margin-top:4px">${n?`다음 레벨까지 ${n-a} · 이 캐스트로 이기면 +1, 스토리를 깨면 +2`:'최고 레벨'}</div>`})()}</div>
     <div class="panel" style="padding:14px 16px"><span class="lab">능력</span><div style="font-size:15px;margin-top:4px">${c.abil}</div></div>
     <div class="panel" style="padding:14px 16px"><span class="lab">덱</span><div style="font-size:14px;margin-top:4px">${Save.d.decks[k]?'직접 짠 덱':'기본 덱'} · 전용 8장 + 공용 12장</div></div>
-    <div class="row2" style="margin-top:6px">${k===Save.d.duty?'<span class="chip2 on" style="cursor:default">오늘 근무 중</span>':'<button class="btn" id="cDuty">오늘 근무로</button>'}<button class="btn y" data-tab="deck" style="margin-left:auto">덱 편집</button></div>
+    <div class="row2" style="margin-top:6px">${!Progress.castOpen(k)?`<span class="chip2" style="cursor:default">잠김 · ${Progress.castCond(k)}</span>`:k===Save.d.duty?'<span class="chip2 on" style="cursor:default">오늘 근무 중</span>':'<button class="btn" id="cDuty">오늘 근무로</button>'}${Progress.castOpen(k)?'<button class="btn y" data-tab="deck" style="margin-left:auto">덱 편집</button>':''}</div>
    </div></div></div></div>`)};
 function deckEditor(k){const d=deckIds(k),sel=CAST_UI.sel;
   const grid=(ids,sec)=>`<div class="cardgrid">${ids.map((id,i)=>`<button class="pk${sel&&sel.sec===sec&&sel.i===i?' sel':''}" data-sec="${sec}" data-i="${i}" title="${BYID[id].name}: ${BYID[id].text}">${cardHTML(BYID[id],{size:'s'})}</button>`).join('')}</div>`;
@@ -398,6 +400,7 @@ S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space
   </div>
   <div class="lsid" style="flex:1;padding:14px 36px;display:flex;flex-direction:column;border-left:3px solid var(--ink2)">
    <span class="lab" style="margin-top:6px">데이터</span>
+   ${row('캐스트 전원 해금',Save.d.allCast?'<span class="chip2 on" style="cursor:default">해금됨</span>':'<button class="btn" id="stAll" style="min-height:36px;font-size:13px">해금</button>')}
    ${row('진행 초기화','<button class="btn" id="stReset" style="min-height:36px;font-size:13px;color:#d0103a">초기화</button>')}
    <div style="margin-top:auto;font-size:12px;color:var(--sub2);font-weight:700">31 버스트 · v0.3 프로토타입</div>
   </div></div></div></div>`};
@@ -405,6 +408,8 @@ S.settings.bind=s=>{s.querySelector('#stSpeed').onclick=e=>{const b=e.target.clo
   s.querySelector('#stGuide').onclick=()=>showGuide();
   s.querySelector('#stFull').onclick=async()=>{await FS.toggle();setTimeout(()=>Screens.go('settings'),300)};
   s.querySelector('#stNameOk').onclick=()=>{const v=s.querySelector('#stName').value.trim();if(!v)return;Save.d.manager=v;Save.put();Screens.toast('저장됨')};
+  const all=s.querySelector('#stAll');if(all)all.onclick=async()=>{const r=await ask('캐스트 전원 해금','스토리를 깨지 않아도 캐스트 네 명과 그 스토리를 전부 쓸 수 있어.',[{label:'취소',value:0},{label:'해금',value:1}]);
+    if(r){Save.d.allCast=1;Save.put();Screens.toast('캐스트 전원 해금');Screens.go('settings')}};
   s.querySelector('#stReset').onclick=async()=>{const r=await ask('진행 초기화','매니저 이름, 덱, 스토리, 호감도, 업적이 전부 지워져. 되돌릴 수 없어.',[{label:'취소',value:0},{label:'초기화',value:1}]);
     if(r){Save.reset();SPEED=1;Screens.go('title')}}};
 

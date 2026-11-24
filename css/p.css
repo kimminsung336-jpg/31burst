@@ -437,3 +437,9 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 #play .schs i::before{background:var(--ink2)}
 #play .schs i::after{inset:4px;background:var(--sf)}
 #play .schs i[data-t="2"]{--sf:#ff9a1f}#play .schs i[data-t="3"]{--sf:var(--cM);--st:#fff}#play .schs i[data-t="4"]{--sf:var(--ink2);--st:var(--cY)}
+/* 잠긴 캐스트 */
+.hmduty button.lock{position:relative;opacity:.5;overflow:visible}
+.hmduty button.lock img{filter:grayscale(1);border-radius:50%}
+.hmduty button.lock .lk{position:absolute;right:-5px;bottom:-5px}
+.lst button.lock img{filter:grayscale(1);opacity:.6}
+.lst button.lock .nm{color:var(--sub2)}
