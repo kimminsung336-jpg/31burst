@@ -61,7 +61,7 @@ const av=k=>`img/p/${k}_av.webp`;
 // 캐스트마다 그림 여백이 달라서 키를 맞춘다 (아이리 스프라이트가 크게 잘려 있음)
 const SPR_SCALE={iri:.86,miko:1,haru:1,mina:1};
 const spr=(k,x,y,h,st='')=>{const f=SPR_SCALE[k]||1,h2=Math.round(h*f);
-  return `<img class="spr" src="img/p/${k}.webp" alt="${CASTS[k].name}" style="left:${Math.round(x+h*(1-f)*.3)}px;top:${Math.round(y+(h-h2)*.55)}px;height:${h2}px;${st}">`};
+  return `<img class="spr" src="img/p/${k}.webp" alt="${CASTS[k].name}" style="left:${Math.round(x+h*(1-f)*.3)}px;top:${Math.round(y+(h-h2))}px;height:${h2}px;${st}">`};
 const sceneBg=(night)=>`<img class="bgi" src="img/p/${night?'bg_night':'bg_day'}.webp" alt="" style="filter:blur(${night?0:1.6}px)">`;
 const counter=(props=[],night)=>`<img class="ctrimg" src="img/p/counter.webp" alt="">`+
   props.map(([n,x])=>{const P={cake:[187,106],cups:[123,97],jar:[144,149],tin:[182,109]}[n];return `<img class="spr" src="img/p/prop_${n}.webp" alt="" style="left:${x}px;top:${483-P[1]}px;width:${P[0]}px">`}).join('')+

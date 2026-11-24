@@ -247,7 +247,7 @@ body{background:#1e1a22;overflow:hidden}
 
 /* VS 화면 */
 .vsov{position:absolute;inset:0;z-index:40;overflow:hidden;cursor:pointer;background:var(--ink2)}
-.vsov .vsl,.vsov .vsr{position:absolute;top:-10%;height:120%;width:70%;animation:vsIn .45s cubic-bezier(.2,.9,.3,1.2) both}
+.vsov .vsl,.vsov .vsr{position:absolute;top:-10%;height:120%;width:62%;animation:vsIn .45s cubic-bezier(.2,.9,.3,1.2) both}
 .vsov .vsl{left:-12%;transform:skewX(-14deg);--from:-60%}
 .vsov .vsr{right:-12%;transform:skewX(-14deg);--from:60%;animation-delay:.08s}
 .vsov .vsl{border-right:8px solid var(--ink2)}.vsov .vsr{border-left:8px solid var(--ink2)}
