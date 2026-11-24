@@ -56,30 +56,30 @@ $('deckView').addEventListener('click',e=>{if(e.target.id==='deckView')hideDeck(
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('deckView').classList.contains('on'))hideDeck()});
 /* ---------- 입력 ---------- */
 $('hand').addEventListener('click',async e=>{
-  const b=e.target.closest('.cardb');if(!b||b.disabled||G.cur!==ME||G.busy||G.over||dismissCardOptions)return;
+  const b=e.target.closest('.cardb');if(!b||b.disabled||G.cur!==ME||G.busy||G.over||abortPrompt||!hasTurnTime(ME))return;
   const i=+b.dataset.i,P=G.P[ME],c=P?.hand[i];if(!c)return;
-  const id=G.gid,round=G.round,conn=NET.conn,role=NET.role;
+  const id=G.gid,round=G.round,conn=NET.conn,role=NET.role,token=turnClock?.id;
   const valid=()=>id===G.gid&&round===G.round&&conn===NET.conn&&role===NET.role&&
-    G.cur===ME&&!G.busy&&!G.over&&G.P[ME]===P&&P.hand[i]===c&&playable(ME,c);
+    G.cur===ME&&!G.busy&&!G.over&&G.P[ME]===P&&P.hand[i]===c&&playable(ME,c)&&hasTurnTime(ME,token);
   const d=(P.capture?1:0)-(P.soothe?1:0);
   let ch=null,adj=0;
   if(c.choice||c.lower){
     const opts=c.choice?c.choice.filter(n=>okV(P,n+d,c)).map(n=>({label:String(n+d),value:n})):c.lower.map(n=>({label:'−'+n,value:n}));
     if(!opts.length)return;
     ch=await ask(c.name,c.choice?'숫자를 골라.':'게이지를 얼마나 내릴까?',opts,true);
-    if(ch===CARD_OPTION_DISMISSED||!valid())return;
+    if(ch===MATCH_PROMPT_ABORTED||!valid())return;
   }
   if(CASTS[SEAT[ME]].adjust&&!P.adjUsed&&!c.lower){const v=valOf(ME,c,ch);
     const d=CASTS[SEAT[ME]].adjust;
     const opts=[{label:`그대로 ${v}`,value:0},{label:`${d>0?'+1':'−1'} → ${v+d}`,value:d}].filter(o=>okV(P,v+o.value,c));
     if(opts.length>1){
       adj=await ask(CASTS[SEAT[ME]].abName,`판마다 한 번. 지금 게이지 ${G.gauge}, 목표 ${G.target}.`,opts,true);
-      if(adj===CARD_OPTION_DISMISSED||!valid())return;
+      if(adj===MATCH_PROMPT_ABORTED||!valid())return;
     }
   }
   if(!valid())return;
   LAST_PICK={r:b.getBoundingClientRect(),t:performance.now()};
-  if(role==='guest'){G.busy=true;render();NET.send({t:'play',i,ch,adj});return}
+  if(role==='guest'){G.busy=true;render();NET.send({t:'play',i,ch,adj,...(TURN_SECONDS?{turn:token}:{})});return}
   play(ME,i,ch,adj);
 });
 

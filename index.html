@@ -25,6 +25,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&family=Silkscreen&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/p.css">
+<link rel="stylesheet" href="css/handview.css">
 </head>
 <body>
 <div id="stage" data-screen="title">
@@ -57,7 +58,7 @@
     </div>
     <div class="stake" id="stake" data-t="1"><span class="sk">판돈</span><b id="stakeN">1</b><span class="su">점</span><span class="sch" id="stakeChain"></span></div>
   </div>
-  <div class="turn" id="turnLine">내 차례</div>
+  <div class="turn" id="turnLine"><span id="turnText">내 차례</span><span id="turnClock" hidden></span></div>
 
   <div class="vbar" id="vbar" aria-hidden="true" hidden>
     <span class="vt"><small>목표</small><b id="vTarget">31</b></span><span class="vg" id="vGap">31칸</span>
@@ -83,7 +84,7 @@
     <div class="mebox"><img id="meAv" src="img/p/haru_av.webp" alt=""><div><b id="meName">하루</b><p class="abil" id="meAbil"></p></div></div>
     <span class="chips" id="meChips"></span>
   </div>
-  <div class="pbtns"><button class="btn" id="deckBtn" aria-haspopup="dialog">덱</button><button class="btn" id="playGuide" type="button">설명서</button><button class="btn" id="playMenu" type="button">메뉴</button></div>
+  <div class="pbtns"><button class="btn" id="deckBtn" aria-haspopup="dialog">덱</button><button class="btn" id="playHandView" type="button" aria-haspopup="dialog" aria-controls="handView">손패</button><button class="btn" id="playGuide" type="button">설명서</button><button class="btn" id="playMenu" type="button">메뉴</button></div>
 </section>
 <div id="screens"></div>
 </div>
@@ -165,6 +166,16 @@
   <div class="dvh"><h2 id="dvTitle">덱 리스트</h2><button id="dvClose" aria-label="닫기">닫기</button></div>
   <div class="dvtabs" id="dvTabs" role="tablist"></div>
   <div class="dvg" id="dvGrid" data-s="0"></div></div></div>
+<button id="playHandViewTouch" type="button" aria-haspopup="dialog" aria-controls="handView">손패</button>
+<dialog class="hand-view" id="handView" aria-labelledby="handViewTitle">
+  <header class="hand-view-head">
+    <h2 id="handViewTitle">내 손패</h2>
+    <span id="handViewCount"></span>
+    <button id="handViewClose" type="button" autofocus>닫기</button>
+  </header>
+  <ol id="handViewCards" class="hand-view-cards"></ol>
+  <p id="handViewEmpty" hidden>지금 손패에 카드가 없어.</p>
+</dialog>
 <div class="fx" id="fx" aria-hidden="true"></div>
 
 
@@ -197,5 +208,6 @@
 <script src="js/story.js"></script>
 <script src="js/progress.js"></script>
 <script src="js/screens.js"></script>
+<script src="js/handview.js"></script>
 </body>
 </html>

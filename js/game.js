@@ -10,6 +10,61 @@ const okV=RULES.okV;
 const playable=(p,c)=>RULES.playable(G,p,c);
 const anyPlayable=p=>G.P[p].hand.some(c=>playable(p,c));
 
+// The host (or the offline game) owns the clock. Guests only display estimates.
+let TURN_SECONDS=0, clockId=0, turnClock=null, turnTick=null;
+function clockRemaining(c){return c.deadline===null?c.left:Math.max(0,Math.ceil(c.deadline-performance.now()))}
+function paintClock(){
+  const el=$('turnClock'),c=turnClock;
+  el.hidden=!c;
+  if(c){const sec=Math.ceil(clockRemaining(c)/1000);el.textContent=c.deadline===null?'일시정지':sec+'초';
+    el.dataset.low=String(c.deadline!==null&&sec<=5);}
+}
+function stopClock(){clearInterval(turnTick);turnTick=null;turnClock=null;paintClock()}
+function tickClock(){
+  paintClock();
+  const c=turnClock;
+  if(NET.role==='guest'||!c||c.gid!==G.gid||c.round!==G.round||G.cur!==c.p||G.over||G.busy||c.deadline===null||clockRemaining(c)>0)return;
+  stopClock();if(abortPrompt?.duringChoice)abortMatchPrompt();
+  log(NAME[c.p]+'의 시간 초과. 차례를 넘겼어요.');
+  Screens.toast(NAME[c.p]+' · 시간 초과');
+  NET.ev({t:'timeout',p:c.p});
+  endTurn(c.p);
+}
+function startClock(p){
+  if(!TURN_SECONDS||NET.role==='guest')return;
+  const left=TURN_SECONDS*1000;
+  turnClock={id:++clockId,gid:G.gid,round:G.round,p,left,deadline:performance.now()+left};
+  clearInterval(turnTick);turnTick=setInterval(tickClock,150);paintClock();
+}
+function hasTurnTime(p,token=turnClock?.id){
+  if(!TURN_SECONDS)return true;
+  const c=turnClock;
+  if(!c||c.p!==p||c.id!==token||c.deadline===null)return false;
+  if(clockRemaining(c)>0)return true;
+  if(NET.role!=='guest')tickClock();
+  return false;
+}
+function pauseClock(){
+  if(!turnClock||turnClock.deadline===null)return;
+  turnClock.left=clockRemaining(turnClock);turnClock.deadline=null;paintClock();
+}
+function resumeClock(){
+  if(!turnClock||turnClock.deadline!==null)return;
+  turnClock.deadline=performance.now()+turnClock.left;paintClock();
+}
+function clockSnap(){
+  const c=turnClock;return c?{id:c.id,p:c.p,left:clockRemaining(c),paused:c.deadline===null}:null;
+}
+function receiveClock(q){
+  if(!q){stopClock();return}
+  const c=turnClock;
+  if(!c||c.id!==q.id||q.paused!==(c.deadline===null)){
+    turnClock={id:q.id,p:1-q.p,left:q.left,deadline:q.paused?null:performance.now()+q.left};
+    if(!turnTick)turnTick=setInterval(paintClock,150);
+  }
+  paintClock();
+}
+
 function render(){
   NET.state();
   $('roundPill').textContent=G.over?'최종':G.rounds===1?'단판':`${Math.max(G.round,1)} / ${G.rounds}판`;
@@ -31,15 +86,16 @@ function render(){
    if(render._st!==undefined&&n>render._st){st.classList.remove('up');void st.offsetWidth;st.classList.add('up')}render._st=n}
   const gap=G.target-G.gauge;
   document.querySelector('.ring').classList.toggle('near',gap>0&&gap<=5&&!G.over);
-  $('turnLine').textContent=G.over?'게임 끝':G.cur===ME?'내 차례':`${jo(NAME[AI],'이','가')} 고민 중…`;$('turnLine').classList.toggle('wait',G.cur!==ME||G.over);
+  $('turnText').textContent=G.over?'게임 끝':G.cur===ME?'내 차례':`${jo(NAME[AI],'이','가')} 고민 중…`;$('turnLine').classList.toggle('wait',G.cur!==ME||G.over);
   $('aiBacks').innerHTML=G.P[AI]?G.P[AI].hand.map(()=>'<i class="back"></i>').join(''):'';
   $('aiChips').innerHTML=chips(AI);$('meChips').innerHTML=chips(ME);
   const P=G.P[ME];
   $('hand').innerHTML=P?P.hand.map((c,i,arr)=>{
     const v=c.choice||c.lower?undefined:valOf(ME,c,null);
-    const can=G.cur===ME&&!G.busy&&!G.over&&playable(ME,c);
+    const can=G.cur===ME&&!G.busy&&!G.over&&(!TURN_SECONDS||turnClock?.deadline!=null)&&playable(ME,c);
     return `<button class="cardb" data-i="${i}" style="--i:${i};--n:${arr.length}" ${can?'':'disabled'} aria-label="${c.name} ${v===undefined?numLabel(c):v}. ${c.text}">${cardHTML(c,{num:v})}</button>`
   }).join(''):'';
+  if(typeof HandView!=='undefined')HandView.sync();
 }
 function chips(p){
   const P=G.P[p];if(!P)return'';const a=[];
@@ -54,7 +110,9 @@ function chips(p){
 }
 function pop(){const b=$('gNum');b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),220)}
 
-const CARD_OPTION_DISMISSED=Symbol('card option dismissed');
+const MATCH_PROMPT_ABORTED=Symbol('match prompt aborted');
+let abortPrompt=null;
+function abortMatchPrompt(){abortPrompt?.()}
 let dismissCardOptions=null;
 $('modal').addEventListener('click',e=>{
   if(e.target===$('modal'))dismissCardOptions?.();
@@ -65,16 +123,18 @@ document.addEventListener('keydown',e=>{
   }
 });
 function ask(title,text,opts,cardOptions=false){
-  dismissCardOptions?.(false);
+  abortMatchPrompt();
   return new Promise(res=>{
     const prev=document.activeElement,m=$('modal'),o=$('mOpts');
     const finish=(value,restore=false)=>{
-      dismissCardOptions=null;
+      dismissCardOptions=null;abortPrompt=null;
       m.classList.remove('on');o.onclick=null;
       if(restore&&prev?.isConnected)prev.focus({preventScroll:true});
       res(value);
     };
-    if(cardOptions)dismissCardOptions=(restore=true)=>finish(CARD_OPTION_DISMISSED,restore);
+    abortPrompt=()=>finish(MATCH_PROMPT_ABORTED);
+    abortPrompt.duringChoice=cardOptions;
+    if(cardOptions)dismissCardOptions=(restore=true)=>finish(MATCH_PROMPT_ABORTED,restore);
     $('mTitle').textContent=title;$('mText').textContent=text;
     o.innerHTML=opts.map((o,i)=>`<button data-k="${i}" class="${i===0?'main':''}">${o.label}</button>`).join('');
     m.classList.add('on');
@@ -112,9 +172,9 @@ function showResult(fin,w,wait){
     $('rGo').onclick=()=>{$('res').classList.remove('on');res()};
   });
 }
-function newGame(){G.gid=(G.gid||0)+1;G.rounds=MATCH;G.round=0;G.score=[0,0];G.wins=[0,0];G.hist=[];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
+function newGame(){stopClock();G.gid=(G.gid||0)+1;G.rounds=MATCH;G.round=0;G.score=[0,0];G.wins=[0,0];G.hist=[];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
 function newRound(){
-  G.round++;G.P=[freshPlayer(ME),freshPlayer(AI)];draw(ME,5);draw(AI,5);
+  stopClock();G.round++;G.P=[freshPlayer(ME),freshPlayer(AI)];draw(ME,5);draw(AI,5);
   G.gauge=0;G.target=31;G.stake=1;G.stakeHist=[1];G.passes=0;G.busts=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
   log(`— ${G.round}판 시작. ${NAME[G.cur]} 선공 —`);startTurn();
 }
@@ -126,16 +186,18 @@ async function startTurn(){
   {const c=RULES.turnStart(G,ABS(),p);if(c)log(`${CASTS[SEAT[1-p]].abName}: ${NAME[p]} 손패 「${c.name}」 버림`,p?'ai':'me')}
   if(!anyPlayable(p)){
     log(`${NAME[p]} 낼 카드가 없어서 패스`,p?'ai':'me');draw(p,1);G.passes++;P.snipe=false;P.press=false;
-    if(G.passes>=2){log('둘 다 패스. 이 판은 무승부');await sleep(500);return endRound(null)}
+    if(G.passes>=2){const id=G.gid;log('둘 다 패스. 이 판은 무승부');await sleep(500);if(id===G.gid&&!G.over)return endRound(null);return}
     return next(p);
   }
-  G.passes=0;render();
-  if(p===AI&&!NET.on){const id=G.gid;await sleep(750);if(G.over||id!==G.gid)return;aiAct()}
+  G.passes=0;startClock(p);render();
+  if(p===AI&&!NET.on){const id=G.gid;await sleep(750);if(G.over||id!==G.gid||G.cur!==p)return;aiAct()}
 }
-function next(p){G.cur=1-p;const id=G.gid;setTimeout(()=>{if(id===G.gid)startTurn()},p===AI?250:400)}
+function next(p){stopClock();G.cur=1-p;if(TURN_SECONDS)render();const id=G.gid;setTimeout(()=>{if(id===G.gid)startTurn()},p===AI?250:400)}
 function endTurn(p){const P=G.P[p];draw(p,1);P.snipe=false;P.press=false;next(p)}
 
 async function play(p,idx,choice,adj=0){
+  if(G.over||G.busy||G.cur!==p||!G.P[p]?.hand[idx]||!hasTurnTime(p))return;
+  const id=G.gid;pauseClock();
   G.busy=true;const P=G.P[p],cls=p?'ai':'me',AB=ABS();
   const card=P.hand.splice(idx,1)[0];P.played.push(card.id);P.used.push(card);
   let v=valOf(p,card,choice);if(!card.lower){P.capture=false;P.soothe=false}
@@ -149,12 +211,12 @@ async function play(p,idx,choice,adj=0){
   G.gauge=ng;if(card.photo)P.photoCount++;pop();render();
   const postEl=addPost(p,card,v);
 
-  if(ng===G.target&&!card.nofinish){bigHit(G.target);await sleep(2600);G.busy=false;return endRound(p)}
+  if(ng===G.target&&!card.nofinish){bigHit(G.target);await sleep(2600);if(id===G.gid&&!G.over){G.busy=false;return endRound(p)}return}
   if(ng>G.target||(ng===G.target&&card.nofinish)){   // 저스트 불가 카드로 목표에 딱 맞으면 버스트
     G.stakeHist=G.stakeHist||[1];const k=RULES.bust(G,AB,card);G.busts+=k;
     const plus=AB.filter(a=>a.bustPlus).length,drawers=[];
     for(const[e,q,c]of RULES.afterBust(G,AB,draw)){if(e==='bustDraw')drawers.push(q);if(e==='bustDiscard')log(`${CASTS[SEAT[q]].abName}: ${NAME[1-q]} 손패 「${c.name}」 버림`,'sys')}
-    bustFx(postEl);render();bigBust(k);await sleep(2300);
+    bustFx(postEl);render();bigBust(k);await sleep(2300);if(id!==G.gid||G.over)return;
     log(`버스트!${k>1?` ${k}연속,`:''} 묻고 ${card.triple?'트리플':'더블'}.${plus?' 흉조로 판돈 +1,':''} 판돈 ${G.stake}점, 목표 ${G.target}.${drawers.map(q=>` ${NAME[q]} 2장 뽑음`).join('')}`);
   }
   // 효과
@@ -169,16 +231,18 @@ async function play(p,idx,choice,adj=0){
   if(RULES.PICK[card.id]){   // 고르는 효과: 내 차례면 직접 고르고, AI는 자동으로
     const T={drip:['핸드드립','덱 위 2장 중 1장을 손에 넣어. 나머지는 덱 맨 아래로.'],fortune:['점괘','덱 위 3장 중 1장을 손에 넣어.'],sub:['선수 교체','덱 맨 아래로 보낼 카드를 골라.'],nail:['네일 자랑','덱 맨 아래로 보낼 카드를 골라.']}[card.id];
     const o=RULES.pickOpts(G,p,card.id);
-    if(o.length){const k=await pickFor(p,T[0],T[1],o.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>RULES.autoPick(G,p,card.id,o));RULES.pickResolve(G,p,card.id,o,k,draw)}
+    if(o.length){const k=await pickFor(p,T[0],T[1],o.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>RULES.autoPick(G,p,card.id,o));if(id!==G.gid||G.over||k===MATCH_PROMPT_ABORTED)return;RULES.pickResolve(G,p,card.id,o,k,draw)}
     else if(RULES.PICK[card.id].hand)draw(p,card.id==='nail'?2:1);
   }
   if(RULES.photoHook(G,AB,p,card,draw))log(`셀카 중독: ${NAME[p]} 1장 뽑음`,cls);
-  P.plays--;G.busy=false;render();
-  if(P.plays>0&&anyPlayable(p)){if(p===AI&&!NET.on){await sleep(650);aiAct()}return}
+  P.plays--;G.busy=false;
+  if(P.plays>0&&anyPlayable(p)){resumeClock();render();if(p===AI&&!NET.on){await sleep(650);if(id===G.gid&&!G.over&&G.cur===p)aiAct()}return}
+  if(!TURN_SECONDS)render();
   endTurn(p);
 }
 
 async function endRound(w){
+  stopClock();const id=G.gid;
   const pts=G.stake;
   if(w!==null){G.score[w]+=pts;G.wins[w]++;log(`저스트! ${NAME[w]} ${G.round}판 승리, +${pts}점`)}
   G.hist.push({w,pts:w===null?0:pts,busts:G.busts});
@@ -189,6 +253,7 @@ async function endRound(w){
   if(fin&&window.recordMatch)recordMatch();
   if(fin&&window.afterMatch&&!NET.on)return afterMatch();
   await showResult(fin,w);
+  if(id!==G.gid)return;
   if(fin)return NET.on?toOnline():Screens.go('home');
   newRound();
 }

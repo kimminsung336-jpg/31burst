@@ -1,0 +1,24 @@
+#playHandViewTouch{display:none}
+.hand-view{box-sizing:border-box;width:min(560px,calc(100vw - 28px));max-width:none;max-height:calc(100dvh - 32px);padding:0;overflow:hidden;color:#1e1a22;background:#fff4dc;border:4px solid #1e1a22;border-radius:18px;box-shadow:7px 7px 0 #ed467e;font:16px/1.45 "Noto Sans KR",system-ui,sans-serif;color-scheme:light}
+.hand-view[open]{display:flex;flex-direction:column}
+.hand-view::backdrop{background:#1e1a22ad}
+.hand-view-head{display:flex;align-items:center;gap:9px;padding:10px 14px;border-bottom:3px solid #1e1a22;background:#ffd23f}
+.hand-view-head h2{margin:0;font:25px/1.3 "Black Han Sans","Noto Sans KR",sans-serif}
+.hand-view-head span{font-size:.85rem;font-weight:800}
+.hand-view-head button,#playHandViewTouch{font:800 15px/1.25 "Noto Sans KR",system-ui,sans-serif;color:#1e1a22;background:#fff;border:2px solid #1e1a22;border-radius:9px;min-width:54px;min-height:44px;padding:6px 11px}
+.hand-view-head button{margin-left:auto}
+.hand-view-head button:focus-visible,#playHandViewTouch:focus-visible{outline:3px solid #b60b57;outline-offset:2px}
+.hand-view-cards{overflow:auto;overscroll-behavior:contain;list-style:none;margin:0;padding:12px;display:grid;gap:8px}
+.hand-view-cards:empty{display:none}
+.hand-view-cards li{display:grid;grid-template-columns:minmax(3rem,auto) minmax(0,1fr);align-items:start;gap:11px;border:2px solid #1e1a22;border-radius:10px;background:#fff;padding:8px 10px;color:#1e1a22}
+.hand-view-value{box-sizing:border-box;min-width:3rem;max-width:112px;border-radius:8px;background:#fbe3ee;color:#5e1640;padding:5px 6px;text-align:center;font-weight:900;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.hand-view-copy strong{display:block}
+.hand-view-copy p{margin:3px 0 0;color:#44384a;font-size:.92rem;line-height:1.45;overflow-wrap:anywhere}
+#handViewEmpty{margin:16px}
+@media(max-width:600px) and (orientation:portrait){
+  /* The fixed-size landscape stage still letterboxes on portrait. Use an
+     unscaled touch target in the empty lower margin instead of a tiny duplicate. */
+  #play #playHandView{display:none}
+  #stage[data-screen="play"]~#playHandViewTouch{display:block;position:fixed;bottom:max(18px,env(safe-area-inset-bottom));right:max(16px,env(safe-area-inset-right));z-index:8;box-shadow:3px 3px 0 #ed467e}
+  body:has(.modal.on,.res.on,.pick.on,.gview.on,.vsov) #playHandViewTouch{display:none!important}
+}

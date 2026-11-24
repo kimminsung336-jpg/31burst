@@ -379,3 +379,6 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 
 .cbio{font-size:14px}.cbio b{font-size:14px}
 .cbio p{margin:0;flex:1;position:relative;padding:10px 14px;background:#fff;border:3px solid var(--ink2);border-radius:4px 16px 16px 16px;font-size:15px;font-weight:700;line-height:1.55;box-shadow:3px 3px 0 var(--ink2)}
+
+#turnClock:not([hidden]){display:inline-block;margin-left:8px;padding:3px 6px;border-radius:5px;background:#1e1a22;color:white;font:800 13px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums}
+#turnClock[data-low="true"]{background:#a40e36}
