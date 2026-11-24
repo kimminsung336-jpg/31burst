@@ -122,7 +122,7 @@ $('pgrid').addEventListener('click',e=>{
 // from 'hand': 내 손패 카드가 그 자리에서 위로 살짝 떠오름 / 'deck': 뽑은 카드들이 가운데 떠오름
 function pickCards(title,text,cards,from){
   return new Promise(res=>{
-    const play=$('play'),ov=document.createElement('div');ov.className='pickov';
+    const play=$('play'),ov=document.createElement('div');ov.className='pickov';ov.dataset.from=from;
     ov.innerHTML=`<div class="pkhd"><b>${title}</b><span>${text}</span></div>`+(from==='deck'?`<div class="pkrow">${cards.map((c,i)=>`<button class="pkc" data-k="${i}" style="--d:${i*70}ms" aria-label="${c.name}">${cardHTML(c,{size:'l'})}</button>`).join('')}</div>`:'');
     play.appendChild(ov);const hand=$('hand');
     let btns=[];

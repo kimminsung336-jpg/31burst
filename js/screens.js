@@ -12,11 +12,11 @@ const Save=(()=>{
 SPEED=Save.d.speed;
 
 /* ---------- 전체 화면 ---------- */
-// 브라우저 주소창·탭을 숨긴다. 폰에서는 가로로 고정. 아이폰 사파리는 지원하지 않아서 홈 화면 추가를 안내
+// 브라우저 주소창·탭을 숨긴다. 폰에서는 지금 든 방향으로 고정. 아이폰 사파리는 지원하지 않아서 홈 화면 추가를 안내
 const FS={on:()=>!!(document.fullscreenElement||document.webkitFullscreenElement),
   async enter(){const el=document.documentElement,rq=el.requestFullscreen||el.webkitRequestFullscreen;
     if(!rq){if(typeof Screens!=='undefined')Screens.toast('이 브라우저는 전체 화면이 안 돼. 공유 → 홈 화면에 추가로 열어줘');return}
-    try{await rq.call(el,{navigationUI:'hide'});try{await screen.orientation.lock('landscape')}catch(e){}}catch(e){}},
+    try{await rq.call(el,{navigationUI:'hide'});try{await screen.orientation.lock(document.body.classList.contains('pt')?'portrait':'landscape')}catch(e){}}catch(e){}},
   exit(){const ex=document.exitFullscreen||document.webkitExitFullscreen;if(ex)ex.call(document)},
   toggle(){FS.on()?FS.exit():FS.enter()}};
 const TOUCH=matchMedia('(pointer:coarse)').matches;
@@ -133,15 +133,15 @@ const MATCH_OPT={mode:'ai',diff:'normal',rounds:5,opp:'rand'};
 S.match=()=>{const k=Save.d.duty,c=CASTS[k],o=MATCH_OPT;
   const seg=(key,opts)=>`<div class="seg" data-k="${key}">${opts.map(([v,l])=>`<button data-v="${v}" class="${String(o[key])===String(v)?'on':''}">${l}</button>`).join('')}</div>`;
   const fld=(l,i)=>`<div class="col" style="gap:8px"><span class="lab">${l}</span>${i}</div>`;
-  return landPhone('대전',`<div style="flex:1;display:flex;min-height:0">
- <div style="width:360px;position:relative;overflow:hidden;background:#fff3dc;border-right:3px solid var(--ink2)">
+  return landPhone('대전',`<div class="lrow" style="flex:1;display:flex;min-height:0">
+ <div class="lart" style="width:360px;position:relative;overflow:hidden;background:#fff3dc;border-right:3px solid var(--ink2)">
   ${spr(k,40,10,640)}
   <div style="position:absolute;left:0;right:0;bottom:0;padding:18px 22px;background:linear-gradient(rgba(255,243,220,0),#fff3dc 35%)">
    <div class="row2" style="justify-content:space-between;align-items:flex-end"><span class="serif" style="font-size:30px">${c.name}</span></div>
    <div style="font-size:13px;line-height:1.6;margin-top:4px">${c.abil}</div>
    <div class="row2" style="margin-top:10px"><button class="btn" id="mDeck" style="min-height:36px;font-size:13px">덱 20장</button><button class="btn" data-go="cast" style="min-height:36px;font-size:13px">교대</button></div>
   </div></div>
- <div style="flex:1;padding:26px 40px;display:flex;flex-direction:column;gap:20px">
+ <div class="lmain" style="flex:1;padding:26px 40px;display:flex;flex-direction:column;gap:20px">
   ${fld('상대',seg('mode',[['ai','AI'],['online','온라인 2인']]))}
   ${fld('AI 난이도',seg('diff',[['easy','쉬움'],['normal','보통'],['hard','어려움'],['xhard','매우 어려움']]))}
   ${fld('판 수',seg('rounds',[[1,'단판'],[3,'3판'],[5,'5판']]))}
@@ -186,8 +186,8 @@ S.online=()=>{const on=NET.on,host=NET.role==='host',k=Save.d.duty;
   const seg=(key,opts,cur,dis)=>`<div class="seg" data-k="${key}">${opts.map(([v,l])=>`<button data-v="${v}" class="${String(cur)===String(v)?'on':''}" ${dis?'disabled':''}>${l}</button>`).join('')}</div>`;
   const msg=`<div class="olst" id="olSt" role="status">${NET.msg||''}</div>`;
   if(!on){const waiting=host&&NET.code;
-    return landPhone('온라인 2인',`<div style="flex:1;display:flex;min-height:0">
- <div style="width:360px;position:relative;overflow:hidden;background:#fff3dc;border-right:3px solid var(--ink2)">${spr(k,40,10,640)}
+    return landPhone('온라인 2인',`<div class="lrow" style="flex:1;display:flex;min-height:0">
+ <div class="lart" style="width:360px;position:relative;overflow:hidden;background:#fff3dc;border-right:3px solid var(--ink2)">${spr(k,40,10,640)}
   <div style="position:absolute;left:0;right:0;bottom:0;padding:18px 22px;background:linear-gradient(rgba(255,243,220,0),#fff3dc 35%)"><span class="lab">친구와 대전</span><div style="font-size:13px;line-height:1.6;margin-top:4px">한 명이 방을 만들고, 다른 한 명이 방 코드 네 자리를 넣으면 연결돼.</div></div></div>
  <div class="olbody">
   <div class="olbox"><span class="lab">방 만들기</span>
@@ -238,12 +238,12 @@ S.reward=()=>{const[a,b]=[G.score[ME],G.score[AI]],win=matchWinner();
   const affMax=Progress.AFF_LV[Progress.AFF_LV.length-1],next=g.affNext,prev=Progress.AFF_LV[(g.lv||1)-1];
   const pct=next?Math.round(100*(g.affNow-prev)/(next-prev)):100;
   const hint=Progress.hint(k);
-  return landPhone('결과',`<div style="flex:1;display:flex;min-height:0">
- <div style="flex:1;padding:22px 32px;display:flex;flex-direction:column;gap:12px;min-height:0">
+  return landPhone('결과',`<div class="lrow rwrow" style="flex:1;display:flex;min-height:0">
+ <div class="lmain" style="flex:1;padding:22px 32px;display:flex;flex-direction:column;gap:12px;min-height:0">
   <div><span class="lab">${st?`스토리 · ${chLabel(st)} · `:''}${G.rounds===1?'단판':G.rounds+'판'} · ${'AI '+DIFF_KO[DIFF]} · vs ${CASTS[o].name}</span>
    <div class="row2" style="align-items:baseline;gap:18px;margin-top:2px"><span class="serif" style="font-size:52px;color:${win===ME?'var(--cM)':'var(--ink2)'}">${title}</span><span class="serif" style="font-size:34px">${a} <span style="color:var(--sub2)">:</span> ${b}</span>
    ${st?`<span class="chip2 ${g.clear?'on':''}" style="cursor:default;margin-left:auto">${g.clear?'스토리 클리어':g.goalMiss?`조건 실패 · 판돈 ${st.goal.stake}점 이상 저스트`:'다시 도전'}</span>`:''}</div></div>
-  <div class="row2" style="gap:14px;align-items:stretch">
+  <div class="row2 rwmid" style="gap:14px;align-items:stretch">
    <div class="col" style="flex:1;gap:6px;min-width:0"><span class="lab">판별 기록</span>${hist}</div>
    <div class="panel rwd" style="width:300px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
     <span class="lab">보상</span>
@@ -256,7 +256,7 @@ S.reward=()=>{const[a,b]=[G.score[ME],G.score[AI]],win=matchWinner();
   </div>
   <div class="row2" style="margin-top:auto;justify-content:flex-end"><button class="btn" data-go="home">메인으로</button>${st?`<button class="btn y" id="rStory" style="min-width:180px">${g.clear?'스토리로':'다시 도전'}</button>`:'<button class="btn y" id="rAgain" style="min-width:180px">한 판 더</button>'}</div>
  </div>
- <div style="width:340px;position:relative;overflow:hidden;background:#fff3dc;border-left:3px solid var(--ink2)">
+ <div class="lart rwart" style="width:340px;position:relative;overflow:hidden;background:#fff3dc;border-left:3px solid var(--ink2)">
   ${spr(k,10,90,600,'',false)}
   <div class="panel row2" style="position:absolute;left:18px;top:20px;right:18px;padding:10px 12px;gap:10px;align-items:flex-start;border-radius:16px 16px 16px 4px"><img src="${faceImg(k,ex)}" alt="" class="facei"><span style="font-size:14px;font-weight:700;line-height:1.5">${line}</span></div>
  </div></div>`)};
@@ -272,13 +272,13 @@ S.story=()=>{const pick=Screens.ctx.sel&&STORY.find(x=>x.id===Screens.ctx.sel);
     return open?`<button class="${x===sel?'on':''}" data-sel="${x.id}"><img src="${av(x.k)}" alt=""><span class="nm">${x.ch}장 ${x.title}</span><span class="st ${done?'':'new'}">${done?'완료':'NEW'}</span></button>`
       :`<button disabled><span class="q">?</span><span class="nm">${x.ch}장</span><span class="st">${x.ch-1}장 후</span></button>`}).join('')).join('');
   const goal=sel.goal&&sel.goal.stake?`승리 + 판돈 ${sel.goal.stake}점 이상으로 저스트`:'승리';
-  return landPhone('스토리',`<div style="flex:1;display:flex;min-height:0">
+  return landPhone('스토리',`<div class="lrow strow" style="flex:1;display:flex;min-height:0">
  <div class="side2"><div class="lst">${li}</div></div>
- <div class="grow" style="position:relative;overflow:hidden">
+ <div class="grow stmain" style="position:relative;overflow:hidden">
   <img src="img/p/bg_night.webp" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
   <div style="position:absolute;inset:0;background:linear-gradient(90deg,var(--paper) 40%,rgba(255,248,238,.2))"></div>
   ${spr(sel.k,470,24,600)}
-  <div style="position:absolute;left:36px;top:30px;width:380px;display:flex;flex-direction:column;gap:16px">
+  <div class="stinfo" style="position:absolute;left:36px;top:30px;width:380px;display:flex;flex-direction:column;gap:16px">
    <div><span class="lab">${chLabel(sel)}</span><div class="serif" style="font-size:40px;line-height:1.1;margin-top:4px">${sel.title}</div></div>
    <div style="font-size:15px;line-height:1.7">${sel.sum}</div>
    <div class="panel" style="padding:14px;display:flex;flex-direction:column;gap:8px;font-size:14px">
@@ -326,10 +326,10 @@ S.cast=()=>{const k=CAST_UI.k||Save.d.duty,c=CASTS[k],tab=CAST_UI.tab;CAST_UI.k=
   if(tab==='deck')return landPhone('캐스트',`<div class="grow col">${head}${deckEditor(k)}</div>`);
   const li=CAST_KEYS.map(x=>`<button class="${x===k?'on':''}" data-ck="${x}"><img src="${av(x)}" alt=""><span class="nm">${CASTS[x].name}</span><span class="st">${x===Save.d.duty?'근무 중':''}</span></button>`).join('')
    +'<div class="lab" style="margin:12px 4px 4px">동료 캐스트</div>'+CAST_KEYS.map(x=>Progress.secondOpen(x)?`<button disabled><span class="q" style="border-style:solid;color:var(--ink2)">!</span><span class="nm" style="font-size:13px">새 캐스트</span><span class="st">합류 예정</span></button>`:`<button disabled><span class="q">?</span><span class="nm" style="font-size:13px">???</span><span class="st">${CASTS[x].name} 3장 후</span></button>`).join('');
-  return landPhone('캐스트',`<div style="flex:1;display:flex;min-height:0"><div class="side2" style="width:210px"><div class="lst">${li}</div></div>
+  return landPhone('캐스트',`<div class="lrow carow" style="flex:1;display:flex;min-height:0"><div class="side2" style="width:210px"><div class="lst">${li}</div></div>
   <div class="grow col">${head}<div style="flex:1;position:relative;overflow:hidden">
-   <div style="position:absolute;left:0;top:0;bottom:0;width:340px;background:#fff3dc;border-right:3px solid var(--ink2)"></div>${spr(k,20,10,640)}
-   <div style="position:absolute;left:370px;top:24px;right:30px;display:flex;flex-direction:column;gap:16px">
+   <div class="caback" style="position:absolute;left:0;top:0;bottom:0;width:340px;background:#fff3dc;border-right:3px solid var(--ink2)"></div><span class="caspr">${spr(k,20,10,640)}</span>
+   <div class="cainfo" style="position:absolute;left:370px;top:24px;right:30px;display:flex;flex-direction:column;gap:16px">
     <div class="cbio"><b>${c.handle}</b><div class="row2" style="gap:10px;align-items:flex-start;margin-top:8px"><img src="${faceImg(k,CAST_BIO[k][1])}" alt="" class="facei" style="width:44px;height:44px"><p>${CAST_BIO[k][0]}</p></div></div>
     <div class="panel" style="padding:14px 16px"><div class="row2" style="justify-content:space-between"><span class="lab">호감도</span><b style="font-size:14px">Lv${Progress.lv(k)}</b></div>${(()=>{const L=Progress.AFF_LV,l=Progress.lv(k),n=L[l],p=L[l-1],a=Progress.aff(k);return `<div class="affbar"><i style="width:${n?Math.round(100*(a-p)/(n-p)):100}%"></i></div><div style="font-size:12px;color:var(--sub2);font-weight:700;margin-top:4px">${n?`다음 레벨까지 ${n-a} · 이 캐스트로 이기면 +1, 스토리를 깨면 +2`:'최고 레벨'}</div>`})()}</div>
     <div class="panel" style="padding:14px 16px"><span class="lab">능력</span><div style="font-size:15px;margin-top:4px">${c.abil}</div></div>
@@ -342,13 +342,13 @@ function deckEditor(k){const d=deckIds(k),sel=CAST_UI.sel;
   const pool=(sec==='own'?ownPool(k):sharedPool()).map(c=>{const has=inDeck.has(c.id),col=COLOR_OF[c.id],open=Progress.cardOpen(c.id);
     if(!open)return `<button disabled title="${Progress.condText(c.id)}" class="lock"><span class="bar" style="background:var(--sub2)"></span><span class="v">?</span><span class="n">${c.name}</span><span class="a">${Progress.condText(c.id)}</span></button>`;
     return `<button data-add="${c.id}" ${has||!sel?'disabled':''} title="${c.text}"><span class="bar" style="background:var(--c${col})"></span><span class="v">${numLabel(c)}</span><span class="n">${c.name}</span><span class="a ${has?'in':''}">${has?'덱에 있음':sel?'바꾸기':''}</span></button>`}).join('');
-  return `<div style="flex:1;display:flex;min-height:0">
+  return `<div class="lrow" style="flex:1;display:flex;min-height:0">
   <div class="grow" style="padding:14px 20px;display:flex;flex-direction:column;gap:6px;overflow-y:auto">
    <div class="row2" style="justify-content:space-between"><span class="lab">전용</span><b style="font-size:12px">8 / 8</b></div>${grid(d.own,'own')}
    <div class="row2" style="justify-content:space-between;margin-top:4px"><span class="lab">공용</span><b style="font-size:12px">12 / 12</b></div>${grid(d.shared,'shared')}
    <div class="row2" style="margin-top:auto;padding-top:8px"><span style="font-size:12px;color:var(--sub2);font-weight:700">${sel?'오른쪽에서 바꿀 카드를 골라':'바꿀 카드를 먼저 눌러'} · 같은 카드는 한 장씩</span><button class="btn" id="dReset" style="margin-left:auto">기본 덱으로</button></div>
   </div>
-  <div style="width:270px;padding:14px 16px;border-left:3px solid var(--ink2);background:#fff3dc;display:flex;flex-direction:column;gap:6px;overflow-y:auto">
+  <div class="lsid" style="width:270px;padding:14px 16px;border-left:3px solid var(--ink2);background:#fff3dc;display:flex;flex-direction:column;gap:6px;overflow-y:auto">
    <span class="lab">카드풀 · ${sec==='own'?'전용':'공용'}</span><div class="pool">${pool}</div>
   </div></div>`}
 S.cast.bind=s=>{const k=CAST_UI.k;
@@ -368,12 +368,12 @@ S.dex=()=>{const all=[...SHARED,...POOL_SHARED,...IRI,...(POOL_COLOR.M||[]),...M
   const inBase=[...SHARED,...IRI,...MIKO,...HARU,...MINA].some(x=>x.id===c.id);
   const own=col==='A'?'공용':CASTS[COLOR_CAST[col]].name+' 전용',openC=Progress.cardOpen(c.id);
   const chips=[['all','전체'],...CAST_KEYS.map(k=>[CAST_COL[k],CASTS[k].name]),['A','공용']].map(([v,l])=>`<button class="chip2 ${DEX.f===v?'on':''}" data-f="${v}">${l}</button>`).join('');
-  return landPhone('카드 도감',`<div style="flex:1;display:flex;min-height:0">
+  return landPhone('카드 도감',`<div class="lrow dxrow" style="flex:1;display:flex;min-height:0">
  <div class="grow" style="padding:14px 20px;display:flex;flex-direction:column;gap:12px;min-height:0">
   <div class="row2" style="gap:6px">${chips}<span style="margin-left:auto;font-size:13px;font-weight:700">카드 ${all.filter(x=>Progress.cardOpen(x.id)).length} / ${all.length}장</span></div>
   <div class="cardgrid" style="overflow-y:auto;padding:4px 4px 10px;gap:14px 10px">${list.map(x=>`<button class="pk${x.id===c.id?' sel':''}" data-c="${x.id}" title="${Progress.cardOpen(x.id)?x.name:'잠김'}">${cardHTML(x,{size:'s',locked:!Progress.cardOpen(x.id),cond:Progress.condText(x.id)})}</button>`).join('')}</div>
  </div>
- <div style="width:300px;padding:24px;border-left:3px solid var(--ink2);background:#fff3dc;display:flex;flex-direction:column;align-items:center;gap:10px">
+ <div class="lsid dxsid" style="width:300px;padding:24px;border-left:3px solid var(--ink2);background:#fff3dc;display:flex;flex-direction:column;align-items:center;gap:10px">
   ${cardHTML(c,{size:'l',locked:!openC,cond:Progress.condText(c.id)})}
   <div class="serif" style="font-size:26px;margin-top:4px">${openC?c.name:'???'}</div>
   <div class="row2" style="gap:6px"><span class="chip2" style="cursor:default;background:var(--c${col});${col==='M'||col==='K'?'color:#fff':''}">${own}</span></div>
@@ -386,8 +386,8 @@ S.dex.bind=s=>{s.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{DEX.f=b.
 /* 설정 */
 S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space-between;padding:12px 0;border-bottom:2px dashed rgba(30,26,34,.15)"><b style="font-size:15px">${l}</b>${c}</div>`;
   return `${sceneBg()}<div class="dimbg" style="backdrop-filter:blur(6px)"></div>
-<div class="phn land" style="left:240px;top:90px;width:800px;height:540px"><div class="in"><div class="hd"><button class="back" data-go="home" aria-label="뒤로"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4l-8 8 8 8"/></svg></button><span class="t">설정</span></div>
- <div style="flex:1;display:flex;min-height:0">
+<div class="phn land stg" style="left:240px;top:90px;width:800px;height:540px"><div class="in"><div class="hd"><button class="back" data-go="home" aria-label="뒤로"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4l-8 8 8 8"/></svg></button><span class="t">설정</span></div>
+ <div class="lrow" style="flex:1;display:flex;min-height:0">
   <div style="flex:1;padding:14px 36px;display:flex;flex-direction:column">
    <span class="lab" style="margin-top:6px">게임</span>
    ${row('전체 화면',`<button class="btn" id="stFull" style="min-height:36px;font-size:13px">${FS.on()?'끄기':'켜기'}</button>`)}
@@ -396,7 +396,7 @@ S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space
    <span class="lab" style="margin-top:18px">매니저</span>
    ${row('이름',`<span class="row2"><input id="stName" maxlength="10" value="${(Save.d.manager||'').replace(/"/g,'&quot;')}" style="font:inherit;width:140px;padding:6px 10px;border:2px solid var(--ink2);border-radius:10px"><button class="btn" id="stNameOk" style="min-height:36px;font-size:13px">저장</button></span>`)}
   </div>
-  <div style="flex:1;padding:14px 36px;display:flex;flex-direction:column;border-left:3px solid var(--ink2)">
+  <div class="lsid" style="flex:1;padding:14px 36px;display:flex;flex-direction:column;border-left:3px solid var(--ink2)">
    <span class="lab" style="margin-top:6px">데이터</span>
    ${row('진행 초기화','<button class="btn" id="stReset" style="min-height:36px;font-size:13px;color:#d0103a">초기화</button>')}
    <div style="margin-top:auto;font-size:12px;color:var(--sub2);font-weight:700">31 버스트 · v0.3 프로토타입</div>
@@ -421,7 +421,13 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;
 $('playCtr').innerHTML=CTR_SVG;
 
 /* 스테이지를 창 크기에 맞춘다 */
-function fitStage(){document.documentElement.style.setProperty('--sc',Math.min(innerWidth/1280,innerHeight/720))}
+// 폰을 세로로 들면 720x1280 세로 스테이지로 바꾼다 (?pt=1 / ?pt=0 으로 강제)
+const PT_FORCE=new URLSearchParams(location.search).get('pt');
+// 세로 스테이지는 폭 720 고정, 키는 화면 비율 따라 1280~1600 (늘어난 만큼 --ex 로 아래쪽 요소를 내린다)
+function fitStage(){const pt=PT_FORCE?PT_FORCE==='1':innerHeight>innerWidth,r=document.documentElement.style;document.body.classList.toggle('pt',pt);
+  const H=pt?Math.min(1600,Math.max(1280,Math.round(720*innerHeight/innerWidth))):720;
+  r.setProperty('--H',H+'px');r.setProperty('--ex',(pt?H-1280:0)+'px');
+  r.setProperty('--sc',pt?Math.min(innerWidth/720,innerHeight/H):Math.min(innerWidth/1280,innerHeight/720))}
 addEventListener('resize',fitStage);fitStage();
 document.addEventListener('fullscreenchange',()=>{fitStage();if(Screens.cur==='home'){const b=document.getElementById('hFull');if(b)b.innerHTML=FS.on()?ICO.fsx:ICO.fs}});
 Screens.go('title');
