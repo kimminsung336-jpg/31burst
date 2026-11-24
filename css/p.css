@@ -96,17 +96,21 @@ body{background:#1e1a22;overflow:hidden}
 #play .ring .num span{display:inline-block;margin-top:6px;font:400 15px/1 "Noto Sans KR";font-weight:900;padding:4px 12px;border-radius:999px;background:var(--ink2);color:#fff}
 #play .ring.near{box-shadow:8px 8px 0 var(--cM)}
 #play .ring.near .num span{background:var(--cM)}
-#play .stake{position:absolute;left:280px;top:0;width:88px;height:88px;border-radius:50%;background:var(--cY);border:4px solid var(--ink2);box-shadow:5px 5px 0 var(--ink2);display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(8deg);padding:0;gap:0}
-#play .stake .sk{font-size:11px;font-weight:900;color:var(--ink2)}
-#play .stake b{font:400 34px/1 "Black Han Sans";color:var(--ink2)}
-#play .stake .su{display:none}
-#play .stake .sch{position:absolute;top:92px;left:50%;transform:translateX(-50%);white-space:nowrap;display:flex;gap:2px;align-items:center;font-size:11px;font-weight:900}
+#play .stake{position:absolute;left:256px;top:-26px;width:136px;height:136px;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:4;filter:drop-shadow(5px 5px 0 var(--ink2));transform:rotate(8deg);--sf:var(--cY);--st:var(--ink2)}
+#play .stake::before,#play .stake::after{content:"";position:absolute;inset:0;clip-path:polygon(50.0% 0.0%,58.0% 9.8%,69.1% 3.8%,72.8% 15.9%,85.4% 14.6%,84.1% 27.2%,96.2% 30.9%,90.2% 42.0%,100.0% 50.0%,90.2% 58.0%,96.2% 69.1%,84.1% 72.8%,85.4% 85.4%,72.8% 84.1%,69.1% 96.2%,58.0% 90.2%,50.0% 100.0%,42.0% 90.2%,30.9% 96.2%,27.2% 84.1%,14.6% 85.4%,15.9% 72.8%,3.8% 69.1%,9.8% 58.0%,0.0% 50.0%,9.8% 42.0%,3.8% 30.9%,15.9% 27.2%,14.6% 14.6%,27.2% 15.9%,30.9% 3.8%,42.0% 9.8%);z-index:-1}
+#play .stake::before{background:var(--ink2)}
+#play .stake::after{inset:6px;background:var(--sf)}
+#play .stake .sk{font-size:12px;font-weight:900;color:var(--st);letter-spacing:.08em}
+#play .stake b{font:400 52px/.9 "Black Han Sans";color:var(--st)}
+#play .stake .su{display:block;font:900 12px/1 "Noto Sans KR";color:var(--st);margin-top:1px}
+#play .stake .sch{position:absolute;top:136px;transform:translateX(-50%) rotate(-8deg);left:50%;transform:translateX(-50%);white-space:nowrap;display:flex;gap:2px;align-items:center;font-size:11px;font-weight:900}
 #play .stake .sch:empty{display:none}
 #play .stake .sch i{font-style:normal;background:var(--cM);color:#fff;border:2px solid var(--ink2);border-radius:999px;padding:0 7px}
 #play .stake .sch em{font-style:normal}
-#play .stake[data-t="2"]{background:#ffb020}#play .stake[data-t="3"]{background:var(--cM)}#play .stake[data-t="3"] b,#play .stake[data-t="3"] .sk{color:#fff}#play .stake[data-t="4"]{background:var(--ink2)}#play .stake[data-t="4"] b,#play .stake[data-t="4"] .sk{color:var(--cY)}
+#play .stake[data-t="2"]{--sf:#ff9a1f}#play .stake[data-t="3"]{--sf:var(--cM);--st:#fff}#play .stake[data-t="4"]{--sf:var(--ink2);--st:var(--cY);animation:stakeHot 1s infinite}
+@keyframes stakeHot{50%{transform:rotate(8deg) scale(1.06)}}
 #play .stake.up{animation:stakeUp .5s}
-@keyframes stakeUp{30%{transform:rotate(8deg) scale(1.35)}}
+@keyframes stakeUp{30%{transform:rotate(-6deg) scale(1.45)}60%{transform:rotate(12deg) scale(1.1)}}
 #play .turn{position:absolute;left:690px;top:430px;transform:translateX(-50%) rotate(-3deg);white-space:nowrap;font:400 20px/1 "Black Han Sans";color:#fff;background:var(--cM);padding:7px 16px;border:3px solid var(--ink2);border-radius:10px;box-shadow:4px 4px 0 var(--ink2);z-index:3}
 #play .turn.wait{background:#fff;color:var(--ink2)}
 
@@ -415,3 +419,13 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 #play .cards.picking .cardb{filter:none!important;cursor:pointer;transform:rotate(calc((var(--i) - (var(--n) - 1)/2)*4.5deg)) translateY(-40px)}
 #play .cards.picking .cardb:hover,#play .cards.picking .cardb:focus-visible{transform:rotate(calc((var(--i) - (var(--n) - 1)/2)*4.5deg)) translateY(-70px);z-index:5}
 #play .cards.picking .cardb .blkst{display:none}
+/* 판돈 별: 예전 판돈 상자 스타일 덮어쓰기 */
+#play .stake{background:none;border:0;border-radius:0;box-shadow:none;margin:0;gap:0;color:var(--st)}
+#play .stake[data-t]{background:none;box-shadow:none}
+#play .stake[data-t="3"]{animation:none}
+#play .stake .sk{border:0;padding:0;display:block;font:900 12px/1 "Noto Sans KR";align-self:auto}
+#play .stake[data-t] .sk::after{content:none}
+#play .stake b{padding:0;min-width:0;text-align:center}
+#play .stake .su{padding:0;align-self:auto}
+#play .stake .sch{padding:0;font:900 11px/1 "Noto Sans KR";opacity:1}
+#play .stake .sch i:last-child{display:inline}
