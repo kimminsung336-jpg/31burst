@@ -11,8 +11,8 @@ body.pt #play .prop{left:600px!important;top:calc(494px + var(--ex)/2)!important
 body.pt #play .pshade{background:linear-gradient(rgba(30,26,34,0) 55%,rgba(30,26,34,.3))}
 body.pt #play .sb{top:14px;gap:6px}
 body.pt #play .sbp strong{font-size:24px}
-body.pt #play .gauge{left:190px;top:calc(290px + var(--ex)/3)}
-body.pt #play .turn{left:360px;top:calc(650px + var(--ex)/3)}
+body.pt #play .gauge{left:190px;top:calc(400px + var(--ex)/2)}
+body.pt #play .turn{left:360px;top:calc(728px + var(--ex)/2);z-index:5}
 body.pt #play .opp{left:auto;right:12px;top:calc(76px + var(--ex)/4);flex-direction:column;align-items:flex-end;gap:6px}
 body.pt #play .otag{max-width:130px;align-items:flex-end}
 body.pt #play .otag .who{align-self:flex-end}
@@ -126,7 +126,7 @@ body.pt .scene>.spr[src*=prop_cake]{left:540px!important;top:calc(611px + var(--
 body.pt .scene>div[style*="top:495px"]{left:0!important;top:calc(800px + var(--ex))!important;width:720px!important;height:900px!important}
 
 /* 카드 고르기 */
-body.pt #play .pickov[data-from=hand] .pkhd{top:calc(560px + var(--ex)*.4)}
+body.pt #play .pickov[data-from=hand] .pkhd{top:calc((770px + var(--ex)*.8)/1.25)}
 body.pt #play .pickov[data-from=deck] .pkhd{top:calc(260px + var(--ex)/2)}
 body.pt #play .pickov[data-from=deck] .pkrow{top:calc(400px + var(--ex)/2);flex-wrap:wrap;gap:20px;padding:0 20px}
 
