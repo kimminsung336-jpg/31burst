@@ -75,30 +75,36 @@ ${spr('iri',20,180,560,'',true)}${spr('mina',925,250,660)}${spr('miko',290,262,6
 S.title.bind=s=>{const go=()=>Screens.go('home');s.querySelector('#tGo').onclick=go;
   const k=e=>{if(Screens.cur!=='title'){removeEventListener('keydown',k);return}if(e.key==='Tab')return;e.preventDefault();removeEventListener('keydown',k);setTimeout(go,0)};addEventListener('keydown',k)};
 
-/* 메인 */
-S.home=()=>{const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),unread=STORY.filter(x=>Progress.storyOpen(x)&&!Progress.storyDone(x.id)).length;
-  const named=!!Save.d.manager;
-  const dm=st?st.lines[0][1]:'오늘도 잘 부탁해요.';
-  return `${sceneBg()}${spr(k,200,70,640)}${counter([['cups',40],['cake',560]])}
-<div class="phn" style="left:740px;top:30px;width:360px;height:660px"><div class="in">
- <div class="hd"><div><div class="t">CAFE 31</div><div style="font-size:11px;font-weight:700;margin-top:3px">${named?`${Save.d.manager} 매니저`:'신입 매니저'}</div></div>
-  <button class="btn" data-go="settings" aria-label="설정" style="margin-left:auto;min-height:34px;width:34px;padding:0;border-width:2px;box-shadow:none">${ICO.set}</button></div>
- <div style="flex:1;padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px">
- ${named?`<button class="dm" id="hDm"><img src="${st?faceImg(k,st.lines[0][2]):av(k)}" alt=""><span style="flex:1"><span class="row2" style="justify-content:space-between"><b style="font-size:13px">${c.name}</b>${st?`<span class="tg">스토리 ${st.ch}장</span>`:''}</span><span style="display:block;font-size:13px;line-height:1.45;margin-top:3px">${dm}</span></span></button>
-  <button class="big" id="hPlay"><span class="lab" style="color:var(--ink2)">오늘의 대전</span><span class="serif">대전</span><span class="row2" style="gap:8px;font-size:12px;font-weight:900"><img src="${av(k)}" alt="" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink2)">${jo(c.name,'으로','로')} 출전 · AI / 온라인</span></button>
-  <div class="apps"><button class="app" data-go="story"><span>${ICO.story}${unread?`<i>${unread}</i>`:''}</span>스토리</button><button class="app" data-go="cast"><span>${ICO.cast}</span>캐스트</button><button class="app" data-go="dex"><span>${ICO.dex}</span>카드 도감</button></div>
-  <div class="duty"><div class="row2" style="justify-content:space-between"><span class="lab">오늘 근무</span><span style="font-size:11px;font-weight:700;color:var(--sub2)">눌러서 교대</span></div>
-   <div class="row2" style="gap:12px;margin-top:8px">${CAST_KEYS.map(x=>`<button data-duty="${x}" class="${x===k?'on':''}" aria-label="${CASTS[x].name}"><img src="${av(x)}" alt=""></button>`).join('')}<b style="margin-left:auto;font-size:13px">${c.name}</b></div></div>
-  <div class="duty" style="margin-top:auto"><span class="lab">능력</span><div style="font-size:13px;margin-top:3px">${c.abil}</div></div>`
- :`<div class="dm" style="cursor:default"><img src="${av(k)}" alt=""><span style="flex:1"><b style="font-size:13px">${c.name}</b><span style="display:block;font-size:13px;line-height:1.45;margin-top:3px">새로 오신 매니저님이죠? 이름이 뭐예요?</span></span></div>
-  <label class="lab" for="hName" style="margin-top:6px">매니저 이름</label>
-  <input id="hName" maxlength="10" autocomplete="off" placeholder="이름을 적어 주세요" style="font:inherit;font-size:16px;padding:10px 12px;border:3px solid var(--ink2);border-radius:12px;background:#fff" autofocus>
-  <button class="btn y" id="hNameOk">출근 도장 찍기</button>`}
- </div></div></div>`};
+/* 메인: 왼쪽 위 매니저 명패, 가운데 오늘 근무 캐스트, 오른쪽 메뉴 버튼 */
+S.home=()=>{const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save.d.manager;
+  const unread=STORY.filter(x=>Progress.storyOpen(x)&&!Progress.storyDone(x.id)).length,done=STORY.filter(x=>Progress.storyDone(x.id)).length;
+  const cards=Object.keys(BYID).filter(id=>Progress.cardOpen(id)).length;
+  const line=st?st.lines[0][1]:WIN_LINE[k][0],ex=st?st.lines[0][2]:'happy';
+  const scene=`${sceneBg()}${spr(k,250,70,640).replace(`img/p/${k}.webp`,exImg(k,named?ex:'happy'))}${counter([['cups',40],['cake',600]])}`;
+  if(!named)return `${scene}<div class="dimbg"></div>
+<div class="panel hmname"><div class="row2" style="gap:12px"><img src="${faceImg(k,'happy')}" alt="" class="fc" style="width:52px;height:52px"><div><b style="font-size:15px">${c.name}</b><div style="font-size:14px;margin-top:2px">새로 오신 매니저님이죠? 이름이 뭐예요?</div></div></div>
+ <label class="lab" for="hName">매니저 이름</label>
+ <input id="hName" maxlength="10" autocomplete="off" placeholder="이름을 적어 주세요" autofocus>
+ <button class="btn y" id="hNameOk">출근 도장 찍기</button></div>`;
+  const mb=(go,cls,ico,t,sub,badge='')=>`<button class="hmb ${cls}" data-go="${go}"><span class="ic">${ico}${badge}</span><span class="tx"><b>${t}</b><small>${sub}</small></span><span class="ar">›</span></button>`;
+  return `${scene}
+<div class="hmplate">
+ <div class="row2" style="gap:12px"><img src="${av(k)}" alt="" class="hmav"><div style="min-width:0"><div class="hmnm">${Save.d.manager}<small>매니저</small></div><div class="hmsub">CAFE 31 · 스토리 ${done}/${STORY.length} · 카드 ${cards}/${Object.keys(BYID).length}</div></div></div>
+ <div class="hmduty"><span>오늘 근무</span>${CAST_KEYS.map(x=>`<button data-duty="${x}" class="${x===k?'on':''}" aria-label="${CASTS[x].name}"><img src="${av(x)}" alt=""></button>`).join('')}</div>
+</div>
+<div class="hmtop"><button class="hmic" id="hGuide" aria-label="게임 설명서" title="게임 설명서">?</button><button class="hmic" data-go="settings" aria-label="설정" title="설정">${ICO.set}</button></div>
+<button class="hmsay" id="hDm"><img src="${faceImg(k,ex)}" alt="" class="fc"><span><b>${c.name}${st?` <i>스토리 ${st.ch}장</i>`:''}</b>${line}</span></button>
+<div class="hmmenu">
+ <button class="hmplay" id="hPlay"><span class="lab">오늘의 대전</span><span class="t">대전</span><span class="s"><img src="${av(k)}" alt="">${jo(c.name,'으로','로')} 출전 · AI / 온라인</span></button>
+ ${mb('story','pk',ICO.story,'스토리',st?`${chLabel(st)} · ${st.title}`:'전부 클리어',unread?`<i class="bd">${unread}</i>`:'')}
+ ${mb('cast','cy',ICO.cast,'캐스트',`${c.name} 호감도 Lv${Progress.lv(k)} · 덱 편집`)}
+ ${mb('dex','wh',ICO.dex,'카드 도감',`카드 ${cards} / ${Object.keys(BYID).length}장 해금`)}
+</div>`};
 S.home.bind=s=>{
   const ok=s.querySelector('#hNameOk');
   if(ok){const inp=s.querySelector('#hName');const f=()=>{const v=inp.value.trim();if(!v){inp.focus();return}Save.d.manager=v;Save.put();Screens.go('home')};ok.onclick=f;inp.onkeydown=e=>{if(e.key==='Enter')f()};return}
   s.querySelector('#hPlay').onclick=()=>Screens.go('match');
+  s.querySelector('#hGuide').onclick=()=>showGuide();
   s.querySelector('#hDm').onclick=()=>{const st=Progress.nextStory(Save.d.duty);Screens.go('story',{sel:st&&st.id})};
   s.querySelectorAll('[data-duty]').forEach(b=>b.onclick=()=>{Save.d.duty=b.dataset.duty;Save.put();Screens.go('home')});
 };
