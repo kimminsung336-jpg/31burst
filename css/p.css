@@ -228,6 +228,14 @@ body{background:#1e1a22;overflow:hidden}
 .cardgrid .pk{border:0;background:none;padding:0;cursor:pointer;position:relative}
 .cardgrid .pk.sel .pcb{box-shadow:.3em .3em 0 var(--cM);outline:3px solid var(--cM);outline-offset:2px}
 .cardgrid .pk:disabled{cursor:default}
+/* Catalog density only: leave the deck editor's compact card grid unchanged. */
+.scr.dex .cardgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));justify-items:center;align-items:start}
+.scr.dex .cardgrid .pc2.s{--w:100px}
+@media(max-width:600px){
+  .scr.dex .cardgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .scr.dex .cardgrid .pc2.s{--w:144px}
+}
+
 .pool{display:flex;flex-direction:column}
 .pool button{display:flex;align-items:center;gap:10px;padding:7px 4px;border:0;border-bottom:2px dashed rgba(30,26,34,.15);background:none;cursor:pointer;text-align:left}
 .pool button:disabled{cursor:default;color:var(--sub2)}
