@@ -33,8 +33,12 @@ $('gDots').innerHTML=Array.from({length:GN},()=>'<i></i>').join('');
 function gGo(n){GI=Math.max(0,Math.min(GN-1,n));$('gTrack').style.transform=`translateX(${-GI*100}%)`;
   [...$('gDots').children].forEach((d,k)=>d.classList.toggle('on',k===GI));
   $('gPrev').disabled=GI===0;$('gNext').textContent=GI===GN-1?'시작하기':'다음'}
-function showGuide(){gGo(0);$('guide').classList.add('on');$('gNext').focus()}
-function hideGuide(){$('guide').classList.remove('on');$('guideBtn').focus()}
+// 설명서를 끝까지 보거나 닫으면 '본 것'으로 저장하고, 기다리던 일(첫 대전 시작 등)을 이어서 한다
+let G_AFTER=null;
+function showGuide(after){G_AFTER=typeof after==='function'?after:null;gGo(0);$('guide').classList.add('on');$('gNext').focus()}
+function hideGuide(){$('guide').classList.remove('on');
+  if(typeof Save!=='undefined'&&!Save.d.guide){Save.d.guide=1;Save.put();if(Screens.cur==='home')Screens.go('home')}
+  const f=G_AFTER;G_AFTER=null;if(f)f()}
 $('guideBtn').addEventListener('click',showGuide);
 $('gClose').addEventListener('click',hideGuide);
 $('gPrev').addEventListener('click',()=>gGo(GI-1));

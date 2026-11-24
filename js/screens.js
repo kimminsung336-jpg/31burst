@@ -92,7 +92,8 @@ S.title.bind=s=>{const go=()=>{if(TOUCH&&!FS.on())FS.enter();Screens.go('home')}
 S.home=()=>{const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save.d.manager;
   const unread=STORY.filter(x=>Progress.storyOpen(x)&&!Progress.storyDone(x.id)).length,done=STORY.filter(x=>Progress.storyDone(x.id)).length;
   const cards=Object.keys(BYID).filter(id=>Progress.cardOpen(id)).length;
-  const line=st?st.lines[0][1]:WIN_LINE[k][0],ex=st?st.lines[0][2]:'happy';
+  const noGuide=!Save.d.guide;
+  const line=noGuide?'매니저님, 게임 방법은 오른쪽 위 ? 에 있어요. 처음이면 한 번 보고 가요!':st?st.lines[0][1]:WIN_LINE[k][0],ex=noGuide?'happy':st?st.lines[0][2]:'happy';
   const scene=`${sceneBg()}${spr(k,250,70,640).replace(`img/p/${k}.webp`,exImg(k,named?ex:'happy'))}${counter([['cups',40],['cake',600]])}`;
   if(!named)return `${scene}<div class="dimbg"></div>
 <div class="panel hmname"><div class="row2" style="gap:12px"><img src="${faceImg(k,'happy')}" alt="" class="fc" style="width:52px;height:52px"><div><b style="font-size:15px">${c.name}</b><div style="font-size:14px;margin-top:2px">새로 오신 매니저님이죠? 이름이 뭐예요?</div></div></div>
@@ -105,8 +106,8 @@ S.home=()=>{const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save
  <div class="row2" style="gap:12px"><img src="${av(k)}" alt="" class="hmav"><div style="min-width:0"><div class="hmnm">${Save.d.manager}<small>매니저</small></div><div class="hmsub">CAFE 31 · 스토리 ${done}/${STORY.length} · 카드 ${cards}/${Object.keys(BYID).length}</div></div></div>
  <div class="hmduty"><span>오늘 근무</span>${CAST_KEYS.map(x=>`<button data-duty="${x}" class="${x===k?'on':''}" aria-label="${CASTS[x].name}"><img src="${av(x)}" alt=""></button>`).join('')}</div>
 </div>
-<div class="hmtop"><button class="hmic" id="hFull" aria-label="전체 화면" title="전체 화면 (F11)">${FS.on()?ICO.fsx:ICO.fs}</button><button class="hmic" id="hGuide" aria-label="게임 설명서" title="게임 설명서">?</button><button class="hmic" data-go="settings" aria-label="설정" title="설정">${ICO.set}</button></div>
-<button class="hmsay" id="hDm"><img src="${faceImg(k,ex)}" alt="" class="fc"><span><b>${c.name}${st?` <i>스토리 ${st.ch}장</i>`:''}</b>${line}</span></button>
+<div class="hmtop"><button class="hmic" id="hFull" aria-label="전체 화면" title="전체 화면 (F11)">${FS.on()?ICO.fsx:ICO.fs}</button><button class="hmic${noGuide?' new':''}" id="hGuide" aria-label="게임 설명서" title="게임 설명서">?</button><button class="hmic" data-go="settings" aria-label="설정" title="설정">${ICO.set}</button></div>
+<button class="hmsay" id="hDm"><img src="${faceImg(k,ex)}" alt="" class="fc"><span><b>${c.name}${noGuide?' <i>설명서</i>':st?` <i>스토리 ${st.ch}장</i>`:''}</b>${line}</span></button>
 <div class="hmmenu">
  <button class="hmplay" id="hPlay"><span class="lab">오늘의 대전</span><span class="t">대전</span><span class="s"><img src="${av(k)}" alt="">${jo(c.name,'으로','로')} 출전 · AI / 온라인</span></button>
  ${mb('story','pk',ICO.story,'스토리',st?`${chLabel(st)} · ${st.title}`:'전부 클리어',unread?`<i class="bd">${unread}</i>`:'')}
@@ -115,11 +116,12 @@ S.home=()=>{const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save
 </div>`};
 S.home.bind=s=>{
   const ok=s.querySelector('#hNameOk');
-  if(ok){const inp=s.querySelector('#hName');const f=()=>{const v=inp.value.trim();if(!v){inp.focus();return}Save.d.manager=v;Save.put();Screens.go('home')};ok.onclick=f;inp.onkeydown=e=>{if(e.key==='Enter')f()};return}
+  if(ok){const inp=s.querySelector('#hName');const f=async()=>{const v=inp.value.trim();if(!v){inp.focus();return}Save.d.manager=v;Save.put();Screens.go('home');
+    if(!Save.d.guide&&await ask(`${v} 매니저님, 환영해요!`,`${CASTS[Save.d.duty].name}: 31 버스트는 처음이죠? 게임 방법부터 한 번 보고 가요. 1분이면 돼요.`,[{label:'설명서 보기',value:1},{label:'나중에',value:0}]))showGuide()};ok.onclick=f;inp.onkeydown=e=>{if(e.key==='Enter')f()};return}
   s.querySelector('#hPlay').onclick=()=>Screens.go('match');
   s.querySelector('#hGuide').onclick=()=>showGuide();
   s.querySelector('#hFull').onclick=()=>FS.toggle();
-  s.querySelector('#hDm').onclick=()=>{const st=Progress.nextStory(Save.d.duty);Screens.go('story',{sel:st&&st.id})};
+  s.querySelector('#hDm').onclick=()=>{if(!Save.d.guide)return showGuide();const st=Progress.nextStory(Save.d.duty);Screens.go('story',{sel:st&&st.id})};
   s.querySelectorAll('[data-duty]').forEach(b=>b.onclick=()=>{Save.d.duty=b.dataset.duty;Save.put();Screens.go('home')});
 };
 
@@ -150,7 +152,9 @@ S.match.bind=s=>{
   s.querySelector('#mDeck').onclick=e=>previewDeck(Save.d.duty,e.currentTarget);
   s.querySelector('#mGo').onclick=()=>startMatch();
 };
-function startMatch(opt={}){const k=Save.d.duty,o={...MATCH_OPT,...opt};G.gid=(G.gid||0)+1;G.over=true;
+function startMatch(opt={}){
+  if(!Save.d.guide&&!NET.on)return showGuide(()=>startMatch(opt));   // 처음 대전이면 설명서부터 (닫거나 끝까지 보면 바로 시작)
+const k=Save.d.duty,o={...MATCH_OPT,...opt};G.gid=(G.gid||0)+1;G.over=true;
   let opp=o.opp;if(opp==='rand'||opp===k){const c=CAST_KEYS.filter(x=>x!==k);opp=c[Math.random()*c.length|0]}
   DIFF=o.diff;MATCH=o.rounds;SEAT=[k,opp];Screens.ctx.story=o.story||null;CURRENT={story:o.story||null,opt:o};
   seatSetup();Screens.go('play');showVS(k,opp,o).then(()=>newGame());
