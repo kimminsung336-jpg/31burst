@@ -459,3 +459,12 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 #play .tb.cM{box-shadow:4px 4px 0 var(--cM)}#play .tb.cK{box-shadow:4px 4px 0 var(--cK)}#play .tb.cY{box-shadow:4px 4px 0 var(--cY)}#play .tb.cC{box-shadow:4px 4px 0 var(--cC)}
 #play .tb.out{opacity:0;transform:translateY(-6px);transition:.22s}
 @keyframes tbIn{from{opacity:0;transform:scale(.8)}}
+/* 본 상대 카드: 뒷면 줄에서 앞면으로 */
+#play .backs .back.seen{background:#fff;box-shadow:0 0 0 2px var(--cY) inset,2px 2px 0 var(--cY);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
+#play .backs .back.seen::after{content:none}
+#play .backs .back.seen b{font:400 18px/1 "Black Han Sans";color:var(--ink2)}
+#play .backs .back.seen em{font-style:normal;font-size:8px;font-weight:900;line-height:1.1;text-align:center;color:var(--ink2);max-width:36px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+/* 염탐 순간 크게 보여 주기 */
+#play .peekc{position:absolute;left:120px;top:150px;z-index:25;display:flex;flex-direction:column;align-items:center;gap:6px;animation:pkIn .2s;pointer-events:none;transform:rotate(-4deg)}
+#play .peekc>span{font:400 18px/1 "Black Han Sans";color:#fff;background:var(--ink2);border:3px solid var(--cY);border-radius:999px;padding:6px 14px}
+#play .peekc.out{opacity:0;transition:.3s}

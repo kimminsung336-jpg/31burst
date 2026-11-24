@@ -35,7 +35,8 @@ function render(){
   const gap=G.target-G.gauge;
   document.querySelector('.ring').classList.toggle('near',gap>0&&gap<=5&&!G.over);
   $('turnLine').textContent=G.over?'게임 끝':G.cur===ME?'내 차례':`${jo(NAME[AI],'이','가')} 고민 중…`;$('turnLine').classList.toggle('wait',G.cur!==ME||G.over);
-  $('aiBacks').innerHTML=G.P[AI]?G.P[AI].hand.map(()=>'<i class="back"></i>').join(''):'';
+  // 염탐·저주 인형으로 본 상대 카드는 앞면(숫자)으로 보여 준다
+  {const kn=G.P[ME]?G.P[ME].known:[];$('aiBacks').innerHTML=G.P[AI]?G.P[AI].hand.map(c=>kn.includes(c)?`<i class="back seen" title="${c.name}: ${c.text}"><b>${numLabel(c)}</b><em>${c.name}</em></i>`:'<i class="back"></i>').join(''):''}
   $('aiChips').innerHTML=chips(AI);$('meChips').innerHTML=chips(ME);
   const P=G.P[ME];
   $('hand').innerHTML=P?P.hand.map((c,i,arr)=>{
@@ -178,7 +179,8 @@ async function play(p,idx,choice,adj=0){
     if(e==='regular')log(`단골 손님: ${NAME[p]} 1장 뽑음`,cls);
     if(e==='f4f')log('맞팔 이벤트: 둘 다 1장씩 뽑음',cls);
     if(e==='dm'){const seen=`염탐 결과: ${NAME[1-p]} 손에 「${c.name}」(${deckLabel(c)})`,peek=`${jo(NAME[p],'이','가')} 네 손패 한 장을 훔쳐봤다`;
-      if(p===ME){log(seen,cls,1);NET.ev({t:'log',msg:peek,cls})}else{log(peek,cls,1);NET.ev({t:'log',msg:seen,cls})}}
+      if(p===ME){log(seen,cls,1);NET.ev({t:'log',msg:peek,cls});peekShow(c,'염탐 성공')}else{log(peek,cls,1);NET.ev({t:'log',msg:seen,cls})}}
+    if(e==='doll'&&p===ME)peekShow(c,killed?'저주 인형: 버리게 함':'저주 인형: 살아남음');
     if(e==='doll')log(killed?`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv}) 버려짐`:`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv})는 살아남음`,cls);
     if(e==='convert')log(`포교: ${NAME[1-p]} 손에서 「${c.name}」 버려짐`,cls);
   }
@@ -207,4 +209,11 @@ async function endRound(w){
   await showResult(fin,w);
   if(fin)return NET.on?toOnline():Screens.go('home');
   newRound();
+}
+
+// 상대 손패를 봤을 때: 본 카드를 상대 카드 뒷면 옆에 잠깐 크게 띄운다 (그 뒤로는 뒷면 줄에서 앞면으로 남는다)
+function peekShow(c,label){
+  const el=document.createElement('div');el.className='peekc';
+  el.innerHTML=`<span>${label}</span>${cardHTML(c,{size:'m'})}`;
+  $('play').appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},1800*Math.max(SPEED,.6));
 }

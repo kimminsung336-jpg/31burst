@@ -168,3 +168,4 @@ body.pt .title .spr[alt="미코"],body.pt .title .spr[alt="하루"]{-webkit-mask
 body.pt #play .tb{zoom:1.25;max-width:270px}
 body.pt #play .tb.op{left:14px;top:calc((250px + var(--ex)/3)/1.25)}
 body.pt #play .tb.me{left:14px;top:calc((690px + var(--ex)*.8)/1.25)}
+body.pt #play .peekc{left:auto;right:30px;top:calc(200px + var(--ex)/4);zoom:1.2}
