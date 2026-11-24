@@ -2,12 +2,12 @@
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const fmt=n=>n>=10000?(n/10000).toFixed(1)+'만':n>=1000?(n/1000).toFixed(1)+'천':String(n);
 
-function spawn(x,y,n,spread,big){
+function spawn(x,y,n,spread,big,kind){
   const fx=document.getElementById('fx');
   for(let i=0;i<n;i++){
-    const el=document.createElement('span'),isH=Math.random()<.62;
+    const el=document.createElement('span'),isH=kind?kind==='heart':Math.random()<.62;
     el.className='fly';el.innerHTML=isH?HEART:REPLY;
-    el.style.color=isH?'var(--m)':'var(--c)';
+    el.style.color=kind?(isH?'var(--cM)':'var(--cC)'):isH?'var(--m)':'var(--c)';
     const sx=big?rnd(0,innerWidth):x,sy=big?rnd(innerHeight*.35,innerHeight+20):y;
     el.style.left=sx+'px';el.style.top=sy+'px';
     el.style.setProperty('--x',rnd(-spread,spread)+'px');
@@ -17,6 +17,18 @@ function spawn(x,y,n,spread,big){
     el.style.setProperty('--d',rnd(.8,big?2:1.3)+'s');
     el.style.setProperty('--w',rnd(0,big?.9:.25)+'s');
     fx.appendChild(el);setTimeout(()=>el.remove(),3200);
+  }
+}
+// 화면 아래에서 아이콘이 쏟아져 올라온다. 저스트는 좋아요(하트), 버스트는 리플(시안)
+function rise(kind,n){
+  const fx=document.getElementById('fx'),H=innerHeight,W=innerWidth,icon=kind==='heart'?HEART:REPLY,col=kind==='heart'?'var(--cM)':'var(--cC)';
+  for(let i=0;i<n;i++){
+    const el=document.createElement('span');el.className='fly rise';el.innerHTML=icon;el.style.color=col;
+    el.style.left=rnd(-20,W+20)+'px';el.style.top=(H+rnd(10,60))+'px';
+    el.style.setProperty('--x',rnd(-60,60)+'px');el.style.setProperty('--y',-rnd(H*.55,H*1.1)+'px');
+    el.style.setProperty('--r',rnd(-30,30)+'deg');el.style.setProperty('--s',rnd(1,2.6));
+    el.style.setProperty('--d',rnd(1.1,2)+'s');el.style.setProperty('--w',rnd(0,1.3)+'s');
+    fx.appendChild(el);setTimeout(()=>el.remove(),3600);
   }
 }
 function addPost(p,card,v){
@@ -41,7 +53,7 @@ function bigHit(n){
   d.innerHTML=`<div class="rays"></div><span class="n">JUST!</span>`;
   document.body.appendChild(d);setTimeout(()=>d.remove(),3000);
   setTimeout(()=>{const m=document.getElementById('play');m.classList.remove('quake');void m.offsetWidth;m.classList.add('quake');
-    spawn(innerWidth/2,innerHeight/2,70,340);spawn(0,0,50,240,true)},230);
+    spawn(innerWidth/2,innerHeight/2,40,340,false,'heart');rise('heart',140)},230);
 }
 function bigBust(k=1){
   NET.ev({t:'bust',k});
@@ -49,6 +61,7 @@ function bigBust(k=1){
   d.innerHTML=`<div class="w"><span class="t">BUST!</span>${k>1?`<small>${k}연속 버스트!</small>`:''}</div>`;
   document.body.appendChild(d);setTimeout(()=>d.remove(),3000);
   const m=document.getElementById('play');m.classList.remove('quake');void m.offsetWidth;m.classList.add('quake');
+  rise('reply',140);
 }
 function bustFx(el){
   NET.ev({t:'bustfx'});
@@ -57,7 +70,7 @@ function bustFx(el){
     el.querySelector('.ph').insertAdjacentHTML('beforeend','<span class="tag b">버스트</span>');
     el.querySelectorAll('.pa em').forEach(e=>{e.textContent=fmt(Math.round(rnd(4000,30000)*G.stake/2))});
   }
-  spawn(0,0,90,260,true);
+  spawn(innerWidth/2,innerHeight/2,30,300,false,'reply');
 }
 
 const $=id=>document.getElementById(id);
