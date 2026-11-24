@@ -5,15 +5,18 @@ body.pt #stage{width:720px;height:var(--H,1280px)}
 /* 세로에서는 타임라인을 빼고 게이지·손패에 자리를 준다 */
 body.pt #play .side{display:none}
 body.pt #play .pbg{left:0;top:0;width:720px;height:100%}
-body.pt #play .osp{left:-50px;top:calc(70px + var(--ex)/4);height:600px}
+body.pt #play .osp{left:50%!important;transform:translateX(-50%) scale(1.2);transform-origin:50% 0;top:calc(64px + var(--ex)/4)!important}
 body.pt #play .ctr{left:-280px;top:calc(110px + var(--ex)/2);height:calc(720px + var(--ex))}
-body.pt #play .prop{left:20px!important;top:calc(494px + var(--ex)/2)!important;width:100px!important}
+body.pt #play .prop{left:600px!important;top:calc(494px + var(--ex)/2)!important;width:100px!important}
 body.pt #play .pshade{background:linear-gradient(rgba(30,26,34,0) 55%,rgba(30,26,34,.3))}
 body.pt #play .sb{top:14px;gap:6px}
 body.pt #play .sbp strong{font-size:24px}
-body.pt #play .gauge{left:356px;top:calc(250px + var(--ex)/3)}
-body.pt #play .turn{left:526px;top:calc(612px + var(--ex)/3)}
-body.pt #play .opp{left:22px;top:calc(680px + var(--ex)*.6)}
+body.pt #play .gauge{left:190px;top:calc(290px + var(--ex)/3)}
+body.pt #play .turn{left:360px;top:calc(650px + var(--ex)/3)}
+body.pt #play .opp{left:auto;right:12px;top:calc(76px + var(--ex)/4);flex-direction:column;align-items:flex-end;gap:6px}
+body.pt #play .otag{max-width:130px;align-items:flex-end}
+body.pt #play .otag .who{align-self:flex-end}
+body.pt #play .opp .chips{position:static;width:auto;max-width:160px;justify-content:flex-end}
 body.pt #play .mine{left:20px;top:calc(780px + var(--ex)*.85);flex-direction:row;align-items:center}
 body.pt #play .mebox{max-width:420px}
 body.pt #play .mine .chips{max-width:220px}
@@ -30,7 +33,7 @@ body.pt .scr .bgi{left:-339px;top:0;width:1398px;height:100%}
 body.pt .phn.land{left:20px;top:28px;width:680px;height:calc(1220px + var(--ex));box-shadow:10px 10px 0 var(--cM)}
 body.pt .phn.land.stg{left:20px!important;top:160px!important;width:680px!important;height:auto!important;min-height:700px}
 body.pt .lrow{flex-direction:column!important}
-body.pt .lrow>.lart{width:auto!important;height:420px;flex:none;border-right:0!important;border-left:0!important;border-bottom:3px solid var(--ink2)}
+body.pt .lrow>.lart{width:auto!important;height:330px;flex:none;border-right:0!important;border-left:0!important;border-bottom:3px solid var(--ink2)}
 body.pt .lrow>.lart>.spr{left:50%!important;transform:translateX(-50%);top:4px!important}
 body.pt .lrow>.lmain{padding:22px 28px!important;min-height:0}
 body.pt .lrow>.lsid{width:auto!important;border-left:0!important;border-top:3px solid var(--ink2)}
@@ -70,22 +73,24 @@ body.pt .vnch .btn{min-width:420px}
 
 /* 스토리 목록 */
 body.pt .strow .stmain{flex:1}
-body.pt .strow .stmain>.spr{left:auto!important;right:-90px;top:30px!important;height:640px!important}
-body.pt .strow .stmain>div:not(.stinfo){background:linear-gradient(90deg,var(--paper) 52%,rgba(255,248,238,.2))!important}
-body.pt .stinfo{width:380px!important}
+body.pt .strow .stmain>.spr{left:auto!important;right:-80px;top:auto!important;bottom:-40px;height:440px!important}
+body.pt .stinfo{width:auto!important;left:20px!important;right:20px;top:20px!important}
 
 /* 캐스트 */
-body.pt .carow .side2 .lst{display:flex;flex-wrap:wrap;gap:6px}
-body.pt .carow .side2 .lst>button{flex:0 0 calc(50% - 3px)}
-body.pt .carow .side2 .lst>.lab{flex-basis:100%}
-body.pt .carow .side2{max-height:200px}
-body.pt .caback{width:auto!important;right:0;bottom:auto!important;height:400px;border-right:0!important;border-bottom:3px solid var(--ink2)}
-body.pt .caspr .spr{left:50%!important;transform:translateX(-50%);top:6px!important;height:620px!important}
-body.pt .caspr{position:absolute;left:0;right:0;top:0;height:400px;overflow:hidden;display:block}
-body.pt .cainfo{left:24px!important;right:24px!important;top:420px!important}
+body.pt .carow .side2{max-height:none;padding:8px 10px}
+body.pt .carow .side2 .lst{flex-direction:row;flex-wrap:wrap;gap:4px}
+body.pt .carow .side2 .lst>button{flex:0 0 calc(25% - 3px);width:auto;min-width:0;flex-direction:column;gap:2px;padding:5px 2px;text-align:center;box-sizing:border-box}
+body.pt .carow .side2 .lst>button .nm{font-size:12px!important;flex:none}
+body.pt .carow .side2 .lst>button .st{display:none}
+body.pt .carow .side2 .lst>.lab{display:none}
+body.pt .carow .side2 .lst>button:disabled{display:none}
+body.pt .caback{width:auto!important;right:0;bottom:auto!important;height:250px;border-right:0!important;border-bottom:3px solid var(--ink2)}
+body.pt .caspr .spr{left:50%!important;transform:translateX(-50%);top:4px!important;height:560px!important}
+body.pt .caspr{position:absolute;left:0;right:0;top:0;height:250px;overflow:hidden;display:block}
+body.pt .cainfo{left:16px!important;right:16px!important;top:264px!important;gap:10px!important}
 
 /* 도감 */
-body.pt .scr.dex .cardgrid{grid-template-columns:repeat(5,minmax(0,1fr))}
+body.pt .scr.dex .cardgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 body.pt .dxrow>.grow{min-height:0;flex:1}
 body.pt .dxsid{flex-direction:row!important;flex-wrap:wrap;align-items:flex-start!important;padding:16px 20px!important;gap:6px 16px!important;height:300px;box-sizing:border-box}
 body.pt .dxsid>.pc2{flex:none}
@@ -95,7 +100,7 @@ body.pt .olgrid{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,
 
 /* 결과 */
 body.pt .rwrow{flex-direction:column-reverse!important}
-body.pt .rwart{height:360px!important}
+body.pt .rwart{height:260px!important}
 body.pt .rwart>.spr{top:80px!important}
 body.pt .rwmid{flex-direction:column}
 body.pt .rwmid>.panel{width:auto!important}
@@ -104,7 +109,7 @@ body.pt .rwmid>.panel{width:auto!important}
 body.pt .vsov .vsl,body.pt .vsov .vsr{left:-20%;right:auto;width:140%;height:56%;transform:skewY(-10deg)}
 body.pt .vsov .vsl{top:-8%;border-right:0;border-bottom:8px solid var(--ink2)}
 body.pt .vsov .vsr{top:auto;bottom:-8%;border-left:0;border-top:8px solid var(--ink2)}
-body.pt .vsov .vsp{width:720px;height:560px;top:20px;overflow:hidden}
+body.pt .vsov .vsp{width:720px;height:600px;top:20px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 70%,transparent 96%);mask-image:linear-gradient(#000 70%,transparent 96%)}
 body.pt .vsov .vsp.l{left:-150px}
 body.pt .vsov .vsp.r{right:-150px;top:auto;bottom:0;height:620px}
 body.pt .vsov .vsn{bottom:auto}
@@ -121,6 +126,41 @@ body.pt .scene>.spr[src*=prop_cake]{left:540px!important;top:calc(611px + var(--
 body.pt .scene>div[style*="top:495px"]{left:0!important;top:calc(800px + var(--ex))!important;width:720px!important;height:900px!important}
 
 /* 카드 고르기 */
-body.pt #play .pickov[data-from=hand] .pkhd{top:calc(650px + var(--ex)*.6)}
+body.pt #play .pickov[data-from=hand] .pkhd{top:calc(560px + var(--ex)*.4)}
 body.pt #play .pickov[data-from=deck] .pkhd{top:calc(260px + var(--ex)/2)}
 body.pt #play .pickov[data-from=deck] .pkrow{top:calc(400px + var(--ex)/2);flex-wrap:wrap;gap:20px;padding:0 20px}
+
+/* ---------- 폰에서 글자가 너무 작아지지 않게 UI만 키운다 ---------- */
+body.pt .phn.land>.in{zoom:1.45}
+body.pt .phn.land{border-radius:34px;padding:9px}
+body.pt .phn.land>.in{border-radius:18px}
+body.pt .hmplate{zoom:1.3;left:15px;top:15px;right:15px}
+body.pt .hmtop{zoom:1.3;top:24px;right:26px}
+body.pt .hmsay{zoom:1.25;right:18px;top:calc(176px + var(--ex)*.8);width:300px}
+body.pt .hmmenu{zoom:1.3;left:15px;right:15px;bottom:20px}
+body.pt .hmname{zoom:1.4}
+body.pt .title .logo{transform:translateX(-50%) scale(1.25);transform-origin:50% 0;top:calc(40px + var(--ex)/3)}
+body.pt .title .go{zoom:1.4;left:143px;top:calc(810px + var(--ex)/1.4)}
+body.pt .title .ver{zoom:1.4}
+body.pt .vnbox{zoom:1.3;left:15px;right:15px;bottom:30px}
+body.pt .vntop{zoom:1.4;right:17px;top:17px}
+body.pt .vnch{zoom:1.3;right:20px;bottom:240px}
+body.pt .vnch .btn{min-width:380px}
+body.pt #play .sb{zoom:1.3;top:10px}
+body.pt #play .otag{zoom:1.25}
+body.pt #play .opp .chips{zoom:1.25}
+body.pt #play .mebox{zoom:1.25}
+body.pt #play .mine .chips{zoom:1.25}
+body.pt #play .pbtns{zoom:1.25;right:16px;top:calc((782px + var(--ex)*.85)/1.25)}
+body.pt #play .turn{font-size:26px}
+body.pt #play .pkhd{zoom:1.25}
+body.pt .scr.dex .cardgrid .pc2.s{--w:92px}
+body.pt .scr.dex .cardgrid{gap:12px 6px!important}
+body.pt .vsov .vsp.l .spr{-webkit-mask-image:linear-gradient(90deg,#000 70%,transparent 97%);mask-image:linear-gradient(90deg,#000 70%,transparent 97%)}
+body.pt .strow .stmain>div:not(.stinfo){background:linear-gradient(var(--paper) 45%,rgba(255,248,238,.15))!important}
+body.pt .strow .stmain>img:not(.spr){display:none}
+body.pt .strow .stmain>div:not(.stinfo){background:none!important}
+body.pt .scr.cast .cardgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));justify-items:center;gap:10px 4px}
+body.pt .scr.cast .cardgrid .pc2.s{--w:76px}
+body.pt .scr.cast .lrow>.grow{flex:1 1 0;min-height:0}
+body.pt .scr.cast .lrow>.lsid{flex:0 0 34%;min-height:0}

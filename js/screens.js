@@ -87,7 +87,7 @@ S.title=()=>`<img class="bgi" src="img/p/bg_day.webp" alt="" style="filter:blur(
 <div class="fly" style="left:1150px;top:120px;transform:rotate(12deg)">${cardHTML(BYID.scoop,{size:'m'})}</div>
 ${spr('iri',20,180,560,'',true)}${spr('mina',925,250,660)}${spr('miko',290,262,620)}${spr('haru',610,252,620)}
 <div class="fade"></div><div class="logo">${LOGO_SVG}</div>
-<button class="btn y go" id="tGo">아무 키나 눌러 출근하기</button><span class="ver">v0.3 프로토타입</span>`;
+<button class="btn y go" id="tGo">${TOUCH?'눌러서 출근하기':'아무 키나 눌러 출근하기'}</button><span class="ver">v0.3 프로토타입</span>`;
 S.title.bind=s=>{const go=()=>{if(TOUCH&&!FS.on())FS.enter();Screens.go('home')};s.querySelector('#tGo').onclick=go;
   const k=e=>{if(Screens.cur!=='title'){removeEventListener('keydown',k);return}if(e.key==='Tab')return;e.preventDefault();removeEventListener('keydown',k);setTimeout(go,0)};addEventListener('keydown',k)};
 
