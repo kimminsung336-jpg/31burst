@@ -306,11 +306,10 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 .scspr.go[data-e=happy]{animation:eHop .45s}
 .scspr.go[data-e=pout]{animation:eShake .35s}
 .scspr.go[data-e=fluster]{animation:eShake .25s 2}
-.scspr.go[data-e=sad]{animation:eSag .6s forwards}
-.scspr[data-e=sad]{transform:translateY(10px)}
+.scspr.go[data-e=sad]{animation:eSag .6s}
 @keyframes eHop{30%{transform:translateY(-22px)}60%{transform:translateY(0)}80%{transform:translateY(-6px)}}
 @keyframes eShake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
-@keyframes eSag{from{transform:translateY(0)}to{transform:translateY(10px)}}
+@keyframes eSag{50%{transform:translateY(8px)}}
 /* 보상 */
 .affbar{height:10px;border:2px solid var(--ink2);border-radius:999px;background:#fff;overflow:hidden;margin-top:5px}
 .affbar i{display:block;height:100%;background:var(--cM)}

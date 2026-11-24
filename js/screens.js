@@ -44,6 +44,9 @@ const Screens=(()=>{
 const S=Screens.SCR;
 const av=k=>`img/p/${k}_av.webp`;
 const faceImg=(k,e='base')=>`img/p/face/${k}_${e||'base'}.webp`;
+// 표정별 서 있는 그림 (인페인트로 얼굴·팔만 바꿈)
+const EXPR=['base','happy','pout','fluster','sad'];
+const exImg=(k,e='base')=>`img/p/ex/${k}_${e||'base'}.webp`;
 const chLabel=st=>`${CASTS[st.k].name} ${st.ch}장`;
 const DIFF_KO={easy:'쉬움',normal:'보통',hard:'어려움'};
 // 캐스트마다 그림 여백이 달라서 키를 맞춘다 (아이리 스프라이트가 크게 잘려 있음)
@@ -264,7 +267,7 @@ S.story.bind=s=>{s.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>Scree
 
 /* 스토리 장면: 마감 후 가게 + 폰 DM. 대사마다 표정이 바뀐다 */
 S.scene=()=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k;
-  return `${sceneBg(true)}<div id="scSpr" class="scspr">${spr(k,200,70,640)}</div>${counter([['cups',40],['jar',560]],true)}
+  return `${sceneBg(true)}<div id="scSpr" class="scspr">${spr(k,200,70,640).replace(`img/p/${k}.webp`,exImg(k,'base'))}</div>${counter([['cups',40],['jar',560]],true)}
 <div class="phn" style="left:740px;top:30px;width:360px;height:660px"><div class="in">
  <div class="hd"><img id="scFace" src="${faceImg(k)}" alt="" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--ink2);object-fit:cover;background:#fff"><div><b style="font-size:14px">${CASTS[k].name}</b><div style="font-size:11px">마감 중</div></div><span style="margin-left:auto;font-size:11px;font-weight:900">${chLabel(st)}</span></div>
  <div class="msgs" id="scMsgs" aria-live="polite"></div>
@@ -272,7 +275,8 @@ S.scene=()=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k;
 </div></div>
 <button class="chip2" id="scSkip" style="position:absolute;right:24px;top:24px">건너뛰기</button>`};
 S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,box=s.querySelector('#scMsgs'),ch=s.querySelector('#scCh'),sp=s.querySelector('#scSpr'),hf=s.querySelector('#scFace');let i=0,done=false;
-  const react=e=>{sp.dataset.e=e||'base';sp.classList.remove('go');void sp.offsetWidth;sp.classList.add('go');hf.src=faceImg(k,e)};
+  const si=sp.querySelector('img');EXPR.forEach(e=>{const i=new Image();i.src=exImg(k,e)});   // 표정 그림 미리 불러오기
+  const react=e=>{e=e||'base';sp.dataset.e=e;si.src=exImg(k,e);sp.classList.remove('go');void sp.offsetWidth;sp.classList.add('go');hf.src=faceImg(k,e)};
   const add=(t,me,e)=>{const r=document.createElement('div');r.className='mrow'+(me?' me':'');
     r.innerHTML=me?'':`<img src="${faceImg(k,e)}" alt="" class="fc">`;const b=document.createElement('div');b.className='b'+(me?' me':'');b.textContent=t;r.appendChild(b);box.appendChild(r);box.scrollTop=box.scrollHeight};
   const fin=()=>{if(done)return;done=true;ch.innerHTML='';const b=document.createElement('button');b.className='btn y';b.textContent=`대전 시작 · vs ${CASTS[st.vs].name}`;
