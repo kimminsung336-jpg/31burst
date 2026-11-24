@@ -2,7 +2,8 @@
 let SEAT=['iri','miko'],DECK=[CASTS.iri.deck,CASTS.miko.deck];
 // 받침에 맞는 조사: jo('준','이','가') → '준이'
 const jo=(w,a,b)=>{const c=w.charCodeAt(w.length-1)-0xAC00;const bat=c>=0&&c<=11171&&c%28>0;if(a==='으로'&&c%28===8)return w+'로';return w+(bat?a:b)};
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let SPEED=1;   // 연출 속도 (설정에서 바꿈)
+const sleep=ms=>new Promise(r=>setTimeout(r,ms*SPEED));
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const ME=0,AI=1,NAME=['아이리','미코'];
 

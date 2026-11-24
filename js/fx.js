@@ -25,9 +25,9 @@ function addPost(p,card,v){
   const heat=Math.abs(v)+1;
   const likes=Math.round(heat*rnd(6,14)*(G.stake)),reps=Math.round(heat*rnd(1,4)*G.stake);
   const el=document.createElement('article');el.className='post';
-  el.innerHTML=`<img class="av ${SEAT[p]}" src="img/${SEAT[p]}_av.jpg" alt=""><div>
+  el.innerHTML=`<img class="av ${SEAT[p]}" src="img/p/${SEAT[p]}_av.webp" alt=""><div>
     <div class="ph"><b>${NAME[p]}</b><span>${CASTS[SEAT[p]].handle} · 방금</span><span class="tag">${card.name} ${v>=0?'+':''}${v} → ${G.gauge}</span></div>
-    <p class="pt">${(POSTS[SEAT[p]]||{})[card.id]||POST[card.id]}</p>${photoOf(p,card.id)?`<div class="pimg"><img src="img/${photoOf(p,card.id)}.jpg" alt="${NAME[p]}의 사진"></div>`:IMG[card.id]?`<div class="pimg">${IMG[card.id](p)}</div>`:''}
+    <p class="pt">${(POSTS[SEAT[p]]||{})[card.id]||POST[card.id]}</p>${card.photo?`<div class="pimg"><div class="pimg2" role="img" aria-label="${NAME[p]}의 사진" style="${photoStyle(card,CAST_COL[SEAT[p]])}"></div></div>`:IMG[card.id]?`<div class="pimg">${IMG[card.id](p)}</div>`:''}
     <div class="pa"><span class="r">${REPLY}<em>${fmt(reps)}</em></span><span class="h">${HEART}<em>${fmt(likes)}</em></span></div></div>`;
   feed.prepend(el);while(feed.children.length>30)feed.lastChild.remove();
   tlNote(p,card,v);
@@ -40,7 +40,7 @@ function bigHit(n){
   const d=document.createElement('div');d.className='hit';
   d.innerHTML=`<div class="rays"></div><span class="n">JUST!</span>`;
   document.body.appendChild(d);setTimeout(()=>d.remove(),3000);
-  setTimeout(()=>{const m=document.querySelector('main');m.classList.remove('quake');void m.offsetWidth;m.classList.add('quake');
+  setTimeout(()=>{const m=document.getElementById('play');m.classList.remove('quake');void m.offsetWidth;m.classList.add('quake');
     spawn(innerWidth/2,innerHeight/2,70,340);spawn(0,0,50,240,true)},230);
 }
 function bigBust(k=1){
@@ -48,7 +48,7 @@ function bigBust(k=1){
   const d=document.createElement('div');d.className='bustbig';
   d.innerHTML=`<div class="w"><span class="t">BUST!</span>${k>1?`<small>${k}연속 버스트!</small>`:''}</div>`;
   document.body.appendChild(d);setTimeout(()=>d.remove(),3000);
-  const m=document.querySelector('main');m.classList.remove('quake');void m.offsetWidth;m.classList.add('quake');
+  const m=document.getElementById('play');m.classList.remove('quake');void m.offsetWidth;m.classList.add('quake');
 }
 function bustFx(el){
   NET.ev({t:'bustfx'});

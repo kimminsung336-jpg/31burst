@@ -48,17 +48,14 @@ function render(){
    if(render._st!==undefined&&n>render._st){st.classList.remove('up');void st.offsetWidth;st.classList.add('up')}render._st=n}
   const gap=G.target-G.gauge;
   document.querySelector('.ring').classList.toggle('near',gap>0&&gap<=5&&!G.over);
-  $('turnLine').textContent=G.over?'게임 끝':G.cur===ME?'내 차례':`${jo(NAME[AI],'이','가')} 고민 중…`;
+  $('turnLine').textContent=G.over?'게임 끝':G.cur===ME?'내 차례':`${jo(NAME[AI],'이','가')} 고민 중…`;$('turnLine').classList.toggle('wait',G.cur!==ME||G.over);
   $('aiBacks').innerHTML=G.P[AI]?G.P[AI].hand.map(()=>'<i class="back"></i>').join(''):'';
   $('aiChips').innerHTML=chips(AI);$('meChips').innerHTML=chips(ME);
   const P=G.P[ME];
-  $('hand').innerHTML=P?P.hand.map((c,i)=>{
-    const v=c.choice?null:c.lower?null:valOf(ME,c,null);
-    const label=c.choice||c.lower?'?':v;
-    const cls=c.choice||c.lower?'q':v<0?'neg':v===0?'zero':'';
+  $('hand').innerHTML=P?P.hand.map((c,i,arr)=>{
+    const v=c.choice||c.lower?undefined:valOf(ME,c,null);
     const can=G.cur===ME&&!G.busy&&!G.over&&playable(ME,c);
-    const tag=c.photo?'<span class="t" style="color:var(--m)">사진 포스트</span>':'';
-    return `<button class="cardb" data-i="${i}" ${can?'':'disabled'}><span class="v ${cls}">${label}</span><span class="n">${c.name}</span><span class="t">${c.text}</span>${tag}</button>`
+    return `<button class="cardb" data-i="${i}" style="--i:${i};--n:${arr.length}" ${can?'':'disabled'} aria-label="${c.name} ${v===undefined?numLabel(c):v}. ${c.text}">${cardHTML(c,{num:v})}</button>`
   }).join(''):'';
 }
 function chips(p){
@@ -87,7 +84,7 @@ function ask(title,text,opts){
 function showResult(fin,w,wait){
   return new Promise(res=>{
     const[a,b]=[G.score[ME],G.score[AI]],box=$('rBox');
-    $('rMeImg').src=`img/${SEAT[ME]}_selfie.jpg`;$('rAiImg').src=`img/${SEAT[AI]}_selfie.jpg`;
+    $('rMeImg').src=`img/p/${SEAT[ME]}_av.webp`;$('rAiImg').src=`img/p/${SEAT[AI]}_av.webp`;
     $('rMeName').textContent=NAME[ME];$('rAiName').textContent=NAME[AI];$('rMeSc').textContent=a;$('rAiSc').textContent=b;
     let win=null,title,sub='',note='',kick;
     if(fin){
@@ -107,13 +104,13 @@ function showResult(fin,w,wait){
     $('rRounds').innerHTML=Array.from({length:G.rounds||5},(_,k)=>{const h=G.hist[k];
       if(!h)return `<li class="e"><span>${k+1}판</span><em>—</em></li>`;
       const c=h.w===null?'d':h.w===ME?'m':'a',who=h.w===null?'무승부':NAME[h.w];
-      return `<li class="${c}${k===G.hist.length-1&&!fin?' last':''}"><span>${k+1}판</span>${h.w===null?'':`<img src="img/${SEAT[h.w]}_av.jpg" alt="">`}<em>${who}</em><b>${h.w===null?'':'+'+h.pts}</b>${h.busts?`<i>버스트×${h.busts}</i>`:''}</li>`}).join('');
+      return `<li class="${c}${k===G.hist.length-1&&!fin?' last':''}"><span>${k+1}판</span>${h.w===null?'':`<img src="img/p/${SEAT[h.w]}_av.webp" alt="">`}<em>${who}</em><b>${h.w===null?'':'+'+h.pts}</b>${h.busts?`<i>버스트×${h.busts}</i>`:''}</li>`}).join('');
     $('rGo').textContent=fin?'다시 하기':wait?'확인':'다음 판';
     $('res').classList.add('on');$('rGo').focus();
     $('rGo').onclick=()=>{$('res').classList.remove('on');res()};
   });
 }
-function newGame(){G.rounds=MATCH;G.round=0;G.score=[0,0];G.wins=[0,0];G.hist=[];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
+function newGame(){G.gid=(G.gid||0)+1;G.rounds=MATCH;G.round=0;G.score=[0,0];G.wins=[0,0];G.hist=[];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
 function newRound(){
   G.round++;G.P=[freshPlayer(ME),freshPlayer(AI)];draw(ME,5);draw(AI,5);
   G.gauge=0;G.target=31;G.stake=1;G.stakeHist=[1];G.passes=0;G.busts=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
@@ -121,6 +118,7 @@ function newRound(){
 }
 
 async function startTurn(){
+  if(G.over)return;
   render();const p=G.cur,P=G.P[p];
   if(P.skip){P.skip=false;log(`${NAME[p]} 차례는 침묵의 주문에 걸려 건너뜀`,p?'ai':'me');return next(p)}
   P.plays=1+P.extraNext;P.extraNext=0;if(CASTS[SEAT[p]].photoDraw)P.photoUsed=false;P.momUsed=false;
@@ -131,9 +129,9 @@ async function startTurn(){
     return next(p);
   }
   G.passes=0;render();
-  if(p===AI&&!NET.on){await sleep(750);aiAct()}
+  if(p===AI&&!NET.on){const id=G.gid;await sleep(750);if(G.over||id!==G.gid)return;aiAct()}
 }
-function next(p){G.cur=1-p;setTimeout(startTurn,p===AI?250:400)}
+function next(p){G.cur=1-p;const id=G.gid;setTimeout(()=>{if(id===G.gid)startTurn()},p===AI?250:400)}
 function endTurn(p){const P=G.P[p];draw(p,1);P.snipe=false;P.press=false;next(p)}
 
 async function play(p,idx,choice,adj=0){
@@ -215,6 +213,7 @@ async function endRound(w){
   const fin=G.round>=G.rounds;if(fin)G.over=true;
   render();
   NET.ev({t:'result',final:fin,w});
+  if(fin&&window.afterMatch&&!NET.on)return afterMatch();
   await showResult(fin,w);
   if(fin)return showPick();
   newRound();

@@ -1,0 +1,246 @@
+/* P안 (팝 UI). 16:9 스테이지 하나에 모든 화면을 올리고, 창 크기에 맞춰 통째로 줄인다. */
+:root{--ink2:#1e1a22;--cM:#ff2e8a;--cK:#2b2230;--cY:#ffd23f;--cC:#19c6e6;--cA:#c9b6c2;--paper:#fff8ee;--sub2:#7a6672;--sc:1}
+html,body{height:100%}
+body{background:#1e1a22;overflow:hidden}
+#stage{position:fixed;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%) scale(var(--sc));transform-origin:50% 50%;overflow:hidden;background:var(--paper);color:var(--ink2);font:16px/1.5 "Noto Sans KR",system-ui,sans-serif;color-scheme:light}
+#stage .serif,#stage h2,#stage h3{font-family:"Black Han Sans",sans-serif;font-weight:400}
+:where(#stage) button{font:inherit;color:inherit}
+
+/* 공용 부품 */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 20px;border-radius:12px;border:3px solid var(--ink2);font-size:14px;font-weight:900;background:#fff;box-shadow:0 4px 0 var(--ink2);color:var(--ink2);cursor:pointer;transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 0 var(--ink2)}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--ink2)}
+.btn.y{background:var(--cY)}.btn.p{background:var(--cM);color:#fff}.btn.k{background:var(--ink2);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.panel{background:#fff;border:3px solid var(--ink2);border-radius:16px;box-shadow:5px 5px 0 var(--ink2)}
+.lab{font-size:11px;font-weight:900;letter-spacing:.12em;color:var(--sub2)}
+.seg{display:flex;border:2px solid var(--ink2);border-radius:10px;overflow:hidden;background:#fff}
+.seg button{flex:1;border:0;border-left:2px solid var(--ink2);background:none;padding:9px 0;font-size:14px;font-weight:900;cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--ink2);color:#fff}
+.chip2{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;border:2px solid var(--ink2);font-size:12px;font-weight:900;background:#fff;cursor:pointer}
+.chip2.on{background:var(--ink2);color:#fff}
+.bar2{height:10px;border-radius:5px;background:#fff;border:2px solid var(--ink2);overflow:hidden}.bar2 i{display:block;height:100%;background:var(--cY)}
+
+/* ---------- 카드 (B안) ---------- */
+.pc2{--w:118px;position:relative;width:var(--w);padding-top:calc(var(--w)*.2);font-size:calc(var(--w)*.1);flex:none;text-align:left;color:var(--ink2)}
+.pc2.s{--w:64px}.pc2.xs{--w:48px}.pc2.m{--w:118px}.pc2.l{--w:180px}.pc2.xl{--w:230px}
+.pnum{position:absolute;left:calc(var(--w)*.2 - 2em - .4em);top:0;width:4em;height:4em;box-sizing:border-box;border-radius:50%;border:max(2px,.28em) solid var(--ink2);display:flex;align-items:center;justify-content:center;font:400 2.3em/1 "Black Han Sans",sans-serif;z-index:2;letter-spacing:-.02em}
+.pnum{width:4em;height:4em;font-size:1em}
+.pnum{font-family:"Black Han Sans",sans-serif;font-size:2.3em;width:1.74em;height:1.74em;left:-.18em}
+.pnum.long{font-size:1.6em;width:2.5em;height:2.5em;left:-.26em}
+.pnum.cM{background:var(--cM);color:#fff}.pnum.cK{background:var(--cK);color:#fff}.pnum.cY{background:var(--cY)}.pnum.cC{background:var(--cC)}.pnum.cA{background:var(--cA)}.pnum.cS{background:var(--ink2);color:#ff6fae}
+.ptag{position:absolute;right:.6em;top:calc(var(--w)*.2 + .6em);z-index:3;font-size:.8em;font-weight:900;background:var(--cM);color:#fff;padding:.1em .6em;border-radius:999px;border:2px solid var(--ink2)}
+.pcb{position:relative;box-sizing:border-box;width:var(--w);height:calc(var(--w)*1.4);border:max(2px,.2em) solid var(--ink2);border-radius:.8em;box-shadow:.3em .3em 0 var(--ink2);display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.pcb .pn{font-size:1.1em;font-weight:900;line-height:1.2;display:block}
+.pcb .pe{margin:.3em 0 0;font-size:.75em;line-height:1.4;color:var(--sub2);font-weight:500}
+.pc2.s .pe,.pc2.xs .pe{display:none}
+.pc2.s .pn,.pc2.xs .pn{font-size:1.25em}
+.pcb.photo{padding:.7em .7em 0;border-radius:.3em}
+.pcb.photo .pimg2{width:100%;aspect-ratio:1;border:2px solid var(--ink2);box-sizing:border-box;flex:none}
+.pcb.photo .pn{margin-top:.45em}
+.pcb.photo .pdot{position:absolute;right:.6em;bottom:.6em;width:.9em;height:.9em;border-radius:50%;border:1.5px solid var(--ink2)}
+.pdot.cM{background:var(--cM)}.pdot.cK{background:var(--cK)}.pdot.cY{background:var(--cY)}.pdot.cC{background:var(--cC)}.pdot.cA{background:var(--cA)}
+.pcb.talk{padding:.7em}
+.pcb.talk.cM{background:var(--cM)}.pcb.talk.cK{background:var(--cK)}.pcb.talk.cY{background:var(--cY)}.pcb.talk.cC{background:var(--cC)}.pcb.talk.cA{background:var(--cA)}
+.pcb.talk .bub{flex:1;background:#fff;border:2px solid var(--ink2);border-radius:1em 1em 1em .2em;padding:1.6em .7em .6em}
+.pcb.talk .ph{font-style:normal;font-size:.75em;font-weight:900;margin-top:.4em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcb.talk.cM .ph,.pcb.talk.cK .ph{color:#fff}
+.pcb.news{background:var(--paper);padding:2em .7em .6em;border-radius:.4em}
+.pcb.news .nh{font:normal .7em/1 Silkscreen,monospace;letter-spacing:.15em;text-align:right;border-bottom:.3em double var(--ink2);padding-bottom:.2em}
+.pcb.news .nt{font:400 3em/1 "Black Han Sans",sans-serif;color:var(--cM);margin-top:.25em}
+.pcb.news .pe{margin-top:auto;border-top:1px solid var(--ink2);padding-top:.3em}
+.pc2.lock .pcb{background:repeating-linear-gradient(45deg,#fff3dc 0 6px,#fbe6c4 6px 12px);border-style:dashed;box-shadow:none;align-items:center;justify-content:center;text-align:center;color:var(--sub2);padding:.4em}
+.pc2.lock .pcb b{font:400 3em/1 "Black Han Sans"}.pc2.lock .pcb small{font-size:.8em;font-weight:700;margin-top:.4em;line-height:1.3}
+
+/* ---------- 플레이 ---------- */
+#play{position:absolute;inset:0}
+#play .pbg{position:absolute;left:-59px;top:0;width:1398px;height:799px;object-fit:cover;filter:blur(3px) brightness(.97)}
+#play .osp{position:absolute;left:150px;top:58px;height:500px;width:auto}
+#play .ctr{position:absolute;left:-30px;top:455px;width:1340px;height:512px}
+#play .prop{position:absolute}
+#play .pshade{position:absolute;inset:0;background:linear-gradient(rgba(30,26,34,0) 70%,rgba(30,26,34,.35));pointer-events:none}
+#play .sb{position:absolute;left:50%;top:12px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:none;padding:0;border:0;color:var(--ink2);margin:0;width:auto;max-width:none}
+#play .sbp{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;background:#fff;border:3px solid var(--ink2);box-shadow:4px 4px 0 var(--ink2);color:var(--ink2)}
+#play .sbp.ai{padding:6px 6px 6px 14px}
+#play .sba{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--ink2)}
+#play .sbn{display:flex;flex-direction:column;line-height:1.1;font-size:13px;font-weight:900}
+#play .sbn small{font-size:10px;color:var(--sub2);font-weight:700}
+#play .sbp strong{font:400 28px/1 "Black Han Sans";color:var(--ink2)}
+#play .sb[data-lead=me] .sbp.me strong,#play .sb[data-lead=ai] .sbp.ai strong{color:var(--cM)}
+#play .sbr{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:#fff;border:3px solid var(--ink2);box-shadow:4px 4px 0 var(--ink2)}
+#play .sbl{font-size:12px;font-weight:900;color:var(--ink2);background:none;padding:0}
+#play .sbd{display:flex;gap:5px}
+#play .sbd i{width:20px;height:20px;border-radius:50%;border:2px solid var(--ink2);background:#fff;display:grid;place-items:center;font:normal 11px/1 "Black Han Sans";color:#fff}
+#play .sbd i.m{background:var(--cM)}#play .sbd i.a{background:var(--cK)}#play .sbd i.d{background:var(--cA);color:var(--ink2)}#play .sbd i.now{background:var(--cY)}
+
+#play .opp{position:absolute;left:120px;top:394px;display:flex;align-items:flex-end;gap:10px;padding:0;background:none;border:0;margin:0}
+#play .backs{display:flex;gap:0}
+#play .backs .back{width:40px;height:56px;margin-left:-18px;border-radius:6px;background:var(--ink2);border:2px solid var(--ink2);box-shadow:0 0 0 2px var(--cM) inset,2px 2px 0 var(--cM);display:block;position:relative}
+#play .backs .back::after{content:"31";position:absolute;inset:0;display:grid;place-items:center;font:400 15px/1 "Black Han Sans";color:#ff6fae}
+#play .backs .back:first-child{margin-left:0}
+#play .otag{display:flex;flex-direction:column;gap:3px;max-width:220px}
+#play .otag .who{align-self:flex-start;padding:3px 10px;border-radius:999px;background:var(--cK);color:#fff;border:2px solid var(--ink2);font-size:12px;font-weight:900}
+#play .otag .abil{margin:0;font-size:11px;line-height:1.35;background:#fff;border:2px solid var(--ink2);border-radius:10px;padding:4px 8px}
+#play .opp .chips{position:absolute;left:0;bottom:66px;display:flex;flex-wrap:wrap;gap:4px;width:320px}
+
+#play .gauge{position:absolute;left:520px;top:92px;width:340px;height:340px;display:block;padding:0;margin:0;background:none;border:0}
+#play .ring{position:absolute;inset:0;width:340px;height:340px;border-radius:50%;background:var(--paper);border:5px solid var(--ink2);box-shadow:8px 8px 0 var(--ink2);box-sizing:border-box}
+#play .ring svg{position:absolute;inset:18px;width:calc(100% - 36px);height:calc(100% - 36px);transform:rotate(-90deg)}
+#play .ring::before{content:"";position:absolute;inset:24px;border-radius:50%;border:3px solid var(--ink2);pointer-events:none}
+#play .ring::after{content:"";position:absolute;inset:8px;border-radius:50%;background:repeating-conic-gradient(var(--ink2) 0 1.2deg,transparent 1.2deg 11.6deg);-webkit-mask:radial-gradient(circle,transparent 62%,#000 63%,#000 67%,transparent 68%);mask:radial-gradient(circle,transparent 62%,#000 63%,#000 67%,transparent 68%);opacity:.0}
+#play .ring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center}
+#play .ring .num small{display:block;font-size:11px;font-weight:900;letter-spacing:.12em;color:var(--ink2)}
+#play .ring .num b{display:block;font:400 104px/.95 "Black Han Sans";color:var(--ink2)}
+#play .ring .num span{display:inline-block;margin-top:6px;font:400 15px/1 "Noto Sans KR";font-weight:900;padding:4px 12px;border-radius:999px;background:var(--ink2);color:#fff}
+#play .ring.near{box-shadow:8px 8px 0 var(--cM)}
+#play .ring.near .num span{background:var(--cM)}
+#play .stake{position:absolute;left:280px;top:0;width:88px;height:88px;border-radius:50%;background:var(--cY);border:4px solid var(--ink2);box-shadow:5px 5px 0 var(--ink2);display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(8deg);padding:0;gap:0}
+#play .stake .sk{font-size:11px;font-weight:900;color:var(--ink2)}
+#play .stake b{font:400 34px/1 "Black Han Sans";color:var(--ink2)}
+#play .stake .su{display:none}
+#play .stake .sch{position:absolute;top:92px;left:50%;transform:translateX(-50%);white-space:nowrap;display:flex;gap:2px;align-items:center;font-size:11px;font-weight:900}
+#play .stake .sch:empty{display:none}
+#play .stake .sch i{font-style:normal;background:var(--cM);color:#fff;border:2px solid var(--ink2);border-radius:999px;padding:0 7px}
+#play .stake .sch em{font-style:normal}
+#play .stake[data-t="2"]{background:#ffb020}#play .stake[data-t="3"]{background:var(--cM)}#play .stake[data-t="3"] b,#play .stake[data-t="3"] .sk{color:#fff}#play .stake[data-t="4"]{background:var(--ink2)}#play .stake[data-t="4"] b,#play .stake[data-t="4"] .sk{color:var(--cY)}
+#play .stake.up{animation:stakeUp .5s}
+@keyframes stakeUp{30%{transform:rotate(8deg) scale(1.35)}}
+#play .turn{position:absolute;left:690px;top:430px;transform:translateX(-50%) rotate(-3deg);white-space:nowrap;font:400 20px/1 "Black Han Sans";color:#fff;background:var(--cM);padding:7px 16px;border:3px solid var(--ink2);border-radius:10px;box-shadow:4px 4px 0 var(--ink2);z-index:3}
+#play .turn.wait{background:#fff;color:var(--ink2)}
+
+#play .side{position:absolute;left:960px;top:66px;width:290px;height:560px;display:block;margin:0;padding:0}
+#play .phone{position:absolute;inset:0;border-radius:38px;background:var(--ink2);padding:10px;box-shadow:8px 8px 0 var(--cM);height:auto;max-width:none;min-height:0;top:0}
+#play .screen{height:100%;border-radius:29px;background:var(--paper);display:flex;flex-direction:column;overflow:hidden;border:0}
+#play .appbar{display:flex;align-items:center;padding:12px 16px;border-bottom:3px solid var(--ink2);background:var(--cY);color:var(--ink2)}
+#play .appbar b{font:400 18px/1 "Black Han Sans"}
+#play .tlclose{display:none}
+#play .feed{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin}
+#play .feed:empty::before{content:"아직 올라온 포스트가 없어요";padding:8px;color:var(--sub2);font-size:13px}
+#play .post{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;padding:8px 10px;border-radius:12px;background:#fff;border:2px solid var(--ink2);color:var(--ink2)}
+#play .post .av{width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid var(--ink2)}
+#play .post .ph{display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline;font-size:12px;line-height:1.3}
+#play .post .ph span{font-size:10px;color:var(--sub2)}
+#play .post .ph .tag{order:3;flex-basis:100%;font-size:11px;font-weight:900;color:var(--ink2);background:none;padding:0}
+#play .post .pt{margin:3px 0 0;font-size:12px;line-height:1.45}
+#play .post .pimg{margin-top:6px;border:2px solid var(--ink2);border-radius:8px;overflow:hidden;max-width:150px}
+#play .post .pimg2{aspect-ratio:1}
+#play .post .pimg svg{display:block;width:100%;height:auto}
+#play .post .pa{display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--sub2)}
+#play .post .pa svg{width:13px;height:13px;vertical-align:-2px;margin-right:3px}
+#play .post .pa em{font-style:normal}
+#play .post.bust{background:var(--cK);color:#fff}#play .post.bust .ph span,#play .post.bust .pa{color:#c9b6c2}#play .post.bust .ph .tag{color:#ff6fae}
+#play .post.sys,#play .feed .sys{font-size:11px;color:var(--sub2);padding:2px 6px;border:0;background:none;display:block}
+
+#play .hand{position:absolute;left:230px;right:340px;top:478px;bottom:0;padding:0;margin:0;background:none;border:0}
+#play .cards{display:flex;justify-content:center;align-items:flex-start;gap:0;padding:0}
+#play .cardb{position:relative;border:0;background:none;padding:0;min-height:0;border-radius:0;margin-left:-24px;transform:rotate(calc((var(--i) - (var(--n) - 1)/2)*4.5deg)) translateY(calc(max(var(--i) - (var(--n) - 1)/2, (var(--n) - 1)/2 - var(--i))*7px));transition:transform .14s;cursor:pointer;color:inherit;text-align:left}
+#play .cardb:first-child{margin-left:0}
+#play .cardb:hover:not(:disabled),#play .cardb:focus-visible{transform:rotate(calc((var(--i) - (var(--n) - 1)/2)*4.5deg)) translateY(-34px);z-index:5;outline:none}
+#play .cardb:focus-visible .pcb{box-shadow:.3em .3em 0 var(--cY)}
+#play .cardb:disabled{opacity:1;cursor:not-allowed;filter:saturate(.35) brightness(.92)}
+#play .mine{position:absolute;left:22px;top:548px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+#play .tmini{display:none!important;font:400 22px/1 "Black Han Sans";padding:6px 14px;border-radius:10px;background:var(--cM);color:#fff;border:3px solid var(--ink2);box-shadow:4px 4px 0 var(--ink2);transform:rotate(-4deg);margin:0}
+#play .tmini.wait{background:#fff;color:var(--sub2)}
+#play .tmini:empty{display:none}
+#play .mebox{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;background:#fff;border:3px solid var(--ink2);box-shadow:4px 4px 0 var(--ink2);max-width:250px}
+#play .mebox img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--ink2);flex:none}
+#play .mebox b{font-size:13px}
+#play .mebox .abil{margin:0;font-size:11px;line-height:1.3;color:var(--sub2)}
+#play .mebox .abil b{font-size:11px}
+#play .mine .chips{display:flex;flex-wrap:wrap;gap:4px;max-width:250px}
+#play .chip{font-size:11px;padding:2px 8px;border-radius:999px;border:2px solid var(--ink2);background:#fff;color:var(--ink2);font-weight:700}
+#play .chip.warn{background:var(--cM);color:#fff}
+#play .pbtns{position:absolute;left:968px;top:648px;display:flex;gap:10px}
+#play .pbtns .btn{min-height:42px;font-size:13px;padding:0 16px}
+#play.quake{animation:quake .4s}
+@keyframes quake{20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-3px,2px)}80%{transform:translate(2px,-1px)}}
+
+/* 판 결과·선택 창 (스테이지 밖, 화면 전체 오버레이) */
+.res{background:rgba(30,26,34,.55)}
+.res .rbox{background:var(--paper);color:var(--ink2);border:4px solid var(--ink2);border-radius:20px;box-shadow:8px 8px 0 var(--cM)}
+.res .rt{font-family:"Black Han Sans",sans-serif}
+.res .rgo{background:var(--cY);color:var(--ink2);border:3px solid var(--ink2);box-shadow:0 4px 0 var(--ink2);border-radius:12px;font-weight:900}
+.modal .box{background:var(--paper);color:var(--ink2);border:4px solid var(--ink2);border-radius:18px;box-shadow:8px 8px 0 var(--cM)}
+.modal .opts button{background:#fff;color:var(--ink2);border:3px solid var(--ink2);box-shadow:0 3px 0 var(--ink2);border-radius:12px;font-weight:900}
+.flyc .fc.front{background:#fff;color:var(--ink2);border:3px solid var(--ink2);font-family:"Black Han Sans"}
+
+/* ---------- 화면들 ---------- */
+#screens{position:absolute;inset:0;pointer-events:none}
+.scr{position:absolute;inset:0;display:none;pointer-events:auto;overflow:hidden;background:var(--paper)}
+#stage[data-screen=title] .scr.title,#stage[data-screen=home] .scr.home,#stage[data-screen=match] .scr.match,#stage[data-screen=reward] .scr.reward,#stage[data-screen=story] .scr.story,#stage[data-screen=scene] .scr.scene,#stage[data-screen=cast] .scr.cast,#stage[data-screen=dex] .scr.dex,#stage[data-screen=settings] .scr.settings{display:block}
+#stage:not([data-screen=play]) #play{visibility:hidden}
+.scr .bgi{position:absolute;left:-59px;top:0;width:1398px;height:799px;object-fit:cover}
+.scr .dimbg{position:absolute;inset:0;background:rgba(40,30,30,.28)}
+.scr .blur{filter:blur(8px) brightness(.92)}
+.spr{position:absolute;height:auto}
+.ctrimg{position:absolute;left:-30px;top:455px;width:1340px;height:512px}
+/* 시작 */
+.title .rays{position:absolute;inset:0;background:repeating-conic-gradient(from 0deg at 50% 38%,rgba(255,210,63,.55) 0deg 9deg,rgba(255,46,138,.35) 9deg 18deg)}
+.title .dots{position:absolute;inset:0;background:radial-gradient(rgba(30,26,34,.18) 1.4px,transparent 1.4px);background-size:12px 12px}
+.title .fade{position:absolute;left:0;top:560px;width:1280px;height:160px;background:linear-gradient(rgba(30,26,34,0),rgba(30,26,34,.85))}
+.title .logo{position:absolute;left:440px;top:2px}
+.title .go{position:absolute;left:480px;top:600px;width:320px;height:58px;font-size:18px}
+.title .ver{position:absolute;right:20px;bottom:14px;font-size:11px;color:var(--paper)}
+.title .fly{position:absolute}
+/* 폰 */
+.phn{position:absolute;box-sizing:border-box;border-radius:44px;background:var(--ink2);padding:12px;box-shadow:10px 10px 0 var(--cM)}
+.phn>.in{height:100%;border-radius:33px;background:var(--paper);display:flex;flex-direction:column;overflow:hidden}
+.phn .hd{display:flex;align-items:center;gap:10px;padding:14px 18px 12px;border-bottom:3px solid var(--ink2);background:var(--cY);flex:none}
+.phn .hd .t{font:400 22px/1 "Black Han Sans"}
+.phn .hd .back{border:0;background:none;font-size:24px;font-weight:900;cursor:pointer;padding:0 4px;line-height:1}
+.phn.land{left:110px;top:46px;width:1060px;height:628px;box-shadow:12px 12px 0 var(--cM)}
+.phn.land>.in{border-radius:32px}
+.phn.land .hd{height:48px;padding:0 26px;box-sizing:border-box}
+/* 메인 */
+.home .dm{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:14px;background:#fff;border:2px solid var(--ink2);box-shadow:3px 3px 0 var(--ink2);cursor:pointer;text-align:left;width:100%}
+.home .dm img{width:36px;height:36px;border-radius:50%;border:2px solid var(--ink2);flex:none;object-fit:cover}
+.home .dm .tg{font-size:10px;font-weight:900;color:#fff;background:var(--cM);padding:1px 7px;border-radius:999px}
+.home .big{width:100%;border-radius:20px;background:var(--cY);border:3px solid var(--ink2);box-shadow:0 6px 0 var(--ink2);padding:14px 20px;display:flex;flex-direction:column;gap:4px;text-align:left;cursor:pointer}
+.home .big .serif{font-size:46px;line-height:1}
+.home .apps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.home .app{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:700;border:0;background:none;cursor:pointer}
+.home .app span{position:relative;width:54px;height:54px;border-radius:16px;background:#fff;border:2px solid var(--ink2);box-shadow:0 3px 0 var(--ink2);display:flex;align-items:center;justify-content:center}
+.home .app i{position:absolute;right:-5px;top:-5px;min-width:16px;height:16px;border-radius:8px;background:var(--cM);color:#fff;font:normal 700 10px/16px "Noto Sans KR";padding:0 4px;text-align:center}
+.home .duty{padding:10px 12px;border-radius:14px;background:#fff;border:2px solid var(--ink2)}
+.home .duty button{border:2px solid var(--ink2);border-radius:50%;padding:0;width:40px;height:40px;overflow:hidden;cursor:pointer;opacity:.55;background:none}
+.home .duty button.on{opacity:1;border-width:3px;box-shadow:0 0 0 3px var(--cY)}
+.home .duty img{width:100%;height:100%;object-fit:cover}
+.plate{position:absolute;left:556px;top:640px;width:168px;height:46px;box-sizing:border-box;border-radius:12px;background:var(--ink2);border:3px solid var(--cY);box-shadow:5px 5px 0 var(--ink2);display:flex;align-items:center;justify-content:center;gap:6px;font:400 24px/1 "Black Han Sans"}
+.plate i{font-style:normal;color:#ff6fae}.plate b{font-weight:400;color:#fff}
+/* 폰 안 공통 */
+.lst{display:flex;flex-direction:column;gap:4px}
+.lst button{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;border:2px solid transparent;background:none;cursor:pointer;text-align:left;width:100%}
+.lst button.on{background:#fff;border-color:var(--ink2);box-shadow:3px 3px 0 var(--ink2)}
+.lst button:disabled{color:var(--sub2);cursor:default}
+.lst img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--ink2);flex:none}
+.lst .q{width:36px;height:36px;border-radius:50%;border:2px dashed var(--sub2);display:grid;place-items:center;flex:none;color:var(--sub2);font-weight:900}
+.lst .nm{flex:1;font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lst .st{font-size:11px;font-weight:900;color:var(--sub2);white-space:nowrap}
+.lst .st.new{color:var(--cM)}
+.col{display:flex;flex-direction:column}
+.side2{width:240px;padding:14px 12px;background:#fff3dc;border-right:3px solid var(--ink2);overflow-y:auto;flex:none}
+.grow{flex:1;min-width:0;min-height:0}
+.row2{display:flex;align-items:center;gap:10px}
+.cardgrid{display:flex;flex-wrap:wrap;gap:12px 8px;align-content:flex-start}
+.cardgrid .pk{border:0;background:none;padding:0;cursor:pointer;position:relative}
+.cardgrid .pk.sel .pcb{box-shadow:.3em .3em 0 var(--cM);outline:3px solid var(--cM);outline-offset:2px}
+.cardgrid .pk:disabled{cursor:default}
+.pool{display:flex;flex-direction:column}
+.pool button{display:flex;align-items:center;gap:10px;padding:7px 4px;border:0;border-bottom:2px dashed rgba(30,26,34,.15);background:none;cursor:pointer;text-align:left}
+.pool button:disabled{cursor:default;color:var(--sub2)}
+.pool .bar{width:4px;height:26px;border-radius:2px;flex:none}
+.pool .v{width:38px;font:400 18px/1 "Black Han Sans";flex:none}
+.pool .n{flex:1;font-size:13px;font-weight:700}
+.pool .a{font-size:11px;font-weight:900;color:var(--cM)}
+.pool .a.in{color:var(--sub2)}
+.msgs{flex:1;padding:16px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.msgs .b{align-self:flex-start;max-width:250px;background:#fff;border:2px solid var(--ink2);border-radius:16px 16px 16px 4px;padding:8px 12px;font-size:14px;font-weight:700;animation:pop .25s}
+.msgs .b.me{align-self:flex-end;background:var(--cM);color:#fff;border-radius:16px 16px 4px 16px}
+@keyframes pop{from{transform:scale(.85);opacity:0}}
+.choices{padding:14px;border-top:3px solid var(--ink2);display:flex;flex-direction:column;gap:8px}
+.choices .btn{justify-content:flex-start}
+.toast{position:absolute;left:50%;top:20px;transform:translateX(-50%);padding:8px 16px;border-radius:999px;background:var(--ink2);color:#fff;font-size:13px;font-weight:900;z-index:50;pointer-events:none;animation:pop .2s}
+
+#play .abil b{background:var(--ink2);color:#fff;padding:0 7px;border-radius:999px;font-size:11px;margin-right:4px}
+#play .otag .abil b{background:var(--cY);color:var(--ink2)}

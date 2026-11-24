@@ -57,14 +57,15 @@ function bindConn(c){
 function netLost(){if(!NET.on)return;netReset(true);$('modal').classList.remove('on');G.over=true;
   ask('연결 끊김','상대와 연결이 끊겼어. 다시 방을 만들거나 AI와 플레이해.',[{label:'확인',value:1}]).then(()=>{showPick();netMsg('연결이 끊겼어.')})}
 function seatSetup(){
-  const[me,op]=SEAT;DECK=[CASTS[me].deck,CASTS[op].deck];NAME[ME]=CASTS[me].name;NAME[AI]=CASTS[op].name;
+  const[me,op]=SEAT;DECK=[(!NET.on&&window.myDeck&&myDeck(me))||CASTS[me].deck,CASTS[op].deck];NAME[ME]=CASTS[me].name;NAME[AI]=CASTS[op].name;
   const tag=NET.on?' (상대)':' (AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]+')';
   $('nMe').textContent=NAME[ME];$('nAi').textContent=NAME[AI];$('nAiTag').textContent=NET.on?'상대':'AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF];
-  $('sbMeAv').src=`img/${me}_av.jpg`;$('sbAiAv').src=`img/${op}_av.jpg`;
+  $('sbMeAv').src=`img/p/${me}_av.webp`;$('sbAiAv').src=`img/p/${op}_av.webp`;$('meAv').src=`img/p/${me}_av.webp`;$('meName').textContent=NAME[ME];$('oppSp').src=`img/p/${op}.webp`;
   const rs=document.documentElement.style;rs.setProperty('--cMe',CASTS[me].back[0]);rs.setProperty('--cAi',CASTS[op].back[0]);$('aiWho').textContent=NAME[AI]+(NET.on?' (상대)':' (AI)');
   $('meAbil').innerHTML=CASTS[me].abil;$('aiAbil').innerHTML=CASTS[op].abil;
   document.documentElement.style.setProperty('--backA',CASTS[op].back[0]);document.documentElement.style.setProperty('--backB',CASTS[op].back[1]);
   $('pick').classList.remove('on');
+  if(window.Screens)Screens.go('play');
 }
 function netTryStart(){
   if(NET.role!=='host'||!NET.hostCast||!NET.guestCast)return;

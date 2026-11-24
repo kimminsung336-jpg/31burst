@@ -3,77 +3,73 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>31 버스트 프로토타입</title>
+<title>31 버스트</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&family=Silkscreen&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/p.css">
 </head>
 <body>
-<header class="top">
-  <h1>31 <b>버스트</b></h1>
+<div id="stage" data-screen="title">
+<section class="play" id="play">
+  <img class="pbg" src="img/p/bg_day.webp" alt="">
+  <img class="osp" id="oppSp" src="img/p/miko.webp" alt="">
+  <img class="ctr" src="img/p/counter.webp" alt="">
+  <img class="prop" src="img/p/prop_cups.webp" alt="" style="left:1080px;top:386px;width:123px">
+  <div class="pshade"></div>
+
   <div class="sb" id="sb">
-    <div class="sbp me"><img class="sba" id="sbMeAv" src="img/iri_av.jpg" alt=""><span class="sbn"><span id="nMe">아이리</span><small>나</small></span><strong id="sMe">0</strong></div>
+    <div class="sbp me"><img class="sba" id="sbMeAv" src="img/p/iri_av.webp" alt=""><span class="sbn"><span id="nMe">아이리</span><small>나</small></span><strong id="sMe">0</strong></div>
     <div class="sbr"><span class="sbl" id="roundPill">1 / 5판</span><span class="sbd" id="sbDots"></span></div>
-    <div class="sbp ai"><strong id="sAi">0</strong><span class="sbn"><span id="nAi">미코</span><small id="nAiTag">AI</small></span><img class="sba" id="sbAiAv" src="img/miko_av.jpg" alt=""></div>
+    <div class="sbp ai"><strong id="sAi">0</strong><span class="sbn"><span id="nAi">미코</span><small id="nAiTag">AI</small></span><img class="sba" id="sbAiAv" src="img/p/miko_av.webp" alt=""></div>
   </div>
-  <button class="pill deckbtn" id="deckBtn" aria-haspopup="dialog">덱 리스트</button>
-</header>
 
-<main class="wrap">
-  <section class="board">
-    <div class="opp">
-      <div><span class="who" id="aiWho">미코 (AI)</span> <span class="chips" id="aiChips"></span><p class="abil" id="aiAbil"></p></div>
-      <div class="backs" id="aiBacks"></div>
-    </div>
+  <div class="opp">
+    <div class="backs" id="aiBacks"></div>
+    <div class="otag"><span class="who" id="aiWho">미코 (AI)</span><p class="abil" id="aiAbil"></p></div>
+    <span class="chips" id="aiChips"></span>
+  </div>
 
-    <div class="gauge">
-      <div class="ring">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="12"/>
-          <circle id="arc" cx="60" cy="60" r="52" fill="none" stroke="var(--m)" stroke-width="12" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset .35s"/>
-        </svg>
-        <div class="num"><div><b id="gNum">0</b><span id="gTarget">목표 31</span></div></div>
-      </div>
-      <div class="info">
-        <div class="stake" id="stake" data-t="1"><span class="sk">판돈</span><span class="sch" id="stakeChain"></span><b id="stakeN">1</b><span class="su">점</span></div>
-        <div class="turn" id="turnLine">내 차례</div>
-      </div>
+  <div class="gauge">
+    <div class="ring">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="#f3dfe8" stroke-width="10"/>
+        <circle id="arc" cx="60" cy="60" r="52" fill="none" stroke="var(--m)" stroke-width="10" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset .35s"/>
+      </svg>
+      <div class="num"><div><small>화제성</small><b id="gNum">0</b><span id="gTarget">목표 31</span></div></div>
     </div>
+    <div class="stake" id="stake" data-t="1"><span class="sk">판돈</span><b id="stakeN">1</b><span class="su">점</span><span class="sch" id="stakeChain"></span></div>
+  </div>
+  <div class="turn" id="turnLine">내 차례</div>
 
-    <div class="vbar" id="vbar" aria-hidden="true">
-      <span class="vt"><small>목표</small><b id="vTarget">31</b></span><span class="vg" id="vGap">31칸</span>
-      <div class="vtrack"><div class="vfill" id="vFill"></div><span class="vnum" id="vNum">0</span></div>
-      <span class="vs" id="vStake">×1</span>
-    </div>
-    <div class="hand">
-      <h3>내 손패 <span class="tmini" id="turnMini"></span> <span class="chips" id="meChips"></span></h3><p class="abil" id="meAbil"></p>
-      <div class="cards" id="hand"></div>
-    </div>
-    <details class="rules">
-      <summary>룰 요약</summary>
-      <ul>
-        <li>덱은 공용 12장 + 캐스트 전용 8장. 판마다 새로 섞고 5장으로 시작. 덱을 다 쓰면 낸 카드를 다시 섞는다</li>
-        <li>차례마다 1장 내고 1장 뽑는다. 낼 카드가 없으면 패스하고 1장 뽑기</li>
-        <li>게이지를 목표에 딱 맞추면 저스트: 그 판 승리, 판돈만큼 득점</li>
-        <li>넘기면 버스트: 판돈 2배, 목표 +10</li>
-        <li>둘 다 연달아 패스하면 무승부</li>
-        <li>정한 판 수(단판·3판·5판)의 총점 승부. 동점이면 이긴 판 수</li>
-        <li>선공은 판마다 번갈아 바뀐다</li>
-      </ul>
-    </details>
-  </section>
+  <div class="vbar" id="vbar" aria-hidden="true" hidden>
+    <span class="vt"><small>목표</small><b id="vTarget">31</b></span><span class="vg" id="vGap">31칸</span>
+    <div class="vtrack"><div class="vfill" id="vFill"></div><span class="vnum" id="vNum">0</span></div>
+    <span class="vs" id="vStake">×1</span>
+  </div>
 
   <aside class="side">
     <div class="phone">
       <div class="screen">
-        <i class="notch"></i>
-        <div class="appbar"><span class="dot"></span><b>타임라인</b><button class="tlclose" id="tlClose" type="button">닫기</button></div>
+        <div class="appbar"><b>타임라인</b><button class="tlclose" id="tlClose" type="button">닫기</button></div>
         <div class="feed" id="feed" aria-live="polite"></div>
       </div>
     </div>
   </aside>
-</main>
+
+  <div class="hand">
+    <div class="cards" id="hand"></div>
+  </div>
+  <div class="mine">
+    <span class="tmini" id="turnMini"></span>
+    <div class="mebox"><img id="meAv" src="img/p/haru_av.webp" alt=""><div><b id="meName">하루</b><p class="abil" id="meAbil"></p></div></div>
+    <span class="chips" id="meChips"></span>
+  </div>
+  <div class="pbtns"><button class="btn" id="deckBtn" aria-haspopup="dialog">덱</button><button class="btn" id="playGuide" type="button">설명서</button><button class="btn" id="playMenu" type="button">메뉴</button></div>
+</section>
+<div id="screens"></div>
+</div>
 
 <div class="pick" id="pick" role="dialog" aria-modal="true" aria-labelledby="pickTitle"><div class="pbox">
   <div class="phead"><div><h2 id="pickTitle">캐스트 고르기</h2><p id="pickSub">내가 플레이할 캐스트를 골라.</p></div><button class="guidebtn" id="guideBtn" type="button" aria-haspopup="dialog" aria-controls="guide">게임 설명서</button></div>
@@ -171,6 +167,8 @@
 <div class="modal" id="modal" role="dialog" aria-modal="true"><div class="box"><h3 id="mTitle"></h3><p id="mText"></p><div class="opts" id="mOpts"></div></div></div>
 
 <script src="js/data.js"></script>
+<script src="js/cardview.js"></script>
+<script src="js/logo.js"></script>
 <script src="js/posts.js"></script>
 <script src="js/fx.js"></script>
 <script src="js/state.js"></script>
@@ -179,5 +177,6 @@
 <script src="js/sim.js"></script>
 <script src="js/ai.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/screens.js"></script>
 </body>
 </html>

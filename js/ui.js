@@ -10,14 +10,14 @@ function deckCol(p){
   const hand=me&&P?cards.filter(c=>P.hand.some(h=>h.id===c.id)):[];
   const rest=cards.filter(c=>!gone.includes(c)&&!hand.includes(c));
   const grp=(cls,t,list)=>list.length?`<section class="dvs ${cls}"><h4>${t}<b>${list.length}</b></h4><ul>${list.map(c=>deckRow(p,c)).join('')}</ul></section>`:'';
-  return `<div class="dvc"><div class="dvhd" style="--cc:${CASTS[k].back[0]}"><img src="img/${k}_av.jpg" alt=""><span><small>${me?'내 덱':'상대 덱'}</small>${NAME[p]}</span><em>${cards.length}장</em></div>`
+  return `<div class="dvc"><div class="dvhd" style="--cc:${CASTS[k].back[0]}"><img src="img/p/${k}_av.webp" alt=""><span><small>${me?'내 덱':'상대 덱'}</small>${NAME[p]}</span><em>${cards.length}장</em></div>`
    +grp('inhand','손패',hand)+grp('left',me?'덱에 남음':'아직 안 나옴',rest)+grp('gone','이번 판에 나옴',gone)+'</div>'}
 let DV_RET=null;
 function previewDeck(k,from){
   const c=CASTS[k],own=c.deck.filter(x=>!SHARED.includes(x)),t=$('dvGrid');DV_RET=from;
   const grp=(t2,list)=>`<section class="dvs"><h4>${t2}<b>${list.length}</b></h4><ul>${list.map(x=>deckRow(null,x)).join('')}</ul></section>`;
   t.dataset.s='p';$('dvTitle').textContent=`${c.name} 덱`;$('dvTabs').innerHTML='';
-  t.innerHTML=`<div class="dvc"><div class="dvhd pv" style="--cc:${c.back[0]}"><img src="img/${k}_av.jpg" alt=""><span>${c.name}<small>${c.handle}</small></span><em>${c.deck.length}장</em></div><p class="dvab">${c.abil}</p>`+grp('전용 카드',own)+grp('공용 카드',SHARED)+'</div>';
+  t.innerHTML=`<div class="dvc"><div class="dvhd pv" style="--cc:${c.back[0]}"><img src="img/p/${k}_av.webp" alt=""><span>${c.name}<small>${c.handle}</small></span><em>${c.deck.length}장</em></div><p class="dvab">${c.abil}</p>`+grp('전용 카드',own)+grp('공용 카드',SHARED)+'</div>';
   $('deckView').classList.add('on','pv');t.scrollTop=0;$('dvClose').focus();
 }
 function showDeck(s){
@@ -105,4 +105,3 @@ $('pgrid').addEventListener('click',e=>{
   const me=PICK_ME,ai=k;if(ai===me)return;
   SEAT=[me,ai];seatSetup();newGame();
 });
-showPick();
