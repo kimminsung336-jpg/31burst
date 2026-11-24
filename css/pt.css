@@ -2,33 +2,27 @@
 body.pt #stage{width:720px;height:var(--H,1280px)}
 
 /* ---------- 플레이 ---------- */
+/* 세로에서는 타임라인을 빼고 게이지·손패에 자리를 준다 */
+body.pt #play .side{display:none}
 body.pt #play .pbg{left:0;top:0;width:720px;height:100%}
-body.pt #play .osp{left:-30px;top:84px;height:520px}
-body.pt #play .ctr{left:-280px;top:-30px}
-body.pt #play .prop{left:610px!important;top:372px!important;width:96px!important}
+body.pt #play .osp{left:-50px;top:calc(70px + var(--ex)/4);height:600px}
+body.pt #play .ctr{left:-280px;top:calc(110px + var(--ex)/2);height:calc(720px + var(--ex))}
+body.pt #play .prop{left:20px!important;top:calc(494px + var(--ex)/2)!important;width:100px!important}
 body.pt #play .pshade{background:linear-gradient(rgba(30,26,34,0) 55%,rgba(30,26,34,.3))}
 body.pt #play .sb{top:14px;gap:6px}
 body.pt #play .sbp strong{font-size:24px}
-body.pt #play .opp{left:22px;top:476px}
-body.pt #play .gauge{left:384px;top:118px;transform:scale(.84);transform-origin:0 0}
-body.pt #play .turn{left:526px;top:420px}
-body.pt #play .side{left:20px;top:600px;width:680px;height:330px}
-body.pt #play .phone{border-radius:24px;padding:8px}
-body.pt #play .screen{border-radius:17px}
-body.pt #play .appbar{padding:9px 14px}
-body.pt #play .hand{left:0;right:0;top:1046px}
-body.pt #play .mine{left:20px;top:950px;flex-direction:row;align-items:center}
+body.pt #play .gauge{left:356px;top:calc(250px + var(--ex)/3)}
+body.pt #play .turn{left:526px;top:calc(612px + var(--ex)/3)}
+body.pt #play .opp{left:22px;top:calc(680px + var(--ex)*.6)}
+body.pt #play .mine{left:20px;top:calc(780px + var(--ex)*.85);flex-direction:row;align-items:center}
 body.pt #play .mebox{max-width:420px}
 body.pt #play .mine .chips{max-width:220px}
 body.pt #play .own-iri-cutout{display:none}
-body.pt #play .pbtns{left:auto;right:20px;top:952px;gap:8px}
+body.pt #play .pbtns{left:auto;right:20px;top:calc(782px + var(--ex)*.85);gap:8px}
 body.pt #play .pbtns .btn{min-height:40px;padding:0 12px}
-body.pt #play .side{top:596px;height:calc(300px + var(--ex))}
-body.pt #play .mine{top:calc(914px + var(--ex))}
-body.pt #play .pbtns{top:calc(916px + var(--ex))}
-body.pt #play .hand{top:calc(1000px + var(--ex))}
-body.pt #play .cards{transform:scale(1.14);transform-origin:50% 0}
-body.pt #play .cardb{margin-left:calc(-1*max(20px,(var(--n)*120px - 610px)/max(var(--n) - 1,1)))}
+body.pt #play .hand{left:0;right:0;top:calc(900px + var(--ex)*.95)}
+body.pt #play .cards{transform:scale(1.34);transform-origin:50% 0}
+body.pt #play .cardb{margin-left:calc(-1*max(20px,(var(--n)*120px - 520px)/max(var(--n) - 1,1)))}
 body.pt #play .cardb:first-child{margin-left:0}
 
 /* ---------- 공통 ---------- */
@@ -127,6 +121,6 @@ body.pt .scene>.spr[src*=prop_cake]{left:540px!important;top:calc(611px + var(--
 body.pt .scene>div[style*="top:495px"]{left:0!important;top:calc(800px + var(--ex))!important;width:720px!important;height:900px!important}
 
 /* 카드 고르기 */
-body.pt #play .pickov[data-from=hand] .pkhd{top:calc(800px + var(--ex))}
+body.pt #play .pickov[data-from=hand] .pkhd{top:calc(650px + var(--ex)*.6)}
 body.pt #play .pickov[data-from=deck] .pkhd{top:calc(260px + var(--ex)/2)}
 body.pt #play .pickov[data-from=deck] .pkrow{top:calc(400px + var(--ex)/2);flex-wrap:wrap;gap:20px;padding:0 20px}
