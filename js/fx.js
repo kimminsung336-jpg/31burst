@@ -91,12 +91,12 @@ function flyCard(p,v,card){
     const mx=(sx+dx)/2+16,my=(sy+dy)/2-10;
     frames=[
       {transform:`translate(${sx}px,${sy}px) rotate(6deg) scale(.8)`,opacity:1,easing:'cubic-bezier(.3,.6,.35,1)'},
-      {transform:`translate(${mx}px,${my}px) rotate(4deg) scale(1)`,opacity:1,offset:.09},
-      {transform:`translate(${dx}px,${dy}px) rotate(0deg) scale(1.05)`,opacity:1,offset:.27},
-      {transform:`translate(${dx}px,${dy}px) scale(1.2)`,opacity:1,offset:.34},
-      {transform:`translate(${dx}px,${dy}px) scale(1.2)`,opacity:1,offset:.88},
+      {transform:`translate(${mx}px,${my}px) rotate(4deg) scale(1)`,opacity:1,offset:252/2300},
+      {transform:`translate(${dx}px,${dy}px) rotate(0deg) scale(1.05)`,opacity:1,offset:756/2300},
+      {transform:`translate(${dx}px,${dy}px) scale(1.2)`,opacity:1,offset:952/2300},
+      {transform:`translate(${dx}px,${dy}px) scale(1.2)`,opacity:1,offset:1952/2300},
       {transform:`translate(${dx}px,${dy}px) scale(1.3)`,opacity:0}];
-    dur=2800;   // 뒤집힌 뒤 1.5초쯤 읽을 시간
+    dur=2300;   // 날아오는 시간은 그대로, 뒤집힌 뒤 1초 읽을 시간
     const f1=fin.animate([{transform:'scaleX(1)'},{transform:'scaleX(0)'}],{duration:190,delay:840,easing:'ease-in',fill:'forwards'});
     f1.onfinish=()=>{el.classList.remove('b');fin.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:220,easing:'cubic-bezier(.2,1.4,.4,1)',fill:'forwards'})};
   }
