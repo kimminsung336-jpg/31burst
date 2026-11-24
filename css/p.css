@@ -246,25 +246,25 @@ body{background:#1e1a22;overflow:hidden}
 #play .otag .abil b{background:var(--cY);color:var(--ink2)}
 
 /* VS 화면 */
-.vs{position:absolute;inset:0;z-index:40;overflow:hidden;cursor:pointer;background:var(--ink2)}
-.vs .vsl,.vs .vsr{position:absolute;top:-10%;height:120%;width:70%;animation:vsIn .45s cubic-bezier(.2,.9,.3,1.2) both}
-.vs .vsl{left:-12%;transform:skewX(-14deg);--from:-60%}
-.vs .vsr{right:-12%;transform:skewX(-14deg);--from:60%;animation-delay:.08s}
-.vs .vsl{border-right:8px solid var(--ink2)}.vs .vsr{border-left:8px solid var(--ink2)}
-.vs .cM{background:var(--cM)}.vs .cK{background:#4a3a5c}.vs .cY{background:var(--cY)}.vs .cC{background:var(--cC)}
-.vs .vsl::after,.vs .vsr::after{content:"";position:absolute;inset:0;background:radial-gradient(rgba(30,26,34,.22) 1.6px,transparent 1.6px);background-size:14px 14px}
+.vsov{position:absolute;inset:0;z-index:40;overflow:hidden;cursor:pointer;background:var(--ink2)}
+.vsov .vsl,.vsov .vsr{position:absolute;top:-10%;height:120%;width:70%;animation:vsIn .45s cubic-bezier(.2,.9,.3,1.2) both}
+.vsov .vsl{left:-12%;transform:skewX(-14deg);--from:-60%}
+.vsov .vsr{right:-12%;transform:skewX(-14deg);--from:60%;animation-delay:.08s}
+.vsov .vsl{border-right:8px solid var(--ink2)}.vsov .vsr{border-left:8px solid var(--ink2)}
+.vsov .cM{background:var(--cM)}.vsov .cK{background:#4a3a5c}.vsov .cY{background:var(--cY)}.vsov .cC{background:var(--cC)}
+.vsov .vsl::after,.vsov .vsr::after{content:"";position:absolute;inset:0;background:radial-gradient(rgba(30,26,34,.22) 1.6px,transparent 1.6px);background-size:14px 14px}
 @keyframes vsIn{from{translate:var(--from) 0}}
-.vs .vsp{position:absolute;top:40px;width:640px;height:720px;animation:vsP .5s .12s cubic-bezier(.2,.9,.3,1.1) both}
-.vs .vsp .spr{position:absolute}
-.vs .vsp.l{left:-10px;--from:-300px}.vs .vsp.r{right:-10px;--from:300px}
-.vs .vsp.r .spr{left:auto!important;right:0}
+.vsov .vsp{position:absolute;top:40px;width:640px;height:720px;animation:vsP .5s .12s cubic-bezier(.2,.9,.3,1.1) both}
+.vsov .vsp .spr{position:absolute}
+.vsov .vsp.l{left:-10px;--from:-300px}.vsov .vsp.r{right:-10px;--from:300px}
+.vsov .vsp.r .spr{left:auto!important;right:0}
 @keyframes vsP{from{translate:var(--from) 0;opacity:0}}
-.vs .vsn{position:absolute;bottom:56px;display:flex;flex-direction:column;gap:6px;animation:vsP .45s .3s both}
-.vs .vsn b{font:400 76px/1 "Black Han Sans";color:#fff;-webkit-text-stroke:7px var(--ink2);paint-order:stroke fill;text-shadow:6px 6px 0 var(--ink2)}
-.vs .vsn span{align-self:flex-start;font-size:15px;font-weight:900;background:#fff;border:3px solid var(--ink2);border-radius:999px;padding:3px 14px;box-shadow:3px 3px 0 var(--ink2)}
-.vs .vsn.l{left:48px;--from:-200px}.vs .vsn.r{right:48px;align-items:flex-end;--from:200px}.vs .vsn.r span{align-self:flex-end}
-.vs .vsx{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-8deg);font:400 190px/1 "Black Han Sans";color:var(--cY);-webkit-text-stroke:12px var(--ink2);paint-order:stroke fill;text-shadow:10px 10px 0 var(--ink2);animation:vsX .5s .45s cubic-bezier(.2,1.6,.4,1) both}
+.vsov .vsn{position:absolute;bottom:56px;display:flex;flex-direction:column;gap:6px;animation:vsP .45s .3s both}
+.vsov .vsn b{font:400 76px/1 "Black Han Sans";color:#fff;-webkit-text-stroke:7px var(--ink2);paint-order:stroke fill;text-shadow:6px 6px 0 var(--ink2)}
+.vsov .vsn span{align-self:flex-start;font-size:15px;font-weight:900;background:#fff;border:3px solid var(--ink2);border-radius:999px;padding:3px 14px;box-shadow:3px 3px 0 var(--ink2)}
+.vsov .vsn.l{left:48px;--from:-200px}.vsov .vsn.r{right:48px;align-items:flex-end;--from:200px}.vsov .vsn.r span{align-self:flex-end}
+.vsov .vsx{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-8deg);font:400 190px/1 "Black Han Sans";color:var(--cY);-webkit-text-stroke:12px var(--ink2);paint-order:stroke fill;text-shadow:10px 10px 0 var(--ink2);animation:vsX .5s .45s cubic-bezier(.2,1.6,.4,1) both}
 @keyframes vsX{from{transform:translate(-50%,-50%) rotate(-8deg) scale(3);opacity:0}}
-.vs .vsi{position:absolute;left:50%;top:20px;transform:translateX(-50%);font-size:14px;font-weight:900;background:var(--ink2);color:#fff;border-radius:999px;padding:6px 16px;animation:vsP .4s .5s both}
-.vs.out{animation:vsOut .35s forwards}
+.vsov .vsi{position:absolute;left:50%;top:20px;transform:translateX(-50%);font-size:14px;font-weight:900;background:var(--ink2);color:#fff;border-radius:999px;padding:6px 16px;animation:vsP .4s .5s both}
+.vsov.out{animation:vsOut .35s forwards}
 @keyframes vsOut{to{opacity:0;transform:scale(1.06)}}

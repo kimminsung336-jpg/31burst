@@ -139,7 +139,7 @@ S.match.bind=s=>{
   s.querySelector('#mDeck').onclick=e=>previewDeck(Save.d.duty,e.currentTarget);
   s.querySelector('#mGo').onclick=()=>startMatch();
 };
-function startMatch(opt={}){const k=Save.d.duty,o={...MATCH_OPT,...opt};
+function startMatch(opt={}){const k=Save.d.duty,o={...MATCH_OPT,...opt};G.gid=(G.gid||0)+1;G.over=true;
   let opp=o.opp;if(opp==='rand'||opp===k){const c=CAST_KEYS.filter(x=>x!==k);opp=c[Math.random()*c.length|0]}
   DIFF=o.diff;MATCH=o.rounds;SEAT=[k,opp];Screens.ctx.story=o.story||null;CURRENT={story:o.story||null,opt:o};
   seatSetup();Screens.go('play');showVS(k,opp,o).then(()=>newGame());
@@ -149,7 +149,7 @@ let CURRENT={story:null,opt:{}};
 function showVS(me,op,o={}){return new Promise(res=>{
   const st=o.story&&STORY.find(x=>x.id===o.story);
   const info=st?`스토리 · ${CASTS[st.k].name} 1장`:`${MATCH===1?'단판':MATCH+'판'} · AI ${{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]}`;
-  const v=document.createElement('div');v.className='vs';v.setAttribute('role','dialog');v.setAttribute('aria-label',`${CASTS[me].name} 대 ${CASTS[op].name}`);
+  const v=document.createElement('div');v.className='vsov';v.setAttribute('role','dialog');v.setAttribute('aria-label',`${CASTS[me].name} 대 ${CASTS[op].name}`);
   v.innerHTML=`<div class="vsl c${CAST_COL[me]}"></div><div class="vsr c${CAST_COL[op]}"></div><div class="vsline"></div>
    <div class="vsp l">${spr(me,0,0,780)}</div><div class="vsp r">${spr(op,0,0,780)}</div>
    <div class="vsn l"><b>${CASTS[me].name}</b><span>${Save.d.manager?Save.d.manager+' 매니저':'나'} · ${CASTS[me].type}</span></div>
