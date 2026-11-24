@@ -41,6 +41,7 @@ function addPost(p,card,v){
     <div class="ph"><b>${NAME[p]}</b><span>${CASTS[SEAT[p]].handle} · 방금</span><span class="tag">${card.name} ${v>=0?'+':''}${v} → ${G.gauge}</span></div>
     <p class="pt">${(POSTS[SEAT[p]]||{})[card.id]||POST[card.id]}</p>${card.photo?`<div class="pimg"><div class="pimg2" role="img" aria-label="${NAME[p]}의 사진" style="${photoStyle(card,CAST_COL[SEAT[p]])}"></div></div>`:IMG[card.id]?`<div class="pimg">${IMG[card.id](p)}</div>`:''}
     <div class="pa"><span class="r">${REPLY}<em>${fmt(reps)}</em></span><span class="h">${HEART}<em>${fmt(likes)}</em></span></div></div>`;
+  if(p===AI)Progress.discoverOpponentCard(card.id);
   feed.prepend(el);while(feed.children.length>30)feed.lastChild.remove();
   tlNote(p,card,v);
   feed.scrollTop=0;

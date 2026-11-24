@@ -27,8 +27,9 @@ function photoStyle(c,col){
   return `background:url(img/p/bg_day.webp) no-repeat ${pos}/${sz}`;
 }
 // num: 손패에서 지금 값으로 보여줄 때 넘긴다 (없으면 덱 표기)
-function cardHTML(c,{num,size='m',tag='',locked=false,cond=''}={}){
+function cardHTML(c,{num,size='m',tag='',locked=false,cond='',back=false}={}){
   const col=COLOR_OF[c.id]||'A';
+  if(back)return `<div class="pc2 ${size} dex-back" aria-hidden="true"><div class="pcb"><b>31</b></div></div>`;
   if(locked)return `<div class="pc2 ${size} lock"><div class="pcb"><b>?</b><small>${cond}</small></div></div>`;
   const n=num===undefined?numLabel(c):String(num);
   const sp=c.id==='scoop';

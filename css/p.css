@@ -468,3 +468,7 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 #play .peekc{position:absolute;left:120px;top:150px;z-index:25;display:flex;flex-direction:column;align-items:center;gap:6px;animation:pkIn .2s;pointer-events:none;transform:rotate(-4deg)}
 #play .peekc>span{font:400 18px/1 "Black Han Sans";color:#fff;background:var(--ink2);border:3px solid var(--cY);border-radius:999px;padding:6px 14px}
 #play .peekc.out{opacity:0;transition:.3s}
+
+/* 도감의 미발견 전용 카드는 앞면 정보 없이 공통 뒷면만 */
+.pc2.dex-back .pcb{display:grid;place-items:center;background:repeating-linear-gradient(135deg,#24202b 0 9px,#38253a 9px 18px);color:#ff92c5;box-shadow:0 0 0 4px #bd4b82 inset,3px 3px 0 var(--ink2)}
+.pc2.dex-back .pcb b{font:400 2.6em/1 "Black Han Sans",system-ui,sans-serif}

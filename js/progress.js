@@ -25,6 +25,16 @@ const Progress=(()=>{
   // 캐스트 해금: 처음엔 아이리만. 각 캐스트 스토리 2장을 깨면 그 라이벌이 열린다 (설정의 전원 해금으로 다 열 수도 있다)
   const CAST_FROM={miko:'iri',haru:'miko',mina:'haru'};
   const castOpen=k=>!CAST_FROM[k]||!!d().allCast||storyDone(CAST_FROM[k]+'2');
+  const owner=id=>COLOR_CAST[COLOR_OF[id]];
+  const cardDiscovered=id=>Save.d.seenCards?.[id]===true;
+  function dexCardBack(id){const k=owner(id);return !!k&&!castOpen(k)&&!cardDiscovered(id)}
+  function dexCardVisible(id){return !dexCardBack(id)&&(cardOpen(id)||cardDiscovered(id))}
+  function discoverOpponentCard(id){
+    const k=owner(id);if(!k||cardDiscovered(id))return;
+    const s=Save.d;
+    if(!s.seenCards||typeof s.seenCards!=='object'||Array.isArray(s.seenCards))s.seenCards={};
+    s.seenCards[id]=true;Save.put();
+  }
   const castCond=k=>CAST_FROM[k]?`${CASTS[CAST_FROM[k]].name} 스토리 2장 클리어`:'';
   function storyOpen(st){if(!castOpen(st.k))return false;if(st.ch===1)return true;const p=chapter(st.k,st.ch-1);return!!p&&storyDone(p.id)}
   const nextStory=k=>STORY.filter(x=>x.k===k).find(x=>storyOpen(x)&&!storyDone(x.id));
@@ -69,5 +79,5 @@ const Progress=(()=>{
     const a=Object.entries(ACH).find(([id])=>!d().ach[id]);if(a)return`업적 「${a[1].name}」: ${a[1].cond}`;
     return'';
   }
-  return{AFF_LV,ACH,CARD,castOpen,castCond,aff,lv,nextLv,condText,cardOpen,storyOpen,storyDone,nextStory,secondOpen,onMatchEnd,hint,get last(){return last}};
+  return{AFF_LV,ACH,CARD,castOpen,castCond,aff,lv,nextLv,condText,cardOpen,dexCardBack,dexCardVisible,discoverOpponentCard,storyOpen,storyDone,nextStory,secondOpen,onMatchEnd,hint,get last(){return last}};
 })();

@@ -93,7 +93,7 @@ function onNet(m){
     case'start':dismissCardOptions?.(false);G.gid=(G.gid||0)+1;SEAT=[m.seat[1],m.seat[0]];G.rounds=m.rounds||G.rounds;seatSetup();$('feed').innerHTML='';showVS(SEAT[0],SEAT[1]);break;
     case'state':applySnap(m.s);break;
     case'clear':$('feed').innerHTML='';break;
-    case'post':{const c=ALLC.find(x=>x.id===m.id);if(c)NET.lastEl=addPost(1-m.p,c,m.v);break}
+    case'post':{const c=Object.hasOwn(BYID,m.id)&&BYID[m.id];if(c&&(m.p===ME||m.p===AI))NET.lastEl=addPost(1-m.p,c,m.v);break}
     case'hit':bigHit();break;
     case'bust':bigBust(m.k||1);break;
     case'bustfx':bustFx(NET.lastEl);break;

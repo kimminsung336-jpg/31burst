@@ -96,7 +96,7 @@ S.title.bind=s=>{const go=()=>{if(TOUCH&&!FS.on())FS.enter();Screens.go('home')}
 /* 메인: 왼쪽 위 손님 명패, 가운데 오늘 지명한 캐스트, 오른쪽 메뉴 버튼 */
 S.home=()=>{if(!Progress.castOpen(Save.d.duty)){Save.d.duty='iri';Save.put()}const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save.d.manager;
   const unread=STORY.filter(x=>Progress.storyOpen(x)&&!Progress.storyDone(x.id)).length;
-  const cards=Object.keys(BYID).filter(id=>Progress.cardOpen(id)).length;
+  const cards=Object.keys(BYID).filter(id=>Progress.dexCardVisible(id)).length;
   const noGuide=!Save.d.guide;
   const line=noGuide?'처음 오셨죠? 게임 방법은 오른쪽 위 ? 에 있어요. 한 번 보고 가요!':st?nm(st.lines[0][1]):nm(WIN_LINE[k][0]),ex=noGuide?'happy':st?st.lines[0][2]:'happy';
   const scene=`${sceneBg()}${spr(k,250,70,640).replace(`img/p/${k}.webp`,exImg(k,named?ex:'happy'))}${counter([['cups',40],['cake',600]])}`;
@@ -117,7 +117,7 @@ S.home=()=>{if(!Progress.castOpen(Save.d.duty)){Save.d.duty='iri';Save.put()}con
  <button class="hmplay" id="hPlay"><span class="lab">오늘의 대전</span><span class="t">대전</span><span class="s"><img src="${av(k)}" alt="">${jo(c.name,'으로','로')} 포스트!</span></button>
  ${mb('story','pk',ICO.story,'스토리',st?`${chLabel(st)} · ${st.title}`:'전부 클리어',unread?`<i class="bd">${unread}</i>`:'')}
  ${mb('cast','cy',ICO.cast,'캐스트',`${c.name} 호감도 Lv${Progress.lv(k)} · 덱 편집`)}
- ${mb('dex','wh',ICO.dex,'카드 도감',`카드 ${cards} / ${Object.keys(BYID).length}장 해금`)}
+ ${mb('dex','wh',ICO.dex,'카드 도감',`카드 ${cards} / ${Object.keys(BYID).length}장 공개`)}
 </div>`};
 S.home.bind=s=>{
   const ok=s.querySelector('#hNameOk');
@@ -370,21 +370,23 @@ S.cast.bind=s=>{const k=CAST_UI.k;
 /* 카드 도감 */
 const DEX={f:'all',sel:'tiki'};
 S.dex=()=>{const all=[...SHARED,...POOL_SHARED,...IRI,...(POOL_COLOR.M||[]),...MIKO,...(POOL_COLOR.K||[]),...HARU,...(POOL_COLOR.Y||[]),...MINA,...(POOL_COLOR.C||[])];
-  const list=all.filter(c=>DEX.f==='all'||COLOR_OF[c.id]===DEX.f);const c=BYID[DEX.sel]||list[0],col=COLOR_OF[c.id];
+  const list=all.filter(c=>DEX.f==='all'||COLOR_OF[c.id]===DEX.f);const c=list.find(x=>x.id===DEX.sel)||list[0],col=COLOR_OF[c.id];
   const inBase=[...SHARED,...IRI,...MIKO,...HARU,...MINA].some(x=>x.id===c.id);
-  const own=col==='A'?'공용':CASTS[COLOR_CAST[col]].name+' 전용',openC=Progress.cardOpen(c.id);
+  const own=col==='A'?'공용':CASTS[COLOR_CAST[col]].name+' 전용',openC=Progress.dexCardVisible(c.id),backC=Progress.dexCardBack(c.id),owner=COLOR_CAST[col];
+  const useLocked=owner&&!Progress.castOpen(owner),cardLocked=!Progress.cardOpen(c.id);
+  const useCond=[useLocked?Progress.castCond(owner):'',cardLocked?Progress.condText(c.id):''].filter(Boolean).join(' · ');
   const chips=[['all','전체'],...CAST_KEYS.map(k=>[CAST_COL[k],CASTS[k].name]),['A','공용']].map(([v,l])=>`<button class="chip2 ${DEX.f===v?'on':''}" data-f="${v}">${l}</button>`).join('');
   return landPhone('카드 도감',`<div class="lrow dxrow" style="flex:1;display:flex;min-height:0">
  <div class="grow" style="padding:14px 20px;display:flex;flex-direction:column;gap:12px;min-height:0">
-  <div class="row2" style="gap:6px">${chips}<span style="margin-left:auto;font-size:13px;font-weight:700">카드 ${all.filter(x=>Progress.cardOpen(x.id)).length} / ${all.length}장</span></div>
-  <div class="cardgrid" style="overflow-y:auto;padding:4px 4px 10px;gap:14px 10px">${list.map(x=>`<button class="pk${x.id===c.id?' sel':''}" data-c="${x.id}" title="${Progress.cardOpen(x.id)?x.name:'잠김'}">${cardHTML(x,{size:'s',locked:!Progress.cardOpen(x.id),cond:Progress.condText(x.id)})}</button>`).join('')}</div>
+  <div class="row2" style="gap:6px">${chips}<span style="margin-left:auto;font-size:13px;font-weight:700">카드 ${all.filter(x=>Progress.dexCardVisible(x.id)).length} / ${all.length}장</span></div>
+  <div class="cardgrid" style="overflow-y:auto;padding:4px 4px 10px;gap:14px 10px">${list.map(x=>`<button class="pk${x.id===c.id?' sel':''}" data-c="${x.id}" title="${Progress.dexCardVisible(x.id)?x.name:Progress.dexCardBack(x.id)?'미발견 전용 카드':'잠김'}">${cardHTML(x,{size:'s',back:Progress.dexCardBack(x.id),locked:!Progress.dexCardVisible(x.id),cond:Progress.condText(x.id)})}</button>`).join('')}</div>
  </div>
  <div class="lsid dxsid" style="width:300px;padding:24px;border-left:3px solid var(--ink2);background:#fff3dc;display:flex;flex-direction:column;align-items:center;gap:10px">
-  ${cardHTML(c,{size:'l',locked:!openC,cond:Progress.condText(c.id)})}
-  <div class="serif" style="font-size:26px;margin-top:4px">${openC?c.name:'???'}</div>
+  ${cardHTML(c,{size:'l',back:backC,locked:!openC,cond:Progress.condText(c.id)})}
+  <div class="serif" style="font-size:26px;margin-top:4px">${openC?c.name:backC?'미발견':'???'}</div>
   <div class="row2" style="gap:6px"><span class="chip2" style="cursor:default;background:var(--c${col});${col==='M'||col==='K'?'color:#fff':''}">${own}</span></div>
-  <div style="font-size:14px;line-height:1.6;text-align:center">${openC?`${c.text}${c.photo?'<br><b>사진 포스트</b>':''}`:`<b>해금 조건</b><br>${Progress.condText(c.id)}`}</div>
-  <div style="margin-top:auto;font-size:12px;color:var(--sub2);font-weight:700">${inBase?'기본 덱 카드':'카드풀 카드 · 덱 편집에서 넣을 수 있음'}</div>
+  <div style="font-size:14px;line-height:1.6;text-align:center">${openC?`${c.text}${c.photo?'<br><b>사진 포스트</b>':''}`:backC?'대전에서 상대가 이 카드를 내면 공개돼요.':`<b>해금 조건</b><br>${Progress.condText(c.id)}`}</div>
+  <div style="margin-top:auto;font-size:12px;color:var(--sub2);font-weight:700">${backC?'':openC&&useCond?`편성 해금 · ${useCond}`:inBase?'기본 덱 카드':'카드풀 카드 · 덱 편집에서 넣을 수 있음'}</div>
  </div></div>`)};
 S.dex.bind=s=>{const g=s.querySelector('.cardgrid');
   if(DEX.top){g.scrollTop=DEX.top;DEX.top=0}   // 카드를 눌러 다시 그려도 보던 자리 그대로
