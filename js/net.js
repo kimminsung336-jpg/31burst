@@ -11,6 +11,7 @@ function snap(){
     P:G.P.length?[mask(G.P[0],true),mask(G.P[1],false)]:[]};
 }
 function applySnap(s){
+  dismissCardOptions?.(false); // a new authoritative state supersedes any uncommitted local choice
   Object.assign(G,{rounds:s.rounds||5,hist:(s.hist||[]).map(h=>({...h,w:h.w===null?null:1-h.w})),busts:s.busts||0,stakeHist:s.stakeHist||[s.stake],round:s.round,score:[s.score[1],s.score[0]],wins:[s.wins[1],s.wins[0]],starter:1-s.starter,cur:1-s.cur,gauge:s.gauge,target:s.target,stake:s.stake,busy:s.busy,over:s.over});
   $('rounds').querySelectorAll('button').forEach(x=>{const on=+x.dataset.r===G.rounds;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)});
   const fix=P=>({...P,deck:Array(P.deck).fill(null),hand:typeof P.hand==='number'?Array(P.hand).fill(PH):P.hand});
@@ -32,7 +33,7 @@ function netErr(e){
   if(t==='unavailable-id'){netReset();return netHost()}
   netMsg('연결에 실패했어. 이 화면에선 온라인 연결이 막혀 있을 수 있으니 GitHub 주소로 열어줘.');netReset(true);olRefresh();
 }
-function netReset(keepMsg){try{NET.conn&&NET.conn.close()}catch(e){}try{NET.peer&&NET.peer.destroy()}catch(e){}
+function netReset(keepMsg){dismissCardOptions?.(false);try{NET.conn&&NET.conn.close()}catch(e){}try{NET.peer&&NET.peer.destroy()}catch(e){}
   Object.assign(NET,{on:false,role:null,peer:null,conn:null,code:'',hostCast:null,guestCast:null,last:'',wait:{}});
   $('online').classList.remove('live');if(!keepMsg)netMsg('');$('diff').hidden=false}
 function netHost(){
@@ -61,6 +62,8 @@ function seatSetup(){
   const tag=NET.on?' (상대)':' (AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]+')';
   $('nMe').textContent=NAME[ME];$('nAi').textContent=NAME[AI];$('nAiTag').textContent=NET.on?'상대':'AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF];
   $('sbMeAv').src=`img/p/${me}_av.webp`;$('sbAiAv').src=`img/p/${op}_av.webp`;$('meAv').src=`img/p/${me}_av.webp`;$('meName').textContent=NAME[ME];$('oppSp').src=`img/p/${op}.webp`;{const f=(typeof SPR_SCALE!=='undefined'&&SPR_SCALE[op])||1,o=$('oppSp');o.style.height=Math.round(500*f)+'px';o.style.top=Math.round(58+500*(1-f)*.55)+'px';o.style.left=Math.round(150+500*(1-f)*.3)+'px'}
+  const sb=$('sb');sb.dataset.meCast=me;sb.dataset.aiCast=op;
+  $('ownIriCutout').hidden=me!=='iri';
   const rs=document.documentElement.style;rs.setProperty('--cMe',CASTS[me].back[0]);rs.setProperty('--cAi',CASTS[op].back[0]);$('aiWho').textContent=NAME[AI]+(NET.on?' (상대)':' (AI)');
   $('meAbil').innerHTML=CASTS[me].abil;$('aiAbil').innerHTML=CASTS[op].abil;
   document.documentElement.style.setProperty('--backA',CASTS[op].back[0]);document.documentElement.style.setProperty('--backB',CASTS[op].back[1]);
@@ -86,7 +89,7 @@ function onNet(m){
   }
   switch(m.t){
     case'hostcast':NET.hostCast=m.k;olRefresh();break;
-    case'start':SEAT=[m.seat[1],m.seat[0]];G.rounds=m.rounds||G.rounds;seatSetup();$('feed').innerHTML='';showVS(SEAT[0],SEAT[1]);break;
+    case'start':dismissCardOptions?.(false);G.gid=(G.gid||0)+1;SEAT=[m.seat[1],m.seat[0]];G.rounds=m.rounds||G.rounds;seatSetup();$('feed').innerHTML='';showVS(SEAT[0],SEAT[1]);break;
     case'state':applySnap(m.s);break;
     case'clear':$('feed').innerHTML='';break;
     case'post':{const c=ALLC.find(x=>x.id===m.id);if(c)NET.lastEl=addPost(1-m.p,c,m.v);break}

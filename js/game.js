@@ -54,13 +54,32 @@ function chips(p){
 }
 function pop(){const b=$('gNum');b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),220)}
 
-function ask(title,text,opts){
+const CARD_OPTION_DISMISSED=Symbol('card option dismissed');
+let dismissCardOptions=null;
+$('modal').addEventListener('click',e=>{
+  if(e.target===$('modal'))dismissCardOptions?.();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&dismissCardOptions){
+    e.preventDefault();dismissCardOptions();
+  }
+});
+function ask(title,text,opts,cardOptions=false){
+  dismissCardOptions?.(false);
   return new Promise(res=>{
+    const prev=document.activeElement,m=$('modal'),o=$('mOpts');
+    const finish=(value,restore=false)=>{
+      dismissCardOptions=null;
+      m.classList.remove('on');o.onclick=null;
+      if(restore&&prev?.isConnected)prev.focus({preventScroll:true});
+      res(value);
+    };
+    if(cardOptions)dismissCardOptions=(restore=true)=>finish(CARD_OPTION_DISMISSED,restore);
     $('mTitle').textContent=title;$('mText').textContent=text;
-    $('mOpts').innerHTML=opts.map((o,i)=>`<button data-k="${i}" class="${i===0?'main':''}">${o.label}</button>`).join('');
-    $('modal').classList.add('on');
-    $('mOpts').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('modal').classList.remove('on');res(opts[+b.dataset.k].value)};
-    $('mOpts').querySelector('button').focus();
+    o.innerHTML=opts.map((o,i)=>`<button data-k="${i}" class="${i===0?'main':''}">${o.label}</button>`).join('');
+    m.classList.add('on');
+    o.onclick=e=>{const b=e.target.closest('button');if(b&&opts[+b.dataset.k])finish(opts[+b.dataset.k].value)};
+    o.querySelector('button')?.focus();
   });
 }
 
