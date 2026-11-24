@@ -13,8 +13,13 @@ function numLabel(c){
   return String(c.v);
 }
 function handleOf(col){return col==='A'?'@cafe31':CASTS[COLOR_CAST[col]].handle}
-// 사진 포스트 그림: 캐스트 카드는 캐스트 컷, 공용 카드는 가게 사진
+// 사진 포스트 그림: 전용 사진 카드는 카드별 사진, 공용 사진 카드는 그 캐스트 버전(덱·도감에선 오늘 근무 캐스트)
+const PH_OWN=new Set(['burst','nail','fourcut','filter','vlog','hilite','viral','reup','cheek','tea','wink','omurice','mvp','jog','shake','court']);
+const PH_SHARED=new Set(['shot','selfie','menu','story']);
 function photoStyle(c,col){
+  if(PH_OWN.has(c.id))return `background:url(img/p/ph/${c.id}.webp) center/cover`;
+  if(PH_SHARED.has(c.id)){const k=col&&col!=='A'?COLOR_CAST[col]:(typeof Save!=='undefined'&&Save.d&&Save.d.duty)||'iri';
+    return `background:url(img/p/ph/${k}_${c.id}.webp) center/cover`}
   const h=[...c.id].reduce((a,x)=>a+x.charCodeAt(0),0);
   if(col!=='A'){const pos=['50% 6%','45% 18%','55% 28%','50% 12%'][h%4],sz=['230%','300%','260%','200%'][h%4];
     return `background:url(img/p/${COLOR_CAST[col]}.webp) no-repeat ${pos}/${sz},var(--c${col})`}
