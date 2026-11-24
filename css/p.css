@@ -345,3 +345,16 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 .hmb .ar{font:400 30px "Black Han Sans";color:var(--sub2)}
 .hmname{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:420px;padding:22px;display:flex;flex-direction:column;gap:10px;z-index:5}
 .hmname input{font:inherit;font-size:17px;padding:10px 12px;border:3px solid var(--ink2);border-radius:12px;background:#fff}
+
+/* 스토리 대화창 */
+.vnbox{position:absolute;left:150px;right:150px;top:520px;min-height:150px;padding:26px 34px 20px;background:#fff;border:4px solid var(--ink2);border-radius:22px;box-shadow:0 7px 0 var(--ink2);cursor:pointer;z-index:4;outline:none}
+.vnbox:focus-visible{box-shadow:0 7px 0 var(--ink2),0 0 0 4px var(--cY)}
+.vnnm{position:absolute;left:24px;top:-22px;padding:4px 18px;border:3px solid var(--ink2);border-radius:999px;font:400 22px/1.2 "Black Han Sans";background:var(--cY);transform:rotate(-2deg)}
+.vnbox.cM .vnnm{background:var(--cM);color:#fff}.vnbox.cK .vnnm{background:var(--cK);color:#fff}.vnbox.cY .vnnm{background:var(--cY)}.vnbox.cC .vnnm{background:var(--cC)}
+.vnbox.me .vnnm{background:#fff;color:var(--ink2)}.vnbox.me p{color:var(--sub2)}
+.vnbox p{margin:0;font-size:20px;font-weight:700;line-height:1.6}
+.vnnx{position:absolute;right:22px;bottom:12px;font-style:normal;font-size:16px;color:var(--cM);animation:vnb .8s infinite}
+@keyframes vnb{50%{transform:translateY(4px)}}
+.vnch{position:absolute;right:300px;top:290px;display:flex;flex-direction:column;gap:12px;align-items:flex-end;z-index:5}
+.vnch .btn{min-width:300px;min-height:52px;font-size:16px;justify-content:flex-start;padding:0 22px}
+.vntop{position:absolute;right:24px;top:24px;display:flex;gap:8px;z-index:5}

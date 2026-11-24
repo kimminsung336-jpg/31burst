@@ -272,26 +272,31 @@ S.story.bind=s=>{s.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>Scree
   const on=s.querySelector('.lst button.on');if(on)on.scrollIntoView({block:'nearest'});
   s.querySelector('#sGo').onclick=()=>{const b=s.querySelector('.lst button.on');Screens.go('scene',{id:b?b.dataset.sel:STORY[0].id})}};
 
-/* 스토리 장면: 마감 후 가게 + 폰 DM. 대사마다 표정이 바뀐다 */
+/* 스토리 장면: 마감 후 가게에서 마주 보고 하는 대화. 대사마다 표정·자세가 바뀐다 */
 S.scene=()=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k;
-  return `${sceneBg(true)}<div id="scSpr" class="scspr">${spr(k,200,70,640).replace(`img/p/${k}.webp`,exImg(k,'base'))}</div>${counter([['cups',50],['cake',560]],true)}
-<div class="phn" style="left:740px;top:30px;width:360px;height:660px"><div class="in">
- <div class="hd"><img id="scFace" src="${faceImg(k)}" alt="" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--ink2);object-fit:cover;background:#fff"><div><b style="font-size:14px">${CASTS[k].name}</b><div style="font-size:11px">마감 중</div></div><span style="margin-left:auto;font-size:11px;font-weight:900">${chLabel(st)}</span></div>
- <div class="msgs" id="scMsgs" aria-live="polite"></div>
- <div class="choices" id="scCh"></div>
-</div></div>
-<button class="chip2" id="scSkip" style="position:absolute;right:24px;top:24px">건너뛰기</button>`};
-S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,box=s.querySelector('#scMsgs'),ch=s.querySelector('#scCh'),sp=s.querySelector('#scSpr'),hf=s.querySelector('#scFace');let i=0,done=false;
-  const si=sp.querySelector('img');EXPR.forEach(e=>{const i=new Image();i.src=exImg(k,e)});   // 표정 그림 미리 불러오기
-  const react=e=>{e=e||'base';sp.dataset.e=e;si.src=exImg(k,e);sp.classList.remove('go');void sp.offsetWidth;sp.classList.add('go');hf.src=faceImg(k,e)};
-  const add=(t,me,e)=>{const r=document.createElement('div');r.className='mrow'+(me?' me':'');
-    r.innerHTML=me?'':`<img src="${faceImg(k,e)}" alt="" class="fc">`;const b=document.createElement('div');b.className='b'+(me?' me':'');b.textContent=t;r.appendChild(b);box.appendChild(r);box.scrollTop=box.scrollHeight};
-  const fin=()=>{if(done)return;done=true;ch.innerHTML='';const b=document.createElement('button');b.className='btn y';b.textContent=`대전 시작 · vs ${CASTS[st.vs].name}`;
-    b.onclick=()=>storyMatch(st);ch.appendChild(b);b.focus()};
-  const step=()=>{if(Screens.cur!=='scene'||done)return;if(i>=st.lines.length)return fin();const[w,t,e]=st.lines[i++];
-    if(w==='c'){ch.innerHTML='';t.forEach(x=>{const b=document.createElement('button');b.className='btn';b.textContent=x;b.onclick=()=>{ch.innerHTML='';add(x,true);setTimeout(step,500)};ch.appendChild(b)});ch.firstChild.focus();return}
-    react(e);add(t,false,e);setTimeout(step,900*SPEED)};
-  s.querySelector('#scSkip').onclick=fin;setTimeout(step,300)};
+  return `${sceneBg(true)}<div id="scSpr" class="scspr">${spr(k,330,40,700).replace(`img/p/${k}.webp`,exImg(k,'base'))}</div>${counter([['cups',70],['cake',1020]],true)}
+<div class="vnch" id="scCh"></div>
+<div class="vnbox c${CAST_COL[k]}" id="scBox" role="button" tabindex="0" aria-live="polite"><span class="vnnm" id="scNm">${CASTS[k].name}</span><p id="scTx"></p><i class="vnnx" id="scNx">▼</i></div>
+<div class="vntop"><span class="chip2" style="cursor:default">${chLabel(st)} · ${st.title}</span><button class="chip2" id="scSkip">건너뛰기</button></div>`};
+S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.querySelector('#scCh'),sp=s.querySelector('#scSpr'),box=s.querySelector('#scBox'),tx=s.querySelector('#scTx'),nm=s.querySelector('#scNm'),nx=s.querySelector('#scNx');
+  let i=0,done=false,typing=null,full='',wait=false;
+  const si=sp.querySelector('img');EXPR.forEach(e=>{const im=new Image();im.src=exImg(k,e)});   // 표정 그림 미리 불러오기
+  const react=e=>{e=e||'base';sp.dataset.e=e;si.src=exImg(k,e);sp.classList.remove('go');void sp.offsetWidth;sp.classList.add('go')};
+  const say=(who,t,me)=>{nm.textContent=who;box.classList.toggle('me',!!me);full=t;tx.textContent='';nx.hidden=true;let n=0;clearInterval(typing);
+    typing=setInterval(()=>{n+=1;tx.textContent=t.slice(0,n);if(n>=t.length){clearInterval(typing);typing=null;nx.hidden=false}},Math.max(8,28*SPEED))};
+  const fin=()=>{if(done)return;done=true;clearInterval(typing);ch.innerHTML='';wait=true;
+    say(CASTS[k].name,`그럼, 시작해 볼까요? 상대는 ${CASTS[st.vs].name}.`);
+    const b=document.createElement('button');b.className='btn y';b.style.minWidth='240px';b.textContent=`대전 시작 · vs ${CASTS[st.vs].name}`;b.onclick=()=>storyMatch(st);ch.appendChild(b);b.focus()};
+  const step=()=>{if(Screens.cur!=='scene'||done||wait)return;
+    if(typing){clearInterval(typing);typing=null;tx.textContent=full;nx.hidden=false;return}   // 글자 나오는 중이면 한 번에 다 보여준다
+    if(i>=st.lines.length)return fin();const[w,t,e]=st.lines[i++];
+    if(w==='c'){wait=true;nx.hidden=true;ch.innerHTML='';t.forEach(x=>{const b=document.createElement('button');b.className='btn';b.textContent=x;
+      b.onclick=()=>{ch.innerHTML='';wait=false;say(Save.d.manager||'매니저',x,true)};ch.appendChild(b)});ch.firstChild.focus();return}
+    react(e);say(CASTS[k].name,t)};
+  box.onclick=step;box.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();step()}};
+  const key=e=>{if(Screens.cur!=='scene'){removeEventListener('keydown',key);return}if((e.key===' '||e.key==='Enter')&&document.activeElement===document.body){e.preventDefault();step()}};
+  addEventListener('keydown',key);
+  s.querySelector('#scSkip').onclick=fin;setTimeout(()=>{step();box.focus({preventScroll:true})},300)};
 
 /* 캐스트: 프로필 / 덱 편집 */
 const CAST_UI={k:null,tab:'prof',sel:null};
