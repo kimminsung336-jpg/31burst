@@ -61,9 +61,6 @@ function bustFx(el){
 }
 
 const $=id=>document.getElementById(id);
-// 모바일 타임라인 서랍
-let TL_UNREAD=0;
-const isMobile=()=>matchMedia('(max-width:600px)').matches;
 // 카드 내는 모션: 내 카드는 손에서, 상대 카드는 뒷면으로 나와서 뒤집히며 링으로
 let LAST_PICK=null;
 function flyCard(p,v){
@@ -104,7 +101,5 @@ function flyCard(p,v){
   const a=el.animate(frames,{duration:dur,easing:p===ME?'cubic-bezier(.25,.7,.3,1)':'linear',fill:'forwards'});
   a.onfinish=()=>el.remove();setTimeout(()=>el.remove(),dur+600);
 }
-function tlOpen(on){document.body.classList.toggle('tl',on);if(on){TL_UNREAD=0;$('tlBadge').textContent='';$('tlClose').focus()}else $('tlTab').focus()}
 function tlNote(p,card,v){
-  flyCard(p,v);
-  if(isMobile()&&!document.body.classList.contains('tl')){TL_UNREAD++;$('tlBadge').textContent=TL_UNREAD>9?'9+':TL_UNREAD}}
+  flyCard(p,v);}

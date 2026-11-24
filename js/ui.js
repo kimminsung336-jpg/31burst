@@ -46,10 +46,6 @@ document.addEventListener('keydown',e=>{if(!$('guide').classList.contains('on'))
  tr.addEventListener('pointerdown',e=>{x0=e.clientX});
  tr.addEventListener('pointerup',e=>{if(x0===null)return;const dx=e.clientX-x0;x0=null;if(Math.abs(dx)>40)gGo(GI+(dx<0?1:-1))});
  tr.addEventListener('pointercancel',()=>{x0=null})}
-$('tlTab').addEventListener('click',()=>tlOpen(true));
-$('tlClose').addEventListener('click',()=>tlOpen(false));
-$('tlBack').addEventListener('click',()=>tlOpen(false));
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('tl'))tlOpen(false)});
 $('deckBtn').addEventListener('click',()=>showDeck());
 $('dvClose').addEventListener('click',hideDeck);
 $('deckView').addEventListener('click',e=>{if(e.target.id==='deckView')hideDeck()});
