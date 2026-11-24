@@ -18,7 +18,7 @@ function render(){
     if(h)return h.w===null?'<i class="d" title="무승부">–</i>':`<i class="${h.w===ME?'m':'a'}" title="${NAME[h.w]} +${h.pts}">${h.pts}</i>`;
     return `<i class="${k===G.round-1&&!G.over?'now':''}"></i>`}).join('');
   {const lead=G.score[ME]-G.score[AI];$('sb').dataset.lead=lead>0?'me':lead<0?'ai':''}
-  $('gNum').textContent=G.gauge;$('gTarget').textContent='목표 '+G.target;
+  $('gNum').textContent=G.gauge;$('gTarget').textContent='목표 '+G.target;$('gLeft').textContent=`${G.target-G.gauge} 남음`;
   const base=G.target-31,frac=Math.min(1,Math.max(0,(G.gauge-base)/(G.target-base)));
   $('arc').style.strokeDashoffset=326.7*(1-frac);
   $('arc').style.stroke=G.stake>1?'var(--c)':'var(--m)';

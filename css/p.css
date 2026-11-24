@@ -379,3 +379,5 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 
 .cbio{font-size:14px}.cbio b{font-size:14px}
 .cbio p{margin:0;flex:1;position:relative;padding:10px 14px;background:#fff;border:3px solid var(--ink2);border-radius:4px 16px 16px 16px;font-size:15px;font-weight:700;line-height:1.55;box-shadow:3px 3px 0 var(--ink2)}
+
+#play .num em{display:block;margin-top:4px;font:900 13px/1 "Noto Sans KR";font-style:normal;color:var(--cM);letter-spacing:.02em}

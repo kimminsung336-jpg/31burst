@@ -25,7 +25,7 @@ function playLoop(R,AB,S,first){
     }
     mid=false;
     while(first||(P.plays>0&&P.hand.some(c=>RU.playable(R,p,c)))){
-      let mv;if(first){mv=first;first=null}else mv=ai(R,p);
+      let mv;if(first){mv=first;first=null}else mv=global.__pick?global.__pick(R,p):ai(R,p);   // __pick: 다른 AI 정책을 끼워 비교할 때
       const forced=P.hand.filter(c=>RU.playable(R,p,c)).every(c=>{const vs=c.choice||c.lower?.map(x=>-x)||[RU.valOf(R,p,c,null)];return vs.every(x=>Math.max(0,R.gauge+x)>R.target)});
       const card=P.hand.splice(mv.i,1)[0];P.played.push(card.id);(P.used=P.used||[]).push(card);tally(S.played,card.id);
       let v=RU.valOf(R,p,card,mv.ch);if(!card.lower){P.capture=false;P.soothe=false}

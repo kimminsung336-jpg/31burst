@@ -43,7 +43,7 @@ const Progress=(()=>{
     const before=snapshot(),s=d(),gain={aff:0,ach:[],clear:false,story};
     const mark=id=>{if(!s.ach[id]){s.ach[id]=1;gain.ach.push(id)}};
     hist.forEach(h=>{if(h.busts>=3)mark('bust3');if(h.w===0&&h.pts>=4)mark('bigJust');if(h.w===null)mark('drawRound')});
-    if(won&&diff==='hard'&&!online)mark('hardWin');
+    if(won&&(diff==='hard'||diff==='xhard')&&!online)mark('hardWin');
     if(won)gain.aff+=1;
     if(story){const st=STORY.find(x=>x.id===story);
       const ok=won&&(!st.goal||!st.goal.stake||hist.some(h=>h.w===0&&h.pts>=st.goal.stake));

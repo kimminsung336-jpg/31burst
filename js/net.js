@@ -59,8 +59,8 @@ function netLost(){if(!NET.on)return;netReset(true);$('modal').classList.remove(
   ask('연결 끊김','상대와 연결이 끊겼어. 다시 방을 만들거나 AI와 플레이해.',[{label:'확인',value:1}]).then(()=>{Screens.go('online');netMsg('연결이 끊겼어.')})}
 function seatSetup(){
   const[me,op]=SEAT;DECK=[(!NET.on&&window.myDeck&&myDeck(me))||CASTS[me].deck,CASTS[op].deck];NAME[ME]=CASTS[me].name;NAME[AI]=CASTS[op].name;
-  const tag=NET.on?' (상대)':' (AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]+')';
-  $('nMe').textContent=NAME[ME];$('nAi').textContent=NAME[AI];$('nAiTag').textContent=NET.on?'상대':'AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF];
+  const tag=NET.on?' (상대)':' (AI · '+{easy:'쉬움',normal:'보통',hard:'어려움',xhard:'매우 어려움'}[DIFF]+')';
+  $('nMe').textContent=NAME[ME];$('nAi').textContent=NAME[AI];$('nAiTag').textContent=NET.on?'상대':'AI · '+{easy:'쉬움',normal:'보통',hard:'어려움',xhard:'매우 어려움'}[DIFF];
   $('sbMeAv').src=`img/p/${me}_av.webp`;$('sbAiAv').src=`img/p/${op}_av.webp`;$('meAv').src=`img/p/${me}_av.webp`;$('meName').textContent=NAME[ME];$('oppSp').src=`img/p/${op}.webp`;{const f=(typeof SPR_SCALE!=='undefined'&&SPR_SCALE[op])||1,o=$('oppSp');o.style.height=Math.round(500*f)+'px';o.style.top=Math.round(58+500*(1-f)*.55)+'px';o.style.left=Math.round(150+500*(1-f)*.3)+'px'}
   const sb=$('sb');sb.dataset.meCast=me;sb.dataset.aiCast=op;
   $('ownIriCutout').hidden=me!=='iri';

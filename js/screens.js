@@ -61,7 +61,7 @@ const faceImg=(k,e='base')=>`img/p/face/${k}_${e||'base'}.webp`;
 const EXPR=['base','happy','pout','fluster','sad'];
 const exImg=(k,e='base')=>`img/p/ex/${k}_${e||'base'}.webp`;
 const chLabel=st=>`${CASTS[st.k].name} ${st.ch}장`;
-const DIFF_KO={easy:'쉬움',normal:'보통',hard:'어려움'};
+const DIFF_KO={easy:'쉬움',normal:'보통',hard:'어려움',xhard:'매우 어려움'};
 // 캐스트마다 그림 여백이 달라서 키를 맞춘다 (아이리 스프라이트가 크게 잘려 있음)
 const SPR_SCALE={iri:.86,miko:1,haru:1,mina:1};
 const spr=(k,x,y,h,st='',foot=false)=>{const f=SPR_SCALE[k]||1,h2=Math.round(h*f);
@@ -143,7 +143,7 @@ S.match=()=>{const k=Save.d.duty,c=CASTS[k],o=MATCH_OPT;
   </div></div>
  <div style="flex:1;padding:26px 40px;display:flex;flex-direction:column;gap:20px">
   ${fld('상대',seg('mode',[['ai','AI'],['online','온라인 2인']]))}
-  ${fld('AI 난이도',seg('diff',[['easy','쉬움'],['normal','보통'],['hard','어려움']]))}
+  ${fld('AI 난이도',seg('diff',[['easy','쉬움'],['normal','보통'],['hard','어려움'],['xhard','매우 어려움']]))}
   ${fld('판 수',seg('rounds',[[1,'단판'],[3,'3판'],[5,'5판']]))}
   ${fld('상대 캐스트',`<div class="row2" id="mOpp"><button class="chip2 ${o.opp==='rand'?'on':''}" data-o="rand">랜덤</button>${CAST_KEYS.filter(x=>x!==k).map(x=>`<button data-o="${x}" aria-label="${CASTS[x].name}" style="width:40px;height:40px;border-radius:50%;padding:0;overflow:hidden;border:${o.opp===x?'3px solid var(--ink2);box-shadow:0 0 0 3px var(--cY)':'2px solid var(--ink2)'};background:none;cursor:pointer"><img src="${av(x)}" alt="" style="width:100%;height:100%;object-fit:cover"></button>`).join('')}</div>`)}
   <div class="row2" style="margin-top:auto;justify-content:flex-end"><button class="btn y" id="mGo" style="min-width:220px;min-height:54px;font-size:18px">시작</button></div>
@@ -166,7 +166,7 @@ let CURRENT={story:null,opt:{}};
 // 대전 시작 전 VS 화면. 누르거나 아무 키나 누르면 넘어간다
 function showVS(me,op,o={}){return new Promise(res=>{
   const st=o.story&&STORY.find(x=>x.id===o.story);
-  const n=NET.on&&NET.role!=='host'?G.rounds||MATCH:MATCH,info=st?`스토리 · ${chLabel(st)}${st.goal&&st.goal.stake?` · 판돈 ${st.goal.stake}점 이상 저스트`:''}`:NET.on?`${n===1?'단판':n+'판'} · 온라인`:`${MATCH===1?'단판':MATCH+'판'} · AI ${{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]}`;
+  const n=NET.on&&NET.role!=='host'?G.rounds||MATCH:MATCH,info=st?`스토리 · ${chLabel(st)}${st.goal&&st.goal.stake?` · 판돈 ${st.goal.stake}점 이상 저스트`:''}`:NET.on?`${n===1?'단판':n+'판'} · 온라인`:`${MATCH===1?'단판':MATCH+'판'} · AI ${DIFF_KO[DIFF]}`;
   const v=document.createElement('div');v.className='vsov';v.setAttribute('role','dialog');v.setAttribute('aria-label',`${CASTS[me].name} 대 ${CASTS[op].name}`);
   v.innerHTML=`<div class="vsl c${CAST_COL[me]}"></div><div class="vsr c${CAST_COL[op]}"></div><div class="vsline"></div>
    <div class="vsp l">${spr(me,0,0,780)}</div><div class="vsp r">${spr(op,0,0,780)}</div>
