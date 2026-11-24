@@ -27,7 +27,10 @@ function render(){
   const vb=$('vbar');vb.classList.toggle('hot',G.stake>1);vb.classList.toggle('near',G.target-G.gauge>0&&G.target-G.gauge<=5&&!G.over);
   const tm=$('turnMini');tm.textContent=G.over?'게임 끝':G.cur===ME?'· 내 차례':`· ${NAME[AI]} 차례`;tm.classList.toggle('wait',G.cur!==ME||G.over);
   {const st=$('stake'),n=G.stake;$('stakeN').textContent=n;st.dataset.t=n>=8?4:n>=4?3:n>=2?2:1;
-   const ch=G.stakeHist||[1];$('stakeChain').innerHTML=ch.length>1?ch.map(x=>`<i>${x}</i>`).join('<em>→</em>'):'';
+   const ch=(G.stakeHist||[1]).slice(0,-1).reverse().slice(0,5),T=v=>v>=8?4:v>=4?3:v>=2?2:1;
+   {let a=-40*Math.PI/180,pr=68,h='';const R=150;ch.forEach((v,i)=>{const s=[66,52,42,34,28][i];a+=(pr+s/2)*.82/R;pr=s/2;
+     h+=`<i data-t="${T(v)}" style="left:${(170+R*Math.cos(a)).toFixed(1)}px;top:${(170+R*Math.sin(a)).toFixed(1)}px;width:${s}px;height:${s}px;--fs:${Math.round(s*.46)}px;--r:${(i%2?-10:10)}deg">${v}</i>`});
+    $('stakeChain').innerHTML=h}
    if(render._st!==undefined&&n>render._st){st.classList.remove('up');void st.offsetWidth;st.classList.add('up')}render._st=n}
   const gap=G.target-G.gauge;
   document.querySelector('.ring').classList.toggle('near',gap>0&&gap<=5&&!G.over);
