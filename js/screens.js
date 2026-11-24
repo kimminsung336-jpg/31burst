@@ -76,7 +76,7 @@ const ICO={
   dex:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="10" height="15" rx="2"/><path d="M15 6l4 1.2-3.2 12.5-3-.8"/></svg>',
   set:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>'};
 const landPhone=(title,body,back='home')=>`${sceneBg()}<div class="dimbg" style="backdrop-filter:blur(6px)"></div>
-<div class="phn land"><div class="in"><div class="hd"><button class="back" data-go="${back}" aria-label="뒤로">‹</button><span class="t">${title}</span><span style="margin-left:auto;font-size:12px;font-weight:700">CAFE 31</span></div>${body}</div></div>`;
+<div class="phn land"><div class="in"><div class="hd"><button class="back" data-go="${back}" aria-label="뒤로"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4l-8 8 8 8"/></svg></button><span class="t">${title}</span><span style="margin-left:auto;font-size:12px;font-weight:700">CAFE 31</span></div>${body}</div></div>`;
 
 /* 시작 */
 S.title=()=>`<img class="bgi" src="img/p/bg_day.webp" alt="" style="filter:blur(6px) saturate(1.1)"><div class="rays"></div><div class="dots"></div>
@@ -383,7 +383,7 @@ S.dex.bind=s=>{s.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{DEX.f=b.
 /* 설정 */
 S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space-between;padding:12px 0;border-bottom:2px dashed rgba(30,26,34,.15)"><b style="font-size:15px">${l}</b>${c}</div>`;
   return `${sceneBg()}<div class="dimbg" style="backdrop-filter:blur(6px)"></div>
-<div class="phn land" style="left:240px;top:90px;width:800px;height:540px"><div class="in"><div class="hd"><button class="back" data-go="home" aria-label="뒤로">‹</button><span class="t">설정</span></div>
+<div class="phn land" style="left:240px;top:90px;width:800px;height:540px"><div class="in"><div class="hd"><button class="back" data-go="home" aria-label="뒤로"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4l-8 8 8 8"/></svg></button><span class="t">설정</span></div>
  <div style="flex:1;display:flex;min-height:0">
   <div style="flex:1;padding:14px 36px;display:flex;flex-direction:column">
    <span class="lab" style="margin-top:6px">게임</span>
