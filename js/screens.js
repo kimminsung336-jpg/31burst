@@ -37,7 +37,7 @@ const STORY=[
    lines:[['k','매니저, 시간 돼? 연습 좀 하자.'],['k','다음 주에 지역 대회 있거든. 아이리가 상대 해준대.'],['c',['좋아, 가자','무슨 대회?']],
      ['k','봐주지 말라고 했어. 나도 안 봐줄 거고.']]},
 ];
-const STORY_LOCKED=[{k:'haru',label:'하루 2장',cond:'1장 후'},{k:'haru',label:'Y 두 번째',cond:'3장 후'}];
+const STORY_LOCKED=[{k:'haru',label:'하루 2장',cond:'1장 후'},{k:'haru',label:'???',cond:'3장 후'}];
 const WIN_LINE={iri:['역시 매니저! 오늘 조회수 미쳤다.','다음엔 내가 이길 거야. 사진 각 다시 잡는다.'],miko:['…액땜, 됐어요.','괜찮아요. 점괘엔 그렇게 나왔거든요.'],
   haru:['역시 매니저님. 오늘 장사 잘 되겠네요.','괜찮아요. 내일 또 하면 되죠.'],mina:['봤지? 이게 기세야!','한 판 더. 이대로는 못 끝내.']};
 
@@ -121,7 +121,7 @@ S.match=()=>{const k=Save.d.duty,c=CASTS[k],o=MATCH_OPT;
  <div style="width:360px;position:relative;overflow:hidden;background:#fff3dc;border-right:3px solid var(--ink2)">
   ${spr(k,40,10,640)}
   <div style="position:absolute;left:0;right:0;bottom:0;padding:18px 22px;background:linear-gradient(rgba(255,243,220,0),#fff3dc 35%)">
-   <div class="row2" style="justify-content:space-between;align-items:flex-end"><span class="serif" style="font-size:30px">${c.name}</span><span style="font-size:12px;font-weight:900">${c.type}</span></div>
+   <div class="row2" style="justify-content:space-between;align-items:flex-end"><span class="serif" style="font-size:30px">${c.name}</span></div>
    <div style="font-size:13px;line-height:1.6;margin-top:4px">${c.abil}</div>
    <div class="row2" style="margin-top:10px"><button class="btn" id="mDeck" style="min-height:36px;font-size:13px">덱 20장</button><button class="btn" data-go="cast" style="min-height:36px;font-size:13px">교대</button></div>
   </div></div>
@@ -152,8 +152,8 @@ function showVS(me,op,o={}){return new Promise(res=>{
   const v=document.createElement('div');v.className='vsov';v.setAttribute('role','dialog');v.setAttribute('aria-label',`${CASTS[me].name} 대 ${CASTS[op].name}`);
   v.innerHTML=`<div class="vsl c${CAST_COL[me]}"></div><div class="vsr c${CAST_COL[op]}"></div><div class="vsline"></div>
    <div class="vsp l">${spr(me,0,0,780)}</div><div class="vsp r">${spr(op,0,0,780)}</div>
-   <div class="vsn l"><b>${CASTS[me].name}</b><span>${NET.on?'나':Save.d.manager?Save.d.manager+' 매니저':'나'} · ${CASTS[me].type}</span></div>
-   <div class="vsn r"><b>${CASTS[op].name}</b><span>${NET.on?'상대':'AI'} · ${CASTS[op].type}</span></div>
+   <div class="vsn l"><b>${CASTS[me].name}</b><span>${NET.on?'나':Save.d.manager?Save.d.manager+' 매니저':'나'}</span></div>
+   <div class="vsn r"><b>${CASTS[op].name}</b><span>${NET.on?'상대':'AI'}</span></div>
    <div class="vsx">VS</div><div class="vsi">${info}</div>`;
   $('stage').appendChild(v);let done=false;
   const end=()=>{if(done)return;done=true;removeEventListener('keydown',end);v.classList.add('out');setTimeout(()=>{v.remove();res()},350)};
@@ -191,7 +191,7 @@ S.online=()=>{const on=NET.on,host=NET.role==='host',k=Save.d.duty;
   <div class="olgrid">${CAST_KEYS.map(x=>{const c=CASTS[x],me=x===mine,fo=x===foe;
    return `<button class="olc c${CAST_COL[x]}${me?' mine':''}${fo?' foe':''}" data-k="${x}" ${(lock&&!me)||fo?'disabled':''}>
     <span class="olsp">${spr(x,0,0,420)}</span>${me?'<span class="oltag">나</span>':fo?'<span class="oltag f">상대</span>':''}
-    <span class="olnm"><b class="serif">${c.name}</b><small>${c.type}</small></span><span class="olab">${c.abil}</span></button>`}).join('')}</div>
+    <span class="olnm"><b class="serif">${c.name}</b></span><span class="olab">${c.abil}</span></button>`}).join('')}</div>
   ${msg}</div>`,'match')};
 S.online.bind=s=>{
   const back=s.querySelector('.back');back.addEventListener('click',()=>{netReset();OL_CODE=''});
@@ -271,10 +271,10 @@ S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),box=s.querySelect
 const CAST_UI={k:null,tab:'prof',sel:null};
 S.cast=()=>{const k=CAST_UI.k||Save.d.duty,c=CASTS[k],tab=CAST_UI.tab;CAST_UI.k=k;
   const tabs=['prof','deck'].map(t=>`<button class="chip2 ${t===tab?'on':''}" data-tab="${t}">${t==='prof'?'프로필':'덱 편집'}</button>`).join('');
-  const head=`<div class="row2" style="height:56px;flex:none;padding:0 24px;border-bottom:3px solid var(--ink2);background:#fff"><span class="serif" style="font-size:24px">${c.name}</span><span style="font-size:12px;font-weight:900">${c.type}</span><span style="margin-left:auto" class="row2">${tabs}</span></div>`;
+  const head=`<div class="row2" style="height:56px;flex:none;padding:0 24px;border-bottom:3px solid var(--ink2);background:#fff"><span class="serif" style="font-size:24px">${c.name}</span><span style="margin-left:auto" class="row2">${tabs}</span></div>`;
   if(tab==='deck')return landPhone('캐스트',`<div class="grow col">${head}${deckEditor(k)}</div>`);
   const li=CAST_KEYS.map(x=>`<button class="${x===k?'on':''}" data-ck="${x}"><img src="${av(x)}" alt=""><span class="nm">${CASTS[x].name}</span><span class="st">${x===Save.d.duty?'근무 중':''}</span></button>`).join('')
-   +['M','K','Y','C'].map(x=>`<button disabled><span class="q">?</span><span class="nm" style="font-size:13px">${x} 두 번째</span><span class="st">준비 중</span></button>`).join('');
+   +[1,2,3,4].map(x=>`<button disabled><span class="q">?</span><span class="nm" style="font-size:13px">???</span><span class="st">준비 중</span></button>`).join('');
   return landPhone('캐스트',`<div style="flex:1;display:flex;min-height:0"><div class="side2" style="width:210px"><div class="lst">${li}</div></div>
   <div class="grow col">${head}<div style="flex:1;position:relative;overflow:hidden">
    <div style="position:absolute;left:0;top:0;bottom:0;width:340px;background:#fff3dc;border-right:3px solid var(--ink2)"></div>${spr(k,20,10,640)}
@@ -291,7 +291,7 @@ function deckEditor(k){const d=deckIds(k),sel=CAST_UI.sel;
     return `<button data-add="${c.id}" ${has||!sel?'disabled':''} title="${c.text}"><span class="bar" style="background:var(--c${col})"></span><span class="v">${numLabel(c)}</span><span class="n">${c.name}</span><span class="a ${has?'in':''}">${has?'덱에 있음':sel?'바꾸기':''}</span></button>`}).join('');
   return `<div style="flex:1;display:flex;min-height:0">
   <div class="grow" style="padding:14px 20px;display:flex;flex-direction:column;gap:6px;overflow-y:auto">
-   <div class="row2" style="justify-content:space-between"><span class="lab">전용 · ${CAST_COL[k]}</span><b style="font-size:12px">8 / 8</b></div>${grid(d.own,'own')}
+   <div class="row2" style="justify-content:space-between"><span class="lab">전용</span><b style="font-size:12px">8 / 8</b></div>${grid(d.own,'own')}
    <div class="row2" style="justify-content:space-between;margin-top:4px"><span class="lab">공용</span><b style="font-size:12px">12 / 12</b></div>${grid(d.shared,'shared')}
    <div class="row2" style="margin-top:auto;padding-top:8px"><span style="font-size:12px;color:var(--sub2);font-weight:700">${sel?'오른쪽에서 바꿀 카드를 골라':'바꿀 카드를 먼저 눌러'} · 같은 카드는 한 장씩</span><button class="btn" id="dReset" style="margin-left:auto">기본 덱으로</button></div>
   </div>
@@ -314,7 +314,7 @@ S.dex=()=>{const all=[...SHARED,...POOL_SHARED,...IRI,...(POOL_COLOR.M||[]),...M
   const list=all.filter(c=>DEX.f==='all'||COLOR_OF[c.id]===DEX.f);const c=BYID[DEX.sel]||list[0],col=COLOR_OF[c.id];
   const inBase=[...SHARED,...IRI,...MIKO,...HARU,...MINA].some(x=>x.id===c.id);
   const own=col==='A'?'공용':CASTS[COLOR_CAST[col]].name+' 전용';
-  const chips=[['all','전체'],['M','M'],['K','K'],['Y','Y'],['C','C'],['A','공용']].map(([v,l])=>`<button class="chip2 ${DEX.f===v?'on':''}" data-f="${v}">${l}</button>`).join('');
+  const chips=[['all','전체'],...CAST_KEYS.map(k=>[CAST_COL[k],CASTS[k].name]),['A','공용']].map(([v,l])=>`<button class="chip2 ${DEX.f===v?'on':''}" data-f="${v}">${l}</button>`).join('');
   return landPhone('카드 도감',`<div style="flex:1;display:flex;min-height:0">
  <div class="grow" style="padding:14px 20px;display:flex;flex-direction:column;gap:12px;min-height:0">
   <div class="row2" style="gap:6px">${chips}<span style="margin-left:auto;font-size:13px;font-weight:700">카드 ${all.length}장</span></div>
@@ -323,7 +323,7 @@ S.dex=()=>{const all=[...SHARED,...POOL_SHARED,...IRI,...(POOL_COLOR.M||[]),...M
  <div style="width:300px;padding:24px;border-left:3px solid var(--ink2);background:#fff3dc;display:flex;flex-direction:column;align-items:center;gap:10px">
   ${cardHTML(c,{size:'l'})}
   <div class="serif" style="font-size:26px;margin-top:4px">${c.name}</div>
-  <div class="row2" style="gap:6px"><span class="chip2" style="cursor:default;background:var(--c${col});${col==='M'||col==='K'?'color:#fff':''}">${col==='A'?'공용':col}</span><span class="chip2" style="cursor:default">${own}</span></div>
+  <div class="row2" style="gap:6px"><span class="chip2" style="cursor:default;background:var(--c${col});${col==='M'||col==='K'?'color:#fff':''}">${own}</span></div>
   <div style="font-size:14px;line-height:1.6;text-align:center">${c.text}${c.photo?'<br><b>사진 포스트</b>':''}</div>
   <div style="margin-top:auto;font-size:12px;color:var(--sub2);font-weight:700">${inBase?'기본 덱 카드':'카드풀 카드 · 덱 편집에서 넣을 수 있음'}</div>
  </div></div>`)};
