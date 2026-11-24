@@ -167,6 +167,7 @@ async function endRound(w){
   const fin=G.round>=G.rounds;if(fin)G.over=true;
   render();
   NET.ev({t:'result',final:fin,w});
+  if(fin&&window.recordMatch)recordMatch();
   if(fin&&window.afterMatch&&!NET.on)return afterMatch();
   await showResult(fin,w);
   if(fin)return NET.on?toOnline():Screens.go('home');

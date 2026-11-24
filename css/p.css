@@ -296,3 +296,22 @@ body{background:#1e1a22;overflow:hidden}
 .olc .olab{position:relative;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;padding:4px 12px 12px;font-size:11.5px;line-height:1.5;background:#fff3dc}
 
 body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:none}
+
+/* 스토리 장면: 표정 얼굴과 반응 */
+.fc{width:36px;height:36px;border-radius:50%;border:2px solid var(--ink2);object-fit:cover;background:#fff;flex:none}
+.msgs .mrow{display:flex;gap:8px;align-items:flex-end}
+.msgs .mrow.me{justify-content:flex-end}
+.msgs .mrow .b{max-width:230px}
+.scspr{position:absolute;inset:0;pointer-events:none;transform-origin:30% 100%}
+.scspr.go[data-e=happy]{animation:eHop .45s}
+.scspr.go[data-e=pout]{animation:eShake .35s}
+.scspr.go[data-e=fluster]{animation:eShake .25s 2}
+.scspr.go[data-e=sad]{animation:eSag .6s forwards}
+.scspr[data-e=sad]{transform:translateY(10px)}
+@keyframes eHop{30%{transform:translateY(-22px)}60%{transform:translateY(0)}80%{transform:translateY(-6px)}}
+@keyframes eShake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes eSag{from{transform:translateY(0)}to{transform:translateY(10px)}}
+/* 보상 */
+.affbar{height:10px;border:2px solid var(--ink2);border-radius:999px;background:#fff;overflow:hidden;margin-top:5px}
+.affbar i{display:block;height:100%;background:var(--cM)}
+.newx{font-size:13px;font-weight:900;padding:5px 10px;border-radius:10px;background:var(--cY);border:2px solid var(--ink2)}
