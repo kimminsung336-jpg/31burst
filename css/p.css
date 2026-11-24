@@ -450,3 +450,12 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 .vnbox.snsp[data-pc=M] .vnnm{background:var(--cM);color:#fff}.vnbox.snsp[data-pc=K] .vnnm{background:var(--cK);color:#fff}
 .vnbox.snsp[data-pc=Y] .vnnm{background:var(--cY);color:var(--ink2)}.vnbox.snsp[data-pc=C] .vnnm{background:var(--cC);color:var(--ink2)}
 .vnbox.snsp p{font-weight:500;font-style:italic}
+/* 스토리 대전 중 말풍선 */
+#play .tb{position:absolute;z-index:30;display:flex;gap:8px;align-items:flex-start;max-width:290px;padding:9px 13px 10px 9px;background:#fff;border:3px solid var(--ink2);border-radius:16px;box-shadow:4px 4px 0 var(--ink2);font-size:14px;font-weight:700;line-height:1.45;color:var(--ink2);animation:tbIn .22s cubic-bezier(.2,1.4,.4,1);pointer-events:none}
+#play .tb img{width:34px;height:34px;border-radius:50%;border:2px solid var(--ink2);object-fit:cover;flex:none}
+#play .tb b{display:block;font-size:11px;font-weight:900;color:var(--sub2)}
+#play .tb.op{left:24px;top:250px;border-radius:16px 16px 16px 4px}
+#play .tb.me{left:24px;top:462px;border-radius:4px 16px 16px 16px}
+#play .tb.cM{box-shadow:4px 4px 0 var(--cM)}#play .tb.cK{box-shadow:4px 4px 0 var(--cK)}#play .tb.cY{box-shadow:4px 4px 0 var(--cY)}#play .tb.cC{box-shadow:4px 4px 0 var(--cC)}
+#play .tb.out{opacity:0;transform:translateY(-6px);transition:.22s}
+@keyframes tbIn{from{opacity:0;transform:scale(.8)}}
