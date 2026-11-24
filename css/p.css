@@ -443,3 +443,10 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 .hmduty button.lock .lk{position:absolute;right:-5px;bottom:-5px}
 .lst button.lock img{filter:grayscale(1);opacity:.6}
 .lst button.lock .nm{color:var(--sub2)}
+/* 스토리 속 SNS 글: 글 쓴 캐스트 계정 색으로, 말풍선 대신 포스트처럼 */
+.vnbox.snsp{background:#fffdf6;border-style:dashed}
+.vnbox.snsp .vnnm{font:900 16px/1.4 "Noto Sans KR";padding:5px 14px}
+.vnbox.snsp .vnnm::before{content:"";display:inline-block;width:14px;height:14px;margin-right:6px;vertical-align:-2px;border-radius:50%;background:#fff;border:2px solid var(--ink2)}
+.vnbox.snsp[data-pc=M] .vnnm{background:var(--cM);color:#fff}.vnbox.snsp[data-pc=K] .vnnm{background:var(--cK);color:#fff}
+.vnbox.snsp[data-pc=Y] .vnnm{background:var(--cY);color:var(--ink2)}.vnbox.snsp[data-pc=C] .vnnm{background:var(--cC);color:var(--ink2)}
+.vnbox.snsp p{font-weight:500;font-style:italic}
