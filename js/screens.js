@@ -11,6 +11,16 @@ const Save=(()=>{
 })();
 SPEED=Save.d.speed;
 
+/* ---------- 전체 화면 ---------- */
+// 브라우저 주소창·탭을 숨긴다. 폰에서는 가로로 고정. 아이폰 사파리는 지원하지 않아서 홈 화면 추가를 안내
+const FS={on:()=>!!(document.fullscreenElement||document.webkitFullscreenElement),
+  async enter(){const el=document.documentElement,rq=el.requestFullscreen||el.webkitRequestFullscreen;
+    if(!rq){if(typeof Screens!=='undefined')Screens.toast('이 브라우저는 전체 화면이 안 돼. 공유 → 홈 화면에 추가로 열어줘');return}
+    try{await rq.call(el,{navigationUI:'hide'});try{await screen.orientation.lock('landscape')}catch(e){}}catch(e){}},
+  exit(){const ex=document.exitFullscreen||document.webkitExitFullscreen;if(ex)ex.call(document)},
+  toggle(){FS.on()?FS.exit():FS.enter()}};
+const TOUCH=matchMedia('(pointer:coarse)').matches;
+
 /* ---------- 카드 목록 ---------- */
 const BYID={};[...SHARED,...POOL_SHARED,...IRI,...MIKO,...HARU,...MINA,...Object.values(POOL_COLOR).flat()].forEach(c=>{BYID[c.id]=c});
 const CAST_KEYS=['iri','miko','haru','mina'];
@@ -59,6 +69,8 @@ const counter=(props=[],night)=>CTR_SVG+
   props.map(([n,x])=>{const P={cake:[166,168],cups:[120,106]}[n];return `<img class="spr" src="img/p/prop_${n}.webp" alt="" style="left:${x}px;top:${474-P[1]}px;width:${P[0]}px">`}).join('')+
   `<div class="plate"><i>CAFE</i><b>31</b></div>`+(night?'<div style="position:absolute;left:0;top:495px;width:1280px;height:260px;background:rgba(30,16,70,.5)"></div>':'');
 const ICO={
+  fs:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+  fsx:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>',
   story:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>',
   cast:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
   dex:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="10" height="15" rx="2"/><path d="M15 6l4 1.2-3.2 12.5-3-.8"/></svg>',
@@ -73,7 +85,7 @@ S.title=()=>`<img class="bgi" src="img/p/bg_day.webp" alt="" style="filter:blur(
 ${spr('iri',20,180,560,'',true)}${spr('mina',925,250,660)}${spr('miko',290,262,620)}${spr('haru',610,252,620)}
 <div class="fade"></div><div class="logo">${LOGO_SVG}</div>
 <button class="btn y go" id="tGo">아무 키나 눌러 출근하기</button><span class="ver">v0.3 프로토타입</span>`;
-S.title.bind=s=>{const go=()=>Screens.go('home');s.querySelector('#tGo').onclick=go;
+S.title.bind=s=>{const go=()=>{if(TOUCH&&!FS.on())FS.enter();Screens.go('home')};s.querySelector('#tGo').onclick=go;
   const k=e=>{if(Screens.cur!=='title'){removeEventListener('keydown',k);return}if(e.key==='Tab')return;e.preventDefault();removeEventListener('keydown',k);setTimeout(go,0)};addEventListener('keydown',k)};
 
 /* 메인: 왼쪽 위 매니저 명패, 가운데 오늘 근무 캐스트, 오른쪽 메뉴 버튼 */
@@ -93,7 +105,7 @@ S.home=()=>{const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save
  <div class="row2" style="gap:12px"><img src="${av(k)}" alt="" class="hmav"><div style="min-width:0"><div class="hmnm">${Save.d.manager}<small>매니저</small></div><div class="hmsub">CAFE 31 · 스토리 ${done}/${STORY.length} · 카드 ${cards}/${Object.keys(BYID).length}</div></div></div>
  <div class="hmduty"><span>오늘 근무</span>${CAST_KEYS.map(x=>`<button data-duty="${x}" class="${x===k?'on':''}" aria-label="${CASTS[x].name}"><img src="${av(x)}" alt=""></button>`).join('')}</div>
 </div>
-<div class="hmtop"><button class="hmic" id="hGuide" aria-label="게임 설명서" title="게임 설명서">?</button><button class="hmic" data-go="settings" aria-label="설정" title="설정">${ICO.set}</button></div>
+<div class="hmtop"><button class="hmic" id="hFull" aria-label="전체 화면" title="전체 화면 (F11)">${FS.on()?ICO.fsx:ICO.fs}</button><button class="hmic" id="hGuide" aria-label="게임 설명서" title="게임 설명서">?</button><button class="hmic" data-go="settings" aria-label="설정" title="설정">${ICO.set}</button></div>
 <button class="hmsay" id="hDm"><img src="${faceImg(k,ex)}" alt="" class="fc"><span><b>${c.name}${st?` <i>스토리 ${st.ch}장</i>`:''}</b>${line}</span></button>
 <div class="hmmenu">
  <button class="hmplay" id="hPlay"><span class="lab">오늘의 대전</span><span class="t">대전</span><span class="s"><img src="${av(k)}" alt="">${jo(c.name,'으로','로')} 출전 · AI / 온라인</span></button>
@@ -106,6 +118,7 @@ S.home.bind=s=>{
   if(ok){const inp=s.querySelector('#hName');const f=()=>{const v=inp.value.trim();if(!v){inp.focus();return}Save.d.manager=v;Save.put();Screens.go('home')};ok.onclick=f;inp.onkeydown=e=>{if(e.key==='Enter')f()};return}
   s.querySelector('#hPlay').onclick=()=>Screens.go('match');
   s.querySelector('#hGuide').onclick=()=>showGuide();
+  s.querySelector('#hFull').onclick=()=>FS.toggle();
   s.querySelector('#hDm').onclick=()=>{const st=Progress.nextStory(Save.d.duty);Screens.go('story',{sel:st&&st.id})};
   s.querySelectorAll('[data-duty]').forEach(b=>b.onclick=()=>{Save.d.duty=b.dataset.duty;Save.put();Screens.go('home')});
 };
@@ -370,6 +383,7 @@ S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space
  <div style="flex:1;display:flex;min-height:0">
   <div style="flex:1;padding:14px 36px;display:flex;flex-direction:column">
    <span class="lab" style="margin-top:6px">게임</span>
+   ${row('전체 화면',`<button class="btn" id="stFull" style="min-height:36px;font-size:13px">${FS.on()?'끄기':'켜기'}</button>`)}
    ${row('연출 속도',`<div class="seg" style="width:220px" id="stSpeed"><button data-v="1" class="${SPEED===1?'on':''}">보통</button><button data-v="0.5" class="${SPEED===0.5?'on':''}">빠르게</button></div>`)}
    ${row('게임 설명서','<button class="btn" id="stGuide" style="min-height:36px;font-size:13px">다시 보기</button>')}
    <span class="lab" style="margin-top:18px">매니저</span>
@@ -382,6 +396,7 @@ S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space
   </div></div></div></div>`};
 S.settings.bind=s=>{s.querySelector('#stSpeed').onclick=e=>{const b=e.target.closest('button');if(!b)return;SPEED=+b.dataset.v;Save.d.speed=SPEED;Save.put();Screens.go('settings')};
   s.querySelector('#stGuide').onclick=()=>showGuide();
+  s.querySelector('#stFull').onclick=async()=>{await FS.toggle();setTimeout(()=>Screens.go('settings'),300)};
   s.querySelector('#stNameOk').onclick=()=>{const v=s.querySelector('#stName').value.trim();if(!v)return;Save.d.manager=v;Save.put();Screens.toast('저장됨')};
   s.querySelector('#stReset').onclick=async()=>{const r=await ask('진행 초기화','매니저 이름, 덱, 스토리, 호감도, 업적이 전부 지워져. 되돌릴 수 없어.',[{label:'취소',value:0},{label:'초기화',value:1}]);
     if(r){Save.reset();SPEED=1;Screens.go('title')}}};
@@ -401,4 +416,5 @@ $('playCtr').innerHTML=CTR_SVG;
 /* 스테이지를 창 크기에 맞춘다 */
 function fitStage(){document.documentElement.style.setProperty('--sc',Math.min(innerWidth/1280,innerHeight/720))}
 addEventListener('resize',fitStage);fitStage();
+document.addEventListener('fullscreenchange',()=>{fitStage();if(Screens.cur==='home'){const b=document.getElementById('hFull');if(b)b.innerHTML=FS.on()?ICO.fsx:ICO.fs}});
 Screens.go('title');

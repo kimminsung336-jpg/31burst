@@ -1,0 +1,14 @@
+{
+  "name": "31 버스트",
+  "short_name": "31 버스트",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1e1a22",
+  "theme_color": "#ff2e8a",
+  "icons": [
+    {"src": "img/icon192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "img/icon512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}
