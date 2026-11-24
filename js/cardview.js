@@ -12,7 +12,7 @@ function numLabel(c){
   if(c.id==='tiki'||c.id==='reup')return '?';
   return String(c.v);
 }
-function handleOf(col){return col==='A'?'@cafe31':CASTS[COLOR_CAST[col]].handle}
+function handleOf(col){return col==='A'?'@31_daily':CASTS[COLOR_CAST[col]].handle}
 // 사진 포스트 그림: 전용 사진 카드는 카드별 사진, 공용 사진 카드는 그 캐스트 버전(덱·도감에선 오늘 근무 캐스트)
 const PH_OWN=new Set(['burst','nail','fourcut','filter','vlog','hilite','viral','reup','cheek','tea','wink','omurice','mvp','jog','shake','court']);
 const PH_SHARED=new Set(['shot','selfie','menu','story']);
@@ -36,7 +36,7 @@ function cardHTML(c,{num,size='m',tag='',locked=false,cond=''}={}){
   const badge=`<span class="pnum c${sp?'S':col}${n.length>2?' long':''}">${n}</span>`;
   const t=tag?`<span class="ptag">${tag}</span>`:'';
   let body;
-  if(sp)body=`<div class="pcb news"><i class="nh">CAFE 31 DAILY</i><b class="nt">특종!</b><p class="pe">${eff}</p></div>`;
+  if(sp)body=`<div class="pcb news"><i class="nh">31 DAILY</i><b class="nt">특종!</b><p class="pe">${eff}</p></div>`;
   else if(c.photo)body=`<div class="pcb photo"><div class="pimg2" style="${photoStyle(c,col)}"></div><b class="pn">${c.name}</b><p class="pe">${eff}</p><i class="pdot c${col}"></i></div>`;
   else body=`<div class="pcb talk c${col}"><div class="bub"><b class="pn">${c.name}</b><p class="pe">${eff}</p></div><i class="ph">${handleOf(col)}</i></div>`;
   return `<div class="pc2 ${size}">${badge}${t}${body}</div>`;

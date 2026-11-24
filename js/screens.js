@@ -72,7 +72,7 @@ const sceneBg=(night)=>`<img class="bgi" src="img/p/${night?'bg_night':'bg_day'}
 const CTR_SVG=`<svg class="ctrsvg" viewBox="0 0 1280 270" width="1280" height="270" aria-hidden="true"><defs><pattern id="ctrDot" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="1.6" fill="#c41d68" opacity=".28"/></pattern></defs><rect x="-10" y="34" width="1300" height="250" fill="#ff4f9e" stroke="#1e1a22" stroke-width="4"/><rect x="-10" y="34" width="1300" height="250" fill="url(#ctrDot)"/><rect x="-10" y="34" width="1300" height="12" fill="#c41d68" opacity=".55"/><rect x="26" y="64" width="268" height="148" rx="18" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3"/><rect x="38" y="76" width="244" height="124" rx="12" fill="#ff7ab8" opacity=".35"/><rect x="334" y="64" width="268" height="148" rx="18" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3"/><rect x="346" y="76" width="244" height="124" rx="12" fill="#ff7ab8" opacity=".35"/><rect x="678" y="64" width="268" height="148" rx="18" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3"/><rect x="690" y="76" width="244" height="124" rx="12" fill="#ff7ab8" opacity=".35"/><rect x="986" y="64" width="268" height="148" rx="18" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3"/><rect x="998" y="76" width="244" height="124" rx="12" fill="#ff7ab8" opacity=".35"/><rect x="-10" y="226" width="1300" height="60" fill="#1e1a22"/><rect x="-10" y="226" width="1300" height="6" fill="#ffd23f"/><rect x="-14" y="2" width="1308" height="34" rx="10" fill="#fff4e0" stroke="#1e1a22" stroke-width="4"/><rect x="8" y="9" width="1264" height="6" rx="3" fill="#fff" opacity=".9"/></svg>`;
 const counter=(props=[],night)=>CTR_SVG+
   props.map(([n,x])=>{const P={cake:[166,168],cups:[120,106]}[n];return `<img class="spr" src="img/p/prop_${n}.webp" alt="" style="left:${x}px;top:${474-P[1]}px;width:${P[0]}px">`}).join('')+
-  `<div class="plate"><i>CAFE</i><b>31</b></div>`+(night?'<div style="position:absolute;left:0;top:495px;width:1280px;height:260px;background:rgba(30,16,70,.5)"></div>':'');
+  (night?'<div style="position:absolute;left:0;top:495px;width:1280px;height:260px;background:rgba(30,16,70,.5)"></div>':'');
 const ICO={
   fs:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
   fsx:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>',
@@ -81,7 +81,7 @@ const ICO={
   dex:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="10" height="15" rx="2"/><path d="M15 6l4 1.2-3.2 12.5-3-.8"/></svg>',
   set:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>'};
 const landPhone=(title,body,back='home')=>`${sceneBg()}<div class="dimbg" style="backdrop-filter:blur(6px)"></div>
-<div class="phn land"><div class="in"><div class="hd"><button class="back" data-go="${back}" aria-label="뒤로"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4l-8 8 8 8"/></svg></button><span class="t">${title}</span><span style="margin-left:auto;font-size:12px;font-weight:700">CAFE 31</span></div>${body}</div></div>`;
+<div class="phn land"><div class="in"><div class="hd"><button class="back" data-go="${back}" aria-label="뒤로"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4l-8 8 8 8"/></svg></button><span class="t">${title}</span></div>${body}</div></div>`;
 
 /* 시작 */
 S.title=()=>`<img class="bgi" src="img/p/bg_day.webp" alt="" style="filter:blur(6px) saturate(1.1)"><div class="rays"></div><div class="dots"></div>
@@ -95,7 +95,7 @@ S.title.bind=s=>{const go=()=>{if(TOUCH&&!FS.on())FS.enter();Screens.go('home')}
 
 /* 메인: 왼쪽 위 손님 명패, 가운데 오늘 지명한 캐스트, 오른쪽 메뉴 버튼 */
 S.home=()=>{if(!Progress.castOpen(Save.d.duty)){Save.d.duty='iri';Save.put()}const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save.d.manager;
-  const unread=STORY.filter(x=>Progress.storyOpen(x)&&!Progress.storyDone(x.id)).length,done=STORY.filter(x=>Progress.storyDone(x.id)).length;
+  const unread=STORY.filter(x=>Progress.storyOpen(x)&&!Progress.storyDone(x.id)).length;
   const cards=Object.keys(BYID).filter(id=>Progress.cardOpen(id)).length;
   const noGuide=!Save.d.guide;
   const line=noGuide?'처음 오셨죠? 게임 방법은 오른쪽 위 ? 에 있어요. 한 번 보고 가요!':st?nm(st.lines[0][1]):nm(WIN_LINE[k][0]),ex=noGuide?'happy':st?st.lines[0][2]:'happy';
@@ -108,7 +108,7 @@ S.home=()=>{if(!Progress.castOpen(Save.d.duty)){Save.d.duty='iri';Save.put()}con
   const mb=(go,cls,ico,t,sub,badge='')=>`<button class="hmb ${cls}" data-go="${go}"><span class="ic">${ico}${badge}</span><span class="tx"><b>${t}</b><small>${sub}</small></span><span class="ar">›</span></button>`;
   return `${scene}
 <div class="hmplate">
- <div class="row2" style="gap:12px"><img src="${av(k)}" alt="" class="hmav"><div style="min-width:0"><div class="hmnm">${Save.d.manager}<small>손님</small></div><div class="hmsub">CAFE 31 · 스토리 ${done}/${STORY.length} · 카드 ${cards}/${Object.keys(BYID).length}</div></div></div>
+ <div class="row2" style="gap:12px"><img src="${av(k)}" alt="" class="hmav"><div style="min-width:0"><div class="hmnm">${Save.d.manager}</div></div></div>
  <div class="hmduty"><span>오늘 지명</span>${CAST_KEYS.map(x=>Progress.castOpen(x)?`<button data-duty="${x}" class="${x===k?'on':''}" aria-label="${CASTS[x].name}"><img src="${av(x)}" alt=""></button>`:`<button data-lock="${x}" class="lock" aria-label="${CASTS[x].name} 잠김" title="${Progress.castCond(x)}"><img src="${av(x)}" alt=""><svg class="lk" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="3" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="#ffd23f"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>`).join('')}</div>
 </div>
 <div class="hmtop"><button class="hmic" id="hFull" aria-label="전체 화면" title="전체 화면 (F11)">${FS.on()?ICO.fsx:ICO.fs}</button><button class="hmic${noGuide?' new':''}" id="hGuide" aria-label="게임 설명서" title="게임 설명서">?</button><button class="hmic" data-go="settings" aria-label="설정" title="설정">${ICO.set}</button></div>
@@ -386,8 +386,10 @@ S.dex=()=>{const all=[...SHARED,...POOL_SHARED,...IRI,...(POOL_COLOR.M||[]),...M
   <div style="font-size:14px;line-height:1.6;text-align:center">${openC?`${c.text}${c.photo?'<br><b>사진 포스트</b>':''}`:`<b>해금 조건</b><br>${Progress.condText(c.id)}`}</div>
   <div style="margin-top:auto;font-size:12px;color:var(--sub2);font-weight:700">${inBase?'기본 덱 카드':'카드풀 카드 · 덱 편집에서 넣을 수 있음'}</div>
  </div></div>`)};
-S.dex.bind=s=>{s.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{DEX.f=b.dataset.f;Screens.go('dex')});
-  s.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{DEX.sel=b.dataset.c;Screens.go('dex')})};
+S.dex.bind=s=>{const g=s.querySelector('.cardgrid');
+  if(DEX.top){g.scrollTop=DEX.top;DEX.top=0}   // 카드를 눌러 다시 그려도 보던 자리 그대로
+  s.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{DEX.f=b.dataset.f;Screens.go('dex')});
+  s.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{DEX.sel=b.dataset.c;DEX.top=g.scrollTop;Screens.go('dex')})};
 
 /* 설정 */
 S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space-between;padding:12px 0;border-bottom:2px dashed rgba(30,26,34,.15)"><b style="font-size:15px">${l}</b>${c}</div>`;
