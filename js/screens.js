@@ -112,7 +112,7 @@ S.home=()=>{const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save
 <div class="hmtop"><button class="hmic" id="hFull" aria-label="전체 화면" title="전체 화면 (F11)">${FS.on()?ICO.fsx:ICO.fs}</button><button class="hmic${noGuide?' new':''}" id="hGuide" aria-label="게임 설명서" title="게임 설명서">?</button><button class="hmic" data-go="settings" aria-label="설정" title="설정">${ICO.set}</button></div>
 <button class="hmsay" id="hDm"><img src="${faceImg(k,ex)}" alt="" class="facei"><span><b>${c.name}${noGuide?' <i>설명서</i>':st?` <i>스토리 ${st.ch}장</i>`:''}</b>${line}</span></button>
 <div class="hmmenu">
- <button class="hmplay" id="hPlay"><span class="lab">오늘의 대전</span><span class="t">대전</span><span class="s"><img src="${av(k)}" alt="">${jo(c.name,'으로','로')} 출전 · AI / 온라인</span></button>
+ <button class="hmplay" id="hPlay"><span class="lab">오늘의 대전</span><span class="t">대전</span><span class="s"><img src="${av(k)}" alt="">${jo(c.name,'으로','로')} 포스트!</span></button>
  ${mb('story','pk',ICO.story,'스토리',st?`${chLabel(st)} · ${st.title}`:'전부 클리어',unread?`<i class="bd">${unread}</i>`:'')}
  ${mb('cast','cy',ICO.cast,'캐스트',`${c.name} 호감도 Lv${Progress.lv(k)} · 덱 편집`)}
  ${mb('dex','wh',ICO.dex,'카드 도감',`카드 ${cards} / ${Object.keys(BYID).length}장 해금`)}
