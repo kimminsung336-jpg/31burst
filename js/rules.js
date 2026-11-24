@@ -9,13 +9,13 @@ const rndOut=H=>H.hand.splice(Math.random()*H.hand.length|0,1)[0];
 const curV=(P,c,g)=>c.id==='trend'?(g>=20?4:2):c.id==='fourcut'?(P.photoCount>=3?4:1):c.id==='reup'?P.photoCount:c.id==='tiki'?(P.matchCount||0):c.v;
 function valOf(R,p,c,ch){
   const P=R.P[p];let v=c.choice?ch:c.lower?-ch:curV(P,c,R.gauge);
-  if(P.capture&&!c.lower)v+=1;
-  if(P.soothe&&!c.lower)v-=1;
+  if(P.capture&&!c.lower&&!c.fixed)v+=1;
+  if(P.soothe&&!c.lower&&!c.fixed)v-=1;
   return v;
 }
 // 휘슬: 2 이하 금지, 저격: 3 이상 금지
 const okV=(P,v,c)=>!(P.snipe&&!c.lower&&v>=3)&&!(P.press&&(c.lower||v<=2));
-const dOf=P=>(P.capture?1:0)-(P.soothe?1:0);
+const dOf=(P,c)=>c&&c.fixed?0:(P.capture?1:0)-(P.soothe?1:0);
 function playable(R,p,c){
   const P=R.P[p];
   if(c.reactive)return false;
@@ -86,6 +86,8 @@ function effect(R,p,card,draw){
   if(card.extra)P.plays++;
   switch(card.id){
     case'tea':P.extraNext=1;break;
+    case'entrust':P.skip=true;P.rest=true;break;
+    case'rematch':{const h=R.hist&&R.hist[R.hist.length-1];if(h&&h.w===1-p){P.plays++;ev.push(['rematch'])}}break;
     case'calm':O.soothe=true;break;
     case'whistle':O.press=true;break;
     case'regular':if(P.hand.length<=3){draw(p,1);ev.push(['regular'])}break;
@@ -149,7 +151,7 @@ function scoreMoves(R,AB,p,o={}){
     if(!playable(R,p,c))return;
     for(const ch of c.choice||c.lower||[null]){
     if(c.choice&&!okV(P,ch+dOf(P),c))continue;
-    for(const adj of AD&&!c.lower?[0,AD]:[0]){
+    for(const adj of AD&&!c.lower&&!c.fixed?[0,AD]:[0]){
       const v=valOf(R,p,c,ch)+adj;if(adj&&!okV(P,v,c))continue;const ng=Math.max(0,R.gauge+v);let s;
       const bust=ng>R.target||(ng===R.target&&!!c.nofinish);
       if(ng===R.target&&!c.nofinish)s=10000;

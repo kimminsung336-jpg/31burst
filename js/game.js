@@ -57,7 +57,7 @@ function chips(p){
   const P=G.P[p];if(!P)return'';const a=[];
   if(P.snipe)a.push('<span class="chip warn">저격당함: 3 이상 금지</span>');
   if(P.capture)a.push('<span class="chip warn">부적: 다음 카드 +1</span>');
-  if(P.skip)a.push('<span class="chip warn">침묵당함</span>');
+  if(P.skip)a.push(P.rest?'<span class="chip">쉬는 중</span>':'<span class="chip warn">침묵당함</span>');
   if(P.press)a.push('<span class="chip warn">휘슬: 2 이하 금지</span>');
   if(P.soothe)a.push('<span class="chip warn">다독다독: 다음 카드 −1</span>');
   if(CASTS[SEAT[p]].adjust)a.push(`<span class="chip">${CASTS[SEAT[p]].abName} ${P.adjUsed?'사용함':'남음'}</span>`);
@@ -136,7 +136,7 @@ function newRound(){
 async function startTurn(){
   if(G.over)return;
   render();const p=G.cur,P=G.P[p];
-  if(P.skip){P.skip=false;log(`${NAME[p]} 차례는 침묵의 주문에 걸려 건너뜀`,p?'ai':'me');return next(p)}
+  if(P.skip){P.skip=false;log(P.rest?`${NAME[p]} 이번 차례는 쉰다 (맡길게요)`:`${NAME[p]} 차례는 침묵의 주문에 걸려 건너뜀`,p?'ai':'me');P.rest=false;return next(p)}
   {const c=RULES.turnStart(G,ABS(),p);if(c)log(`${CASTS[SEAT[1-p]].abName}: ${NAME[p]} 손패 「${c.name}」 버림`,p?'ai':'me')}
   if(!anyPlayable(p)){
     log(`${NAME[p]} 낼 카드가 없어서 패스`,p?'ai':'me');draw(p,1);G.passes++;P.snipe=false;P.press=false;
@@ -164,7 +164,7 @@ async function play(p,idx,choice,adj=0){
   const postEl=addPost(p,card,v);
   if(typeof Talk!=='undefined'&&ng>=25&&ng<G.target)Talk.say('near');
 
-  if(ng===G.target&&!card.nofinish){if(typeof Talk!=='undefined')Talk.say(p===ME?'justMe':'justOp');bigHit(G.target);await sleep(2600);G.busy=false;return endRound(p)}
+  if(ng===G.target&&!card.nofinish){if(card.fixed){G.stake+=2;log(`노필터 셀카로 저스트! 판돈 +2 → ${G.stake}점`,cls);render()}if(typeof Talk!=='undefined')Talk.say(p===ME?'justMe':'justOp');bigHit(G.target);await sleep(2600);G.busy=false;return endRound(p)}
   if(ng>G.target||(ng===G.target&&card.nofinish)){   // 저스트 불가 카드로 목표에 딱 맞으면 버스트
     G.stakeHist=G.stakeHist||[1];const k=RULES.bust(G,AB,card);G.busts+=k;
     const plus=AB.filter(a=>a.bustPlus).length,drawers=[];

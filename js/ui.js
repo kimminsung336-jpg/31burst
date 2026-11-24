@@ -69,7 +69,7 @@ $('hand').addEventListener('click',async e=>{
     ch=await ask(c.name,c.choice?'숫자를 골라.':'게이지를 얼마나 내릴까?',opts,true);
     if(ch===CARD_OPTION_DISMISSED||!valid())return;
   }
-  if(CASTS[SEAT[ME]].adjust&&!P.adjUsed&&!c.lower){const v=valOf(ME,c,ch);
+  if(CASTS[SEAT[ME]].adjust&&!P.adjUsed&&!c.lower&&!c.fixed){const v=valOf(ME,c,ch);
     const d=CASTS[SEAT[ME]].adjust;
     const opts=[{label:`그대로 ${v}`,value:0},{label:`${d>0?'+1':'−1'} → ${v+d}`,value:d}].filter(o=>okV(P,v+o.value,c));
     if(opts.length>1){

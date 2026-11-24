@@ -10,14 +10,15 @@ const Progress=(()=>{
   // 카드풀 카드 해금 조건. 기본 덱 카드는 처음부터 열려 있다
   const CARD={
     reup:{lv:['iri',2]},omurice:{lv:['haru',2]},
+    nofilter:{story:'iri3'},nofate:{story:'miko3'},entrust:{story:'haru3'},rematch:{story:'mina3'},
     unfollow:{ach:'bust3'},unlike:{ach:'bigJust'},lurk:{ach:'drawRound'},challenge:{ach:'hardWin'},
   };
   const d=()=>{const s=Save.d;s.aff=s.aff||{};s.ach=s.ach||{};s.story=s.story||{};return s};
   const aff=k=>d().aff[k]||0;
   const lv=k=>AFF_LV.filter(x=>aff(k)>=x).length;
   const nextLv=k=>AFF_LV[lv(k)];   // 다음 레벨까지 필요한 누적 호감도 (만렙이면 undefined)
-  function condText(id){const c=CARD[id];if(!c)return'';return c.lv?`${CASTS[c.lv[0]].name} 호감도 Lv${c.lv[1]}`:ACH[c.ach].cond}
-  function cardOpen(id){const c=CARD[id];if(!c)return true;return c.lv?lv(c.lv[0])>=c.lv[1]:!!d().ach[c.ach]}
+  function condText(id){const c=CARD[id];if(!c)return'';if(c.story){const st=STORY.find(x=>x.id===c.story);return`${CASTS[st.k].name} 스토리 ${st.ch}장 클리어`}return c.lv?`${CASTS[c.lv[0]].name} 호감도 Lv${c.lv[1]}`:ACH[c.ach].cond}
+  function cardOpen(id){const c=CARD[id];if(!c)return true;if(c.story)return!!d().story[c.story];return c.lv?lv(c.lv[0])>=c.lv[1]:!!d().ach[c.ach]}
   // 스토리: 1장은 처음부터, 다음 장은 앞 장을 깨면
   const chapter=(k,n)=>STORY.find(x=>x.k===k&&x.ch===n);
   const storyDone=id=>!!d().story[id];
