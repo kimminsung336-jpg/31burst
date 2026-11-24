@@ -20,10 +20,11 @@ function applySnap(s){
 }
 const ALLC=[...SHARED,...IRI,...MIKO,...HARU,...MINA];
 const flipCls=c=>c==='me'?'ai':c==='ai'?'me':c;
-function pickFor(p,title,text,opts,auto){
-  if(p===ME)return ask(title,text,opts);
+// cards: 고르는 카드들(있으면 카드 그림으로 고르게 함), from: 'hand'(내 손패) / 'deck'(덱 위에서 뽑은 카드)
+function pickFor(p,title,text,opts,auto,cards,from){
+  if(p===ME)return cards?pickCards(title,text,cards,from).then(k=>opts[k].value):ask(title,text,opts);
   if(!NET.on)return Promise.resolve(auto());
-  const id=++NET.aid;NET.send({t:'ask',id,title,text,labels:opts.map(o=>o.label)});
+  const id=++NET.aid;NET.send({t:'ask',id,title,text,labels:opts.map(o=>o.label),cards:cards?cards.map(c=>c.id):null,from});
   return new Promise(r=>{NET.wait[id]=k=>r(opts[k]?opts[k].value:opts[0].value)});
 }
 function netMsg(h){NET.msg=h;const o=$('olMsg');if(o)o.innerHTML=h;const e=$('olSt');if(e)e.innerHTML=h}
@@ -97,7 +98,8 @@ function onNet(m){
     case'bust':bigBust(m.k||1);break;
     case'bustfx':bustFx(NET.lastEl);break;
     case'log':log(m.msg,flipCls(m.cls),1);break;
-    case'ask':ask(m.title,m.text,m.labels.map((l,k)=>({label:l,value:k}))).then(k=>NET.send({t:'ans',id:m.id,k}));break;
+    case'ask':{const cs=m.cards&&m.cards.map(id=>ALLC.find(c=>c.id===id));
+      (cs&&cs.every(Boolean)?pickCards(m.title,m.text,cs,m.from):ask(m.title,m.text,m.labels.map((l,k)=>({label:l,value:k})))).then(k=>NET.send({t:'ans',id:m.id,k}));break}
     case'result':{const w=m.w===null?null:1-m.w;if(m.final){NET.hostCast=null;NET.guestCast=null;showResult(true,w).then(toOnline)}else showResult(false,w,true);break}
   }
 }

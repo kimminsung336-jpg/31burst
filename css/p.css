@@ -399,3 +399,19 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 #play .cardb.blk{filter:saturate(.2) brightness(.85)}
 #play .cardb .blkst{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) rotate(-14deg);padding:3px 12px;border:3px solid var(--ink2);border-radius:8px;background:var(--cM);color:#fff;font:400 18px/1 "Black Han Sans";box-shadow:2px 2px 0 var(--ink2);pointer-events:none;white-space:nowrap}
 #play .cardb .blkst::after{content:"으로 막힘";font:900 11px "Noto Sans KR";margin-left:2px}
+
+/* 카드 고르기 */
+#play .pickov{position:absolute;inset:0;z-index:20;background:rgba(20,16,24,.62);animation:pkIn .2s}
+@keyframes pkIn{from{opacity:0}}
+#play .pkhd{position:absolute;left:50%;top:70px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;color:#fff}
+#play .pkhd b{font:400 40px/1 "Black Han Sans";padding:6px 22px;background:var(--cM);border:3px solid var(--ink2);border-radius:14px;box-shadow:4px 4px 0 var(--ink2);transform:rotate(-2deg)}
+#play .pkhd span{font-size:16px;font-weight:700;text-shadow:0 2px 0 var(--ink2)}
+#play .pkrow{position:absolute;left:0;right:0;top:200px;display:flex;justify-content:center;gap:28px}
+#play .pkc{border:0;background:none;padding:0;cursor:pointer;animation:pkUp .35s var(--d) both;transition:transform .12s}
+#play .pkc:hover,#play .pkc:focus-visible{transform:translateY(-12px) rotate(-2deg);outline:none}
+#play .pkc:focus-visible .pcb{box-shadow:.3em .3em 0 var(--cY)}
+@keyframes pkUp{from{opacity:0;transform:translateY(40px)}}
+#play .hand:has(.picking){z-index:21}
+#play .cards.picking .cardb{filter:none!important;cursor:pointer;transform:rotate(calc((var(--i) - (var(--n) - 1)/2)*4.5deg)) translateY(-40px)}
+#play .cards.picking .cardb:hover,#play .cards.picking .cardb:focus-visible{transform:rotate(calc((var(--i) - (var(--n) - 1)/2)*4.5deg)) translateY(-70px);z-index:5}
+#play .cards.picking .cardb .blkst{display:none}

@@ -117,3 +117,19 @@ $('pgrid').addEventListener('click',e=>{
   const me=PICK_ME,ai=k;if(ai===me)return;
   SEAT=[me,ai];seatSetup();newGame();
 });
+
+/* ---------- 카드 고르기: 뒤를 어둡게 하고 고를 카드만 띄운다 ---------- */
+// from 'hand': 내 손패 카드가 그 자리에서 위로 살짝 떠오름 / 'deck': 뽑은 카드들이 가운데 떠오름
+function pickCards(title,text,cards,from){
+  return new Promise(res=>{
+    const play=$('play'),ov=document.createElement('div');ov.className='pickov';
+    ov.innerHTML=`<div class="pkhd"><b>${title}</b><span>${text}</span></div>`+(from==='deck'?`<div class="pkrow">${cards.map((c,i)=>`<button class="pkc" data-k="${i}" style="--d:${i*70}ms" aria-label="${c.name}">${cardHTML(c,{size:'l'})}</button>`).join('')}</div>`:'');
+    play.appendChild(ov);const hand=$('hand');
+    let btns=[];
+    const done=k=>{ov.remove();hand.classList.remove('picking');btns.forEach(b=>{b.classList.remove('pkme');b.onclick=null});hand.removeEventListener('click',cap,true);res(k)};
+    const cap=e=>{const b=e.target.closest('.cardb');if(!b)return;e.stopPropagation();e.preventDefault();done(+b.dataset.i)};
+    if(from==='deck'){ov.querySelectorAll('.pkc').forEach(b=>b.onclick=()=>done(+b.dataset.k));ov.querySelector('.pkc').focus()}
+    else{hand.classList.add('picking');btns=[...hand.querySelectorAll('.cardb')];btns.forEach(b=>{b.disabled=false;b.classList.add('pkme')});
+      hand.addEventListener('click',cap,true);btns[0]&&btns[0].focus()}
+  });
+}

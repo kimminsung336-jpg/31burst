@@ -37,8 +37,8 @@ function render(){
   const P=G.P[ME];
   $('hand').innerHTML=P?P.hand.map((c,i,arr)=>{
     const v=c.choice||c.lower?undefined:valOf(ME,c,null);
-    const can=G.cur===ME&&!G.busy&&!G.over&&playable(ME,c),blk=blockedBy(P,c);
-    return `<button class="cardb${blk?' blk':''}" data-i="${i}" style="--i:${i};--n:${arr.length}" ${can?'':'disabled'} aria-label="${c.name} ${v===undefined?numLabel(c):v}. ${c.text}${blk?` (${blk}으로 막힘)`:''}">${cardHTML(c,{num:v})}${blk?`<span class="blkst">${blk}</span>`:''}</button>`
+    const picking=$('hand').classList.contains('picking'),can=picking||G.cur===ME&&!G.busy&&!G.over&&playable(ME,c),blk=picking?'':blockedBy(P,c);
+    return `<button class="cardb${blk?' blk':''}${picking?' pkme':''}" data-i="${i}" style="--i:${i};--n:${arr.length}" ${can?'':'disabled'} aria-label="${c.name} ${v===undefined?numLabel(c):v}. ${c.text}${blk?` (${blk}으로 막힘)`:''}">${cardHTML(c,{num:v})}${blk?`<span class="blkst">${blk}</span>`:''}</button>`
   }).join(''):'';
   // 저격·휘슬로 막힌 상태: 손패 위 띠로 무엇이 막혔고 언제 풀리는지
   const r=[];if(P&&P.snipe)r.push('<b>저격당함</b> 3 이상 숫자는 못 내');if(P&&P.press)r.push('<b>휘슬</b> 2 이하 숫자는 못 내');
@@ -176,9 +176,9 @@ async function play(p,idx,choice,adj=0){
     if(e==='convert')log(`포교: ${NAME[1-p]} 손에서 「${c.name}」 버려짐`,cls);
   }
   if(RULES.PICK[card.id]){   // 고르는 효과: 내 차례면 직접 고르고, AI는 자동으로
-    const T={drip:['핸드드립','덱 위 2장 중 1장을 손에 넣어. 나머지는 덱 맨 아래로.'],fortune:['점괘','덱 위 3장 중 1장을 손에 넣어.'],sub:['선수 교체','덱 맨 아래로 보낼 카드를 골라.'],nail:['네일 자랑','덱 맨 아래로 보낼 카드를 골라.']}[card.id];
+    const T={drip:['핸드드립','손에 넣을 카드 한 장을 골라. 나머지는 덱 맨 아래로.'],fortune:['점괘','손에 넣을 카드 한 장을 골라.'],sub:['선수 교체','덱 맨 아래로 보낼 카드를 골라. 그리고 1장 뽑아.'],nail:['네일 자랑','덱 맨 아래로 보낼 카드를 골라. 그리고 2장 뽑아.']}[card.id];
     const o=RULES.pickOpts(G,p,card.id);
-    if(o.length){const k=await pickFor(p,T[0],T[1],o.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>RULES.autoPick(G,p,card.id,o));RULES.pickResolve(G,p,card.id,o,k,draw)}
+    if(o.length){const k=await pickFor(p,T[0],T[1],o.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>RULES.autoPick(G,p,card.id,o),o,RULES.PICK[card.id].hand?'hand':'deck');RULES.pickResolve(G,p,card.id,o,k,draw)}
     else if(RULES.PICK[card.id].hand)draw(p,card.id==='nail'?2:1);
   }
   if(RULES.photoHook(G,AB,p,card,draw))log(`셀카 중독: ${NAME[p]} 1장 뽑음`,cls);
