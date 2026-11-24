@@ -1,30 +1,13 @@
 // 판 진행: 뽑기·내기·턴·판 끝
-function freshPlayer(p){return{deck:shuffle(DECK[p].map(c=>({...c}))),hand:[],played:[],skip:false,snipe:false,capture:false,extraNext:0,plays:0,usedOnce:false,photoUsed:false,photoCount:0,used:[],known:[],out:[],soothe:false,press:false,adjUsed:false,lastV:null,lastP:null,matchCount:0}}
+function freshPlayer(p){return{def:DECK[p],deck:shuffle(DECK[p].map(c=>({...c}))),hand:[],played:[],skip:false,snipe:false,capture:false,extraNext:0,plays:0,usedOnce:false,photoUsed:false,photoCount:0,used:[],known:[],out:[],soothe:false,press:false,adjUsed:false,lastV:null,lastP:null,matchCount:0}}
 function draw(p,n){const P=G.P[p];for(let i=0;i<n;i++){if(!P.deck.length&&P.used.length){P.deck=shuffle(P.used);P.used=[];log(`${NAME[p]} 덱을 다 써서 낸 카드를 다시 섞음`,p?'ai':'me')}if(!P.deck.length)return;P.hand.push(P.deck.pop())}}
 function log(msg,cls='sys',local){if(!local)NET.ev({t:'log',msg,cls});const d=document.createElement('div');d.className='note'+(cls==='sys'?' hot':'');d.textContent=msg;const f=$('feed');f.prepend(d);while(f.children.length>40)f.lastChild.remove();f.scrollTop=0}
 
-function valOf(p,c,ch){
-  const P=G.P[p];let v;
-  if(c.choice)v=ch;else if(c.lower)v=-ch;
-  else if(c.id==='trend')v=G.gauge>=20?4:2;
-  else if(c.id==='fourcut')v=P.photoCount>=3?4:1;
-  else if(c.id==='reup')v=P.photoCount;else if(c.id==='tiki')v=P.matchCount||0;
-  else v=c.v;
-  if(P.capture&&!c.lower)v+=1;
-  if(P.soothe&&!c.lower)v-=1;
-  return v;
-}
-// 휘슬: 2 이하 금지, 저격: 3 이상 금지
-const okV=(P,v,c)=>!(P.snipe&&!c.lower&&v>=3)&&!(P.press&&(c.lower||v<=2));
-function playable(p,c){
-  const P=G.P[p];
-  if(c.reactive)return false;
-  if(c.once&&P.usedOnce)return false;
-  const d=(P.capture?1:0)-(P.soothe?1:0);
-  if(c.choice)return c.choice.some(x=>okV(P,x+d,c));
-  if(c.lower)return okV(P,-1,c);
-  return okV(P,valOf(p,c,null),c);
-}
+// 규칙은 rules.js 하나에 있다. 여기선 지금 판(G)과 캐스트 능력(ABS)을 넘겨 부른다
+const ABS=()=>[CASTS[SEAT[0]],CASTS[SEAT[1]]];
+const valOf=(p,c,ch)=>RULES.valOf(G,p,c,ch);
+const okV=RULES.okV;
+const playable=(p,c)=>RULES.playable(G,p,c);
 const anyPlayable=p=>G.P[p].hand.some(c=>playable(p,c));
 
 function render(){
@@ -121,8 +104,7 @@ async function startTurn(){
   if(G.over)return;
   render();const p=G.cur,P=G.P[p];
   if(P.skip){P.skip=false;log(`${NAME[p]} 차례는 침묵의 주문에 걸려 건너뜀`,p?'ai':'me');return next(p)}
-  P.plays=1+P.extraNext;P.extraNext=0;if(CASTS[SEAT[p]].photoDraw)P.photoUsed=false;P.momUsed=false;
-  {const cu=CASTS[SEAT[1-p]].curse;if(cu&&P.hand.length>=cu){const c=P.hand.splice(Math.random()*P.hand.length|0,1)[0];P.used.push(c);log(`${CASTS[SEAT[1-p]].abName}: ${NAME[p]} 손패 「${c.name}」 버림`,p?'ai':'me')}}
+  {const c=RULES.turnStart(G,ABS(),p);if(c)log(`${CASTS[SEAT[1-p]].abName}: ${NAME[p]} 손패 「${c.name}」 버림`,p?'ai':'me')}
   if(!anyPlayable(p)){
     log(`${NAME[p]} 낼 카드가 없어서 패스`,p?'ai':'me');draw(p,1);G.passes++;P.snipe=false;P.press=false;
     if(G.passes>=2){log('둘 다 패스. 이 판은 무승부');await sleep(500);return endRound(null)}
@@ -135,71 +117,43 @@ function next(p){G.cur=1-p;const id=G.gid;setTimeout(()=>{if(id===G.gid)startTur
 function endTurn(p){const P=G.P[p];draw(p,1);P.snipe=false;P.press=false;next(p)}
 
 async function play(p,idx,choice,adj=0){
-  G.busy=true;const P=G.P[p],O=G.P[1-p],cls=p?'ai':'me';
+  G.busy=true;const P=G.P[p],cls=p?'ai':'me',AB=ABS();
   const card=P.hand.splice(idx,1)[0];P.played.push(card.id);P.used.push(card);
   let v=valOf(p,card,choice);if(!card.lower){P.capture=false;P.soothe=false}
   if(adj){v+=adj;P.adjUsed=true;log(`${CASTS[SEAT[p]].abName}: ${NAME[p]} 숫자 ${adj>0?'+1':'−1'}`,cls)}
-  {const OP=G.P[1-p],rm=CASTS[SEAT[p]].revMom;if(rm&&P.lastP!==null&&v<=P.lastP-rm&&OP.hand.length){const c=OP.hand.splice(Math.random()*OP.hand.length|0,1)[0];OP.used.push(c);log(`흉조: ${NAME[1-p]} 손패 「${c.name}」 버림`,cls)}}
-  {const OP=G.P[1-p];if(OP.lastP!==null&&v===OP.lastP)P.matchCount=(P.matchCount||0)+1;if(CASTS[SEAT[p]].mirror&&OP.lastP!==null&&v===OP.lastP){draw(p,1);log(`받아주기: ${NAME[p]} 1장 뽑음`,cls)}P.lastP=v}
-  if(CASTS[SEAT[p]].momentum&&!card.lower){if(P.lastV!==null&&v>=P.lastV+2&&!P.momUsed){P.momUsed=true;draw(p,1);log(`기세 올려!: ${NAME[p]} 1장 뽑음`,cls)}P.lastV=v}
-  const prev=G.gauge,ng=Math.max(0,prev+v);
+  for(const[e,c]of RULES.onPlayed(G,AB,p,card,v,draw)){
+    if(e==='revMom')log(`흉조: ${NAME[1-p]} 손패 「${c.name}」 버림`,cls);
+    if(e==='mirror')log(`받아주기: ${NAME[p]} 1장 뽑음`,cls);
+    if(e==='momentum')log(`기세 올려!: ${NAME[p]} 1장 뽑음`,cls);
+  }
+  const ng=Math.max(0,G.gauge+v);
   G.gauge=ng;if(card.photo)P.photoCount++;pop();render();
   const postEl=addPost(p,card,v);
 
   if(ng===G.target&&!card.nofinish){bigHit(G.target);await sleep(2600);G.busy=false;return endRound(p)}
   if(ng>G.target||(ng===G.target&&card.nofinish)){   // 저스트 불가 카드로 목표에 딱 맞으면 버스트
-    // 목표가 열기보다 위로 올라갈 때까지 연속으로 버스트
-    const plus=SEAT.filter(k=>CASTS[k].bustPlus).length;let k=0;
-    do{const mult=k===0&&card.triple?3:2;G.stake=G.stake*mult+plus;G.target+=10;G.busts++;(G.stakeHist=G.stakeHist||[1]).push(G.stake);k++}while(G.gauge>=G.target);
-    const drawers=[ME,AI].filter(q=>CASTS[SEAT[q]].bustDraw);drawers.forEach(q=>draw(q,CASTS[SEAT[q]].bustDraw));
-    [ME,AI].forEach(q=>{const H=G.P[1-q];if(CASTS[SEAT[q]].bustDiscard&&H.hand.length){const c=H.hand.splice(Math.random()*H.hand.length|0,1)[0];H.used.push(c);log(`${CASTS[SEAT[q]].abName}: ${NAME[1-q]} 손패 「${c.name}」 버림`,'sys')}});
+    G.stakeHist=G.stakeHist||[1];const k=RULES.bust(G,AB,card);G.busts+=k;
+    const plus=AB.filter(a=>a.bustPlus).length,drawers=[];
+    for(const[e,q,c]of RULES.afterBust(G,AB,draw)){if(e==='bustDraw')drawers.push(q);if(e==='bustDiscard')log(`${CASTS[SEAT[q]].abName}: ${NAME[1-q]} 손패 「${c.name}」 버림`,'sys')}
     bustFx(postEl);render();bigBust(k);await sleep(2300);
     log(`버스트!${k>1?` ${k}연속,`:''} 묻고 ${card.triple?'트리플':'더블'}.${plus?' 흉조로 판돈 +1,':''} 판돈 ${G.stake}점, 목표 ${G.target}.${drawers.map(q=>` ${NAME[q]} 2장 뽑음`).join('')}`);
   }
   // 효과
-  if(card.draw)draw(p,card.draw);
-  if(card.extra)P.plays++;
-  switch(card.id){
-    case'tea':P.extraNext=1;break;
-    case'calm':O.soothe=true;break;
-    case'whistle':O.press=true;break;
-    case'regular':if(P.hand.length<=3){draw(p,1);log(`단골 손님: ${NAME[p]} 1장 뽑음`,cls)}break;
-    case'drip':{const top=P.deck.splice(-2);if(top.length){
-      let k;const gap=G.target-G.gauge;
-      k=await pickFor(p,'핸드드립','덱 위 2장 중 1장을 손에 넣어. 나머지는 덱 맨 아래로.',top.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>{let k=top.findIndex(c=>c.v===gap);if(k<0)k=top.reduce((b,c,i)=>c.v>top[b].v&&c.v<=gap?i:b,0);return k});
-      P.hand.push(top.splice(k,1)[0]);P.deck.unshift(...top);}break}
-    case'sub':{
-      if(P.hand.length){
-        let k;
-        k=await pickFor(p,'선수 교체','덱 맨 아래로 보낼 카드를 골라.',P.hand.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>P.hand.reduce((b,c,i)=>c.v>P.hand[b].v?i:b,0));
-        P.deck.unshift(P.hand.splice(k,1)[0]);
-      }
-      draw(p,1);break;}
-    case'nail':{
-      if(P.hand.length){
-        let k;
-        k=await pickFor(p,'네일 자랑','덱 맨 아래로 보낼 카드를 골라.',P.hand.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>P.hand.reduce((b,c,i)=>c.v>P.hand[b].v?i:b,0));
-        P.deck.unshift(P.hand.splice(k,1)[0]);
-      }
-      draw(p,2);break;}
-    case'f4f':draw(p,1);draw(1-p,1);log('맞팔 이벤트: 둘 다 1장씩 뽑음',cls);break;
-    case'dm':if(O.hand.length){const c=O.hand[Math.random()*O.hand.length|0];P.known.push(c);
-      const seen=`염탐 결과: ${NAME[1-p]} 손에 「${c.name}」(${deckLabel(c)})`,peek=`${jo(NAME[p],'이','가')} 네 손패 한 장을 훔쳐봤다`;
-      if(p===ME){log(seen,cls,1);NET.ev({t:'log',msg:peek,cls})}else{log(peek,cls,1);NET.ev({t:'log',msg:seen,cls})}}break;
-    case'snipe':O.snipe=true;break;
-    case'charm':O.capture=true;break;
-    case'silence':O.skip=true;P.usedOnce=true;break;
-    case'doll':if(O.hand.length){const k=Math.random()*O.hand.length|0,c=O.hand[k];
-      const cv=c.choice?Math.max(...c.choice):c.lower?0:valOf(1-p,c,null);
-      if(cv>=3){O.hand.splice(k,1);P.out.push(c.id);log(`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv}) 버려짐`,cls)}
-      else{P.known.push(c);log(`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv})는 살아남음`,cls)}}break;
-    case'convert':if(O.hand.length){const c=O.hand.splice(Math.random()*O.hand.length|0,1)[0];P.out.push(c.id);log(`포교: ${NAME[1-p]} 손에서 「${c.name}」 버려짐`,cls)}break;
-    case'fortune':{const top=P.deck.splice(-3);if(top.length){
-      const gap=G.target-G.gauge;
-      const k=await pickFor(p,'점괘','덱 위 3장 중 1장을 손에 넣어.',top.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>{let k=top.findIndex(c=>c.v===gap);if(k<0)k=top.reduce((b,c,i)=>c.v>top[b].v&&c.v<=gap?i:b,0);return k});
-      P.hand.push(top.splice(k,1)[0]);P.deck.push(...top);}break}
+  for(const[e,c,cv,killed]of RULES.effect(G,p,card,draw)){
+    if(e==='regular')log(`단골 손님: ${NAME[p]} 1장 뽑음`,cls);
+    if(e==='f4f')log('맞팔 이벤트: 둘 다 1장씩 뽑음',cls);
+    if(e==='dm'){const seen=`염탐 결과: ${NAME[1-p]} 손에 「${c.name}」(${deckLabel(c)})`,peek=`${jo(NAME[p],'이','가')} 네 손패 한 장을 훔쳐봤다`;
+      if(p===ME){log(seen,cls,1);NET.ev({t:'log',msg:peek,cls})}else{log(peek,cls,1);NET.ev({t:'log',msg:seen,cls})}}
+    if(e==='doll')log(killed?`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv}) 버려짐`:`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv})는 살아남음`,cls);
+    if(e==='convert')log(`포교: ${NAME[1-p]} 손에서 「${c.name}」 버려짐`,cls);
   }
-  if(CASTS[SEAT[p]].photoDraw&&card.photo&&!P.photoUsed){P.photoUsed=true;draw(p,1);log(`셀카 중독: ${NAME[p]} 1장 뽑음`,cls)}
+  if(RULES.PICK[card.id]){   // 고르는 효과: 내 차례면 직접 고르고, AI는 자동으로
+    const T={drip:['핸드드립','덱 위 2장 중 1장을 손에 넣어. 나머지는 덱 맨 아래로.'],fortune:['점괘','덱 위 3장 중 1장을 손에 넣어.'],sub:['선수 교체','덱 맨 아래로 보낼 카드를 골라.'],nail:['네일 자랑','덱 맨 아래로 보낼 카드를 골라.']}[card.id];
+    const o=RULES.pickOpts(G,p,card.id);
+    if(o.length){const k=await pickFor(p,T[0],T[1],o.map((c,i)=>({label:`${c.name}(${deckLabel(c)})`,value:i})),()=>RULES.autoPick(G,p,card.id,o));RULES.pickResolve(G,p,card.id,o,k,draw)}
+    else if(RULES.PICK[card.id].hand)draw(p,card.id==='nail'?2:1);
+  }
+  if(RULES.photoHook(G,AB,p,card,draw))log(`셀카 중독: ${NAME[p]} 1장 뽑음`,cls);
   P.plays--;G.busy=false;render();
   if(P.plays>0&&anyPlayable(p)){if(p===AI&&!NET.on){await sleep(650);aiAct()}return}
   endTurn(p);
