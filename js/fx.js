@@ -63,17 +63,18 @@ function bustFx(el){
 const $=id=>document.getElementById(id);
 // 카드 내는 모션: 내 카드는 손에서, 상대 카드는 뒷면으로 나와서 뒤집히며 링으로
 let LAST_PICK=null;
-function flyCard(p,v){
+function flyCard(p,v,card){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const ring=document.querySelector('.ring').getBoundingClientRect();if(!ring.width)return;
   let src;
   if(p===ME){src=LAST_PICK&&performance.now()-LAST_PICK.t<4000?LAST_PICK.r:$('hand').getBoundingClientRect();LAST_PICK=null}
   else{const bk=$('aiBacks');src=(bk.lastElementChild||bk).getBoundingClientRect()}
-  const W=Math.max(58,Math.min(84,ring.width*.32)),H=W*1.38;
+  const W=Math.max(48,ring.width*.36),H=W*1.38;   // 손패 카드와 비슷한 크기 (화면 배율을 따라감)
   const sx=src.left+src.width/2-W/2,sy=src.top+src.height/2-H/2,dx=ring.left+ring.width/2-W/2,dy=ring.top+ring.height/2-H/2;
   const el=document.createElement('div');el.className='flyc'+(p===ME?'':' opp b');el.style.width=W+'px';el.style.height=H+'px';
   const cls=v<0?'neg':v===0?'zero':'';
-  el.innerHTML=`<div class="fin"><div class="fc front ${cls}"><b>${v}</b></div><div class="fc fbk"></div></div>`;
+  el.style.setProperty('--fw',W+'px');   // 앞면은 실제 카드 그림으로
+  el.innerHTML=`<div class="fin"><div class="fc front ${cls}${card?' cardf':''}">${card?cardHTML(card,{num:v}):`<b>${v}</b>`}</div><div class="fc fbk"></div></div>`;
   document.body.appendChild(el);const fin=el.firstElementChild;
   let frames,dur;
   if(p===ME){
@@ -88,8 +89,8 @@ function flyCard(p,v){
     // 뒷면으로 슥 미끄러져 와서, 링 위에서 멈췄다가 뒤집힌다
     const mx=(sx+dx)/2+16,my=(sy+dy)/2-10;
     frames=[
-      {transform:`translate(${sx}px,${sy}px) rotate(6deg) scale(.6)`,opacity:1,easing:'cubic-bezier(.3,.6,.35,1)'},
-      {transform:`translate(${mx}px,${my}px) rotate(4deg) scale(.9)`,opacity:1,offset:.25},
+      {transform:`translate(${sx}px,${sy}px) rotate(6deg) scale(.8)`,opacity:1,easing:'cubic-bezier(.3,.6,.35,1)'},
+      {transform:`translate(${mx}px,${my}px) rotate(4deg) scale(1)`,opacity:1,offset:.25},
       {transform:`translate(${dx}px,${dy}px) rotate(0deg) scale(1.05)`,opacity:1,offset:.5},
       {transform:`translate(${dx}px,${dy}px) scale(1.2)`,opacity:1,offset:.78},
       {transform:`translate(${dx}px,${dy}px) scale(1.2)`,opacity:1,offset:.9},
@@ -102,4 +103,4 @@ function flyCard(p,v){
   a.onfinish=()=>el.remove();setTimeout(()=>el.remove(),dur+600);
 }
 function tlNote(p,card,v){
-  flyCard(p,v);}
+  flyCard(p,v,card);}

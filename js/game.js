@@ -37,10 +37,19 @@ function render(){
   const P=G.P[ME];
   $('hand').innerHTML=P?P.hand.map((c,i,arr)=>{
     const v=c.choice||c.lower?undefined:valOf(ME,c,null);
-    const can=G.cur===ME&&!G.busy&&!G.over&&playable(ME,c);
-    return `<button class="cardb" data-i="${i}" style="--i:${i};--n:${arr.length}" ${can?'':'disabled'} aria-label="${c.name} ${v===undefined?numLabel(c):v}. ${c.text}">${cardHTML(c,{num:v})}</button>`
+    const can=G.cur===ME&&!G.busy&&!G.over&&playable(ME,c),blk=blockedBy(P,c);
+    return `<button class="cardb${blk?' blk':''}" data-i="${i}" style="--i:${i};--n:${arr.length}" ${can?'':'disabled'} aria-label="${c.name} ${v===undefined?numLabel(c):v}. ${c.text}${blk?` (${blk}으로 막힘)`:''}">${cardHTML(c,{num:v})}${blk?`<span class="blkst">${blk}</span>`:''}</button>`
   }).join(''):'';
+  // 저격·휘슬로 막힌 상태: 손패 위 띠로 무엇이 막혔고 언제 풀리는지
+  const r=[];if(P&&P.snipe)r.push('<b>저격당함</b> 3 이상 숫자는 못 내');if(P&&P.press)r.push('<b>휘슬</b> 2 이하 숫자는 못 내');
+  const rs=$('restrict');rs.innerHTML=r.length?r.join('<i>·</i>')+'<small>내 턴이 끝나면 풀림</small>':'';rs.hidden=!r.length;
 }
+// 저격·휘슬 때문에만 못 내는 카드인지 (다른 이유로 못 내는 카드는 표시하지 않음)
+function blockedBy(P,c){if(!P||!(P.snipe||P.press)||G.over)return'';
+  if(RULES.playable({...G,P:[{...P,snipe:false,press:false},G.P[AI]]},0,c)&&!playable(ME,c)){
+    if(P.snipe&&RULES.playable({...G,P:[{...P,snipe:false},G.P[AI]]},0,c))return'저격';
+    return'휘슬'}
+  return''}
 function chips(p){
   const P=G.P[p];if(!P)return'';const a=[];
   if(P.snipe)a.push('<span class="chip warn">저격당함: 3 이상 금지</span>');

@@ -99,7 +99,7 @@ S.home=()=>{const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save
   const line=noGuide?'매니저님, 게임 방법은 오른쪽 위 ? 에 있어요. 처음이면 한 번 보고 가요!':st?st.lines[0][1]:WIN_LINE[k][0],ex=noGuide?'happy':st?st.lines[0][2]:'happy';
   const scene=`${sceneBg()}${spr(k,250,70,640).replace(`img/p/${k}.webp`,exImg(k,named?ex:'happy'))}${counter([['cups',40],['cake',600]])}`;
   if(!named)return `${scene}<div class="dimbg"></div>
-<div class="panel hmname"><div class="row2" style="gap:12px"><img src="${faceImg(k,'happy')}" alt="" class="fc" style="width:52px;height:52px"><div><b style="font-size:15px">${c.name}</b><div style="font-size:14px;margin-top:2px">새로 오신 매니저님이죠? 이름이 뭐예요?</div></div></div>
+<div class="panel hmname"><div class="row2" style="gap:12px"><img src="${faceImg(k,'happy')}" alt="" class="facei" style="width:52px;height:52px"><div><b style="font-size:15px">${c.name}</b><div style="font-size:14px;margin-top:2px">새로 오신 매니저님이죠? 이름이 뭐예요?</div></div></div>
  <label class="lab" for="hName">매니저 이름</label>
  <input id="hName" maxlength="10" autocomplete="off" placeholder="이름을 적어 주세요" autofocus>
  <button class="btn y" id="hNameOk">출근 도장 찍기</button></div>`;
@@ -110,7 +110,7 @@ S.home=()=>{const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save
  <div class="hmduty"><span>오늘 근무</span>${CAST_KEYS.map(x=>`<button data-duty="${x}" class="${x===k?'on':''}" aria-label="${CASTS[x].name}"><img src="${av(x)}" alt=""></button>`).join('')}</div>
 </div>
 <div class="hmtop"><button class="hmic" id="hFull" aria-label="전체 화면" title="전체 화면 (F11)">${FS.on()?ICO.fsx:ICO.fs}</button><button class="hmic${noGuide?' new':''}" id="hGuide" aria-label="게임 설명서" title="게임 설명서">?</button><button class="hmic" data-go="settings" aria-label="설정" title="설정">${ICO.set}</button></div>
-<button class="hmsay" id="hDm"><img src="${faceImg(k,ex)}" alt="" class="fc"><span><b>${c.name}${noGuide?' <i>설명서</i>':st?` <i>스토리 ${st.ch}장</i>`:''}</b>${line}</span></button>
+<button class="hmsay" id="hDm"><img src="${faceImg(k,ex)}" alt="" class="facei"><span><b>${c.name}${noGuide?' <i>설명서</i>':st?` <i>스토리 ${st.ch}장</i>`:''}</b>${line}</span></button>
 <div class="hmmenu">
  <button class="hmplay" id="hPlay"><span class="lab">오늘의 대전</span><span class="t">대전</span><span class="s"><img src="${av(k)}" alt="">${jo(c.name,'으로','로')} 출전 · AI / 온라인</span></button>
  ${mb('story','pk',ICO.story,'스토리',st?`${chLabel(st)} · ${st.title}`:'전부 클리어',unread?`<i class="bd">${unread}</i>`:'')}
@@ -258,7 +258,7 @@ S.reward=()=>{const[a,b]=[G.score[ME],G.score[AI]],win=matchWinner();
  </div>
  <div style="width:340px;position:relative;overflow:hidden;background:#fff3dc;border-left:3px solid var(--ink2)">
   ${spr(k,10,90,600,'',false)}
-  <div class="panel row2" style="position:absolute;left:18px;top:20px;right:18px;padding:10px 12px;gap:10px;align-items:flex-start;border-radius:16px 16px 16px 4px"><img src="${faceImg(k,ex)}" alt="" class="fc"><span style="font-size:14px;font-weight:700;line-height:1.5">${line}</span></div>
+  <div class="panel row2" style="position:absolute;left:18px;top:20px;right:18px;padding:10px 12px;gap:10px;align-items:flex-start;border-radius:16px 16px 16px 4px"><img src="${faceImg(k,ex)}" alt="" class="facei"><span style="font-size:14px;font-weight:700;line-height:1.5">${line}</span></div>
  </div></div>`)};
 S.reward.bind=s=>{const r=s.querySelector('#rAgain');if(r)r.onclick=()=>startMatch(CURRENT.opt);
   const st=CURRENT.story&&STORY.find(x=>x.id===CURRENT.story),rs=s.querySelector('#rStory');
@@ -330,7 +330,7 @@ S.cast=()=>{const k=CAST_UI.k||Save.d.duty,c=CASTS[k],tab=CAST_UI.tab;CAST_UI.k=
   <div class="grow col">${head}<div style="flex:1;position:relative;overflow:hidden">
    <div style="position:absolute;left:0;top:0;bottom:0;width:340px;background:#fff3dc;border-right:3px solid var(--ink2)"></div>${spr(k,20,10,640)}
    <div style="position:absolute;left:370px;top:24px;right:30px;display:flex;flex-direction:column;gap:16px">
-    <div class="cbio"><b>${c.handle}</b><div class="row2" style="gap:10px;align-items:flex-start;margin-top:8px"><img src="${faceImg(k,CAST_BIO[k][1])}" alt="" class="fc" style="width:44px;height:44px"><p>${CAST_BIO[k][0]}</p></div></div>
+    <div class="cbio"><b>${c.handle}</b><div class="row2" style="gap:10px;align-items:flex-start;margin-top:8px"><img src="${faceImg(k,CAST_BIO[k][1])}" alt="" class="facei" style="width:44px;height:44px"><p>${CAST_BIO[k][0]}</p></div></div>
     <div class="panel" style="padding:14px 16px"><div class="row2" style="justify-content:space-between"><span class="lab">호감도</span><b style="font-size:14px">Lv${Progress.lv(k)}</b></div>${(()=>{const L=Progress.AFF_LV,l=Progress.lv(k),n=L[l],p=L[l-1],a=Progress.aff(k);return `<div class="affbar"><i style="width:${n?Math.round(100*(a-p)/(n-p)):100}%"></i></div><div style="font-size:12px;color:var(--sub2);font-weight:700;margin-top:4px">${n?`다음 레벨까지 ${n-a} · 이 캐스트로 이기면 +1, 스토리를 깨면 +2`:'최고 레벨'}</div>`})()}</div>
     <div class="panel" style="padding:14px 16px"><span class="lab">능력</span><div style="font-size:15px;margin-top:4px">${c.abil}</div></div>
     <div class="panel" style="padding:14px 16px"><span class="lab">덱</span><div style="font-size:14px;margin-top:4px">${Save.d.decks[k]?'직접 짠 덱':'기본 덱'} · 전용 8장 + 공용 12장</div></div>
