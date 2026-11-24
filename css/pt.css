@@ -84,10 +84,10 @@ body.pt .carow .side2 .lst>button .nm{font-size:12px!important;flex:none}
 body.pt .carow .side2 .lst>button .st{display:none}
 body.pt .carow .side2 .lst>.lab{display:none}
 body.pt .carow .side2 .lst>button:disabled{display:none}
-body.pt .caback{width:auto!important;right:0;bottom:auto!important;height:250px;border-right:0!important;border-bottom:3px solid var(--ink2)}
+body.pt .caback{width:auto!important;right:0;bottom:0!important;height:auto;border-right:0!important}
 body.pt .caspr .spr{left:50%!important;transform:translateX(-50%);top:4px!important;height:560px!important}
-body.pt .caspr{position:absolute;left:0;right:0;top:0;height:250px;overflow:hidden;display:block}
-body.pt .cainfo{left:16px!important;right:16px!important;top:264px!important;gap:10px!important}
+body.pt .caspr{position:absolute;left:0;right:0;top:0;bottom:0;overflow:hidden;display:block}
+body.pt .cainfo{left:0!important;right:0!important;top:auto!important;bottom:0;padding:12px 16px 14px;gap:10px!important;background:var(--paper);border-top:3px solid var(--ink2)}
 
 /* 도감 */
 body.pt .scr.dex .cardgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
