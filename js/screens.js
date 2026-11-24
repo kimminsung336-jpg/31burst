@@ -45,7 +45,7 @@ const WIN_LINE={iri:['역시 매니저! 오늘 조회수 미쳤다.','다음엔 
 const Screens=(()=>{
   const root=$('screens'),stage=$('stage');let cur='title',ctx={};
   const SCR={};
-  function go(name,c){ctx=c||{};cur=name;stage.dataset.screen=name;
+  function go(name,c){ctx=c||{};cur=name;stage.dataset.screen=name;document.body.dataset.screen=name;
     if(name!=='play'){const fx=$('fx');if(fx)fx.innerHTML='';document.querySelectorAll('.flyc').forEach(e=>e.remove())}
     if(name==='play'){root.innerHTML='';return}
     root.innerHTML=`<section class="scr ${name}" aria-label="${name}">${SCR[name]()}</section>`;
@@ -148,21 +148,63 @@ let CURRENT={story:null,opt:{}};
 // 대전 시작 전 VS 화면. 누르거나 아무 키나 누르면 넘어간다
 function showVS(me,op,o={}){return new Promise(res=>{
   const st=o.story&&STORY.find(x=>x.id===o.story);
-  const info=st?`스토리 · ${CASTS[st.k].name} 1장`:`${MATCH===1?'단판':MATCH+'판'} · AI ${{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]}`;
+  const n=NET.on&&NET.role!=='host'?G.rounds||MATCH:MATCH,info=st?`스토리 · ${CASTS[st.k].name} 1장`:NET.on?`${n===1?'단판':n+'판'} · 온라인`:`${MATCH===1?'단판':MATCH+'판'} · AI ${{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]}`;
   const v=document.createElement('div');v.className='vsov';v.setAttribute('role','dialog');v.setAttribute('aria-label',`${CASTS[me].name} 대 ${CASTS[op].name}`);
   v.innerHTML=`<div class="vsl c${CAST_COL[me]}"></div><div class="vsr c${CAST_COL[op]}"></div><div class="vsline"></div>
    <div class="vsp l">${spr(me,0,0,780)}</div><div class="vsp r">${spr(op,0,0,780)}</div>
-   <div class="vsn l"><b>${CASTS[me].name}</b><span>${Save.d.manager?Save.d.manager+' 매니저':'나'} · ${CASTS[me].type}</span></div>
-   <div class="vsn r"><b>${CASTS[op].name}</b><span>AI · ${CASTS[op].type}</span></div>
+   <div class="vsn l"><b>${CASTS[me].name}</b><span>${NET.on?'나':Save.d.manager?Save.d.manager+' 매니저':'나'} · ${CASTS[me].type}</span></div>
+   <div class="vsn r"><b>${CASTS[op].name}</b><span>${NET.on?'상대':'AI'} · ${CASTS[op].type}</span></div>
    <div class="vsx">VS</div><div class="vsi">${info}</div>`;
   $('stage').appendChild(v);let done=false;
   const end=()=>{if(done)return;done=true;removeEventListener('keydown',end);v.classList.add('out');setTimeout(()=>{v.remove();res()},350)};
   v.onclick=end;addEventListener('keydown',end);setTimeout(end,2200*Math.max(SPEED,.5));
 })}
-// 온라인 2인은 기존 캐스트 고르기 창(방 만들기·참가)을 그대로 쓴다
-function openOnline(){showPick();
-  if(!$('pickClose')){const b=document.createElement('button');b.id='pickClose';b.type='button';b.className='guidebtn';b.textContent='돌아가기';
-    b.onclick=()=>{$('pick').classList.remove('on');if(NET.on||NET.peer)netReset();Screens.go('home')};$('pick').querySelector('.phead').appendChild(b)}}
+// 온라인 2인: 방 만들기·코드 참가·캐스트 고르기를 한 화면에서
+let OL_CODE='';
+function openOnline(){if(!NET.on&&!NET.peer)netMsg('');Screens.go('online')}
+function olRefresh(){if(Screens.cur==='online'){const i=document.activeElement&&document.activeElement.id;Screens.go('online');if(i&&$(i))$(i).focus()}}
+window.toOnline=()=>{NET.hostCast=null;NET.guestCast=null;if(NET.on)Screens.go('online');else Screens.go('home')};
+S.online=()=>{const on=NET.on,host=NET.role==='host',k=Save.d.duty;
+  const seg=(key,opts,cur,dis)=>`<div class="seg" data-k="${key}">${opts.map(([v,l])=>`<button data-v="${v}" class="${String(cur)===String(v)?'on':''}" ${dis?'disabled':''}>${l}</button>`).join('')}</div>`;
+  const msg=`<div class="olst" id="olSt" role="status">${NET.msg||''}</div>`;
+  if(!on){const waiting=host&&NET.code;
+    return landPhone('온라인 2인',`<div style="flex:1;display:flex;min-height:0">
+ <div style="width:360px;position:relative;overflow:hidden;background:#fff3dc;border-right:3px solid var(--ink2)">${spr(k,40,10,640)}
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:18px 22px;background:linear-gradient(rgba(255,243,220,0),#fff3dc 35%)"><span class="lab">친구와 대전</span><div style="font-size:13px;line-height:1.6;margin-top:4px">한 명이 방을 만들고, 다른 한 명이 방 코드 네 자리를 넣으면 연결돼.</div></div></div>
+ <div class="olbody">
+  <div class="olbox"><span class="lab">방 만들기</span>
+   ${waiting?`<div class="olcode serif">${NET.code}</div><div style="font-size:13px;font-weight:700">상대에게 이 숫자를 알려줘. 들어올 때까지 기다리는 중…</div><div class="row2"><button class="btn" id="olCancel">취소</button></div>`
+   :`<div class="col" style="gap:8px"><span style="font-size:12px;font-weight:700">판 수</span>${seg('rounds',[[1,'단판'],[3,'3판'],[5,'5판']],MATCH_OPT.rounds)}</div><div class="row2"><button class="btn y" id="olMake" style="min-width:180px">방 만들기</button></div>`}
+  </div>
+  <div class="olor">또는</div>
+  <div class="olbox"><span class="lab">코드로 참가</span>
+   <input id="olIn" class="olin serif" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="0000" aria-label="방 코드 네 자리" value="${OL_CODE}" ${waiting?'disabled':''}>
+   <div class="row2"><button class="btn y" id="olGo" style="min-width:180px" ${waiting?'disabled':''}>참가</button></div>
+  </div>
+  ${msg}
+ </div></div>`,'match')}
+  const mine=host?NET.hostCast:NET.guestCast,foe=host?NET.guestCast:NET.hostCast;
+  const lock=host?!!mine:(!foe||!!mine);
+  const sub=host?(!mine?'내 캐스트를 먼저 골라.':!foe?'상대가 고르는 중…':'곧 시작!'):(!foe?'방장이 캐스트를 고르는 중…':!mine?`방장은 ${CASTS[foe].name}. 내 캐스트를 골라.`:'곧 시작!');
+  return landPhone('온라인 2인',`<div class="olbody" style="padding:26px 40px">
+  <div class="row2" style="justify-content:space-between;align-items:flex-end"><div><span class="lab">연결됨 · ${host?`방장 · ${MATCH_OPT.rounds===1?'단판':MATCH_OPT.rounds+'판'}`:'참가자'}</span><div class="serif" style="font-size:30px;margin-top:2px">${sub}</div></div><button class="btn" id="olLeave">나가기</button></div>
+  <div class="olgrid">${CAST_KEYS.map(x=>{const c=CASTS[x],me=x===mine,fo=x===foe;
+   return `<button class="olc c${CAST_COL[x]}${me?' mine':''}${fo?' foe':''}" data-k="${x}" ${(lock&&!me)||fo?'disabled':''}>
+    <span class="olsp">${spr(x,0,0,420)}</span>${me?'<span class="oltag">나</span>':fo?'<span class="oltag f">상대</span>':''}
+    <span class="olnm"><b class="serif">${c.name}</b><small>${c.type}</small></span><span class="olab">${c.abil}</span></button>`}).join('')}</div>
+  ${msg}</div>`,'match')};
+S.online.bind=s=>{
+  const back=s.querySelector('.back');back.addEventListener('click',()=>{netReset();OL_CODE=''});
+  const g=s.querySelector('.seg');if(g)g.onclick=e=>{const b=e.target.closest('button');if(!b)return;MATCH_OPT.rounds=+b.dataset.v;Screens.go('online')};
+  const mk=s.querySelector('#olMake');if(mk)mk.onclick=()=>{MATCH=MATCH_OPT.rounds;netHost()};
+  const cc=s.querySelector('#olCancel');if(cc)cc.onclick=()=>{netReset();Screens.go('online')};
+  const inp=s.querySelector('#olIn');if(inp){inp.oninput=()=>{inp.value=inp.value.replace(/\D/g,'').slice(0,4);OL_CODE=inp.value};
+    const join=()=>netJoin(inp.value.trim());s.querySelector('#olGo').onclick=join;inp.onkeydown=e=>{if(e.key==='Enter')join()}}
+  const lv=s.querySelector('#olLeave');if(lv)lv.onclick=()=>{netReset();Screens.go('online')};
+  s.querySelectorAll('.olc').forEach(b=>b.onclick=()=>{const x=b.dataset.k;
+    if(NET.role==='host'&&!NET.hostCast&&x!==NET.guestCast){NET.hostCast=x;NET.send({t:'hostcast',k:x});olRefresh();netTryStart()}
+    else if(NET.role==='guest'&&NET.hostCast&&!NET.guestCast&&x!==NET.hostCast){NET.guestCast=x;NET.send({t:'cast',k:x});olRefresh()}});
+};
 
 /* 판이 다 끝나면: 보상 화면 */
 window.afterMatch=async()=>{if(CURRENT.story){Save.d.story[CURRENT.story]=1;Save.put()}const id=G.gid;await sleep(1600);if(id===G.gid&&Screens.cur==='play')Screens.go('reward')};
@@ -317,6 +359,7 @@ $('playMenu').addEventListener('click',async()=>{const r=await ask('메뉴','대
   if(r){G.over=true;G.gid=(G.gid||0)+1;if(NET.on)netReset();$('res').classList.remove('on');Screens.go('home')}});
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;
   if(document.querySelector('.modal.on,.res.on,.gview.on,#deckView.on,#pick.on'))return;
+  if(Screens.cur==='online'){netReset();OL_CODE='';return Screens.go('match')}
   if(['match','story','cast','dex','settings','reward'].includes(Screens.cur))Screens.go('home')});
 
 /* 스테이지를 창 크기에 맞춘다 */

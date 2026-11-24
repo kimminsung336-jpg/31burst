@@ -25,12 +25,12 @@ function pickFor(p,title,text,opts,auto){
   const id=++NET.aid;NET.send({t:'ask',id,title,text,labels:opts.map(o=>o.label)});
   return new Promise(r=>{NET.wait[id]=k=>r(opts[k]?opts[k].value:opts[0].value)});
 }
-function netMsg(h){$('olMsg').innerHTML=h}
+function netMsg(h){NET.msg=h;const o=$('olMsg');if(o)o.innerHTML=h;const e=$('olSt');if(e)e.innerHTML=h}
 function netErr(e){
   const t=e&&e.type;
-  if(t==='peer-unavailable')return netMsg('그 코드로 열린 방이 없어. 코드를 다시 확인해줘.');
+  if(t==='peer-unavailable'){netReset(true);netMsg('그 코드로 열린 방이 없어. 코드를 다시 확인해줘.');return olRefresh()}
   if(t==='unavailable-id'){netReset();return netHost()}
-  netMsg('연결에 실패했어. 이 화면에선 온라인 연결이 막혀 있을 수 있으니 GitHub 주소로 열어줘.');netReset(true);
+  netMsg('연결에 실패했어. 이 화면에선 온라인 연결이 막혀 있을 수 있으니 GitHub 주소로 열어줘.');netReset(true);olRefresh();
 }
 function netReset(keepMsg){try{NET.conn&&NET.conn.close()}catch(e){}try{NET.peer&&NET.peer.destroy()}catch(e){}
   Object.assign(NET,{on:false,role:null,peer:null,conn:null,code:'',hostCast:null,guestCast:null,last:'',wait:{}});
@@ -38,24 +38,24 @@ function netReset(keepMsg){try{NET.conn&&NET.conn.close()}catch(e){}try{NET.peer
 function netHost(){
   if(!window.Peer)return netMsg('연결 도구를 못 불러왔어. GitHub 주소로 열어줘.');
   netReset();const code=String(1000+Math.random()*9000|0);NET.peer=new Peer('burst31-'+code);NET.role='host';
-  NET.peer.on('open',()=>{NET.code=code;netMsg(`방 코드 <b>${code}</b> · 상대에게 이 숫자를 알려줘. 기다리는 중…`)});
+  NET.peer.on('open',()=>{NET.code=code;netMsg('');olRefresh()});
   NET.peer.on('connection',c=>{if(NET.conn){c.close();return}bindConn(c)});
   NET.peer.on('error',netErr);
 }
-function netJoin(){
+function netJoin(code){
   if(!window.Peer)return netMsg('연결 도구를 못 불러왔어. GitHub 주소로 열어줘.');
-  const code=$('olCode').value.trim();if(!/^\d{4}$/.test(code))return netMsg('방 코드 네 자리를 넣어줘.');
-  netReset();NET.role='guest';NET.peer=new Peer();netMsg('연결하는 중…');
+  code=String(code||'').trim();if(!/^\d{4}$/.test(code))return netMsg('방 코드 네 자리를 넣어줘.');
+  netReset();NET.role='guest';NET.peer=new Peer();netMsg('연결하는 중…');NET.code='';
   NET.peer.on('open',()=>bindConn(NET.peer.connect('burst31-'+code,{reliable:true})));
   NET.peer.on('error',netErr);
 }
 function bindConn(c){
   NET.conn=c;
-  c.on('open',()=>{NET.on=true;$('online').classList.add('live');$('diff').hidden=true;renderPick()});
+  c.on('open',()=>{NET.on=true;netMsg('');$('online').classList.add('live');$('diff').hidden=true;if(typeof Screens!=='undefined')Screens.go('online')});
   c.on('data',onNet);c.on('close',netLost);c.on('error',netLost);
 }
 function netLost(){if(!NET.on)return;netReset(true);$('modal').classList.remove('on');G.over=true;
-  ask('연결 끊김','상대와 연결이 끊겼어. 다시 방을 만들거나 AI와 플레이해.',[{label:'확인',value:1}]).then(()=>{showPick();netMsg('연결이 끊겼어.')})}
+  ask('연결 끊김','상대와 연결이 끊겼어. 다시 방을 만들거나 AI와 플레이해.',[{label:'확인',value:1}]).then(()=>{Screens.go('online');netMsg('연결이 끊겼어.')})}
 function seatSetup(){
   const[me,op]=SEAT;DECK=[(!NET.on&&window.myDeck&&myDeck(me))||CASTS[me].deck,CASTS[op].deck];NAME[ME]=CASTS[me].name;NAME[AI]=CASTS[op].name;
   const tag=NET.on?' (상대)':' (AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]+')';
@@ -65,16 +65,16 @@ function seatSetup(){
   $('meAbil').innerHTML=CASTS[me].abil;$('aiAbil').innerHTML=CASTS[op].abil;
   document.documentElement.style.setProperty('--backA',CASTS[op].back[0]);document.documentElement.style.setProperty('--backB',CASTS[op].back[1]);
   $('pick').classList.remove('on');
-  if(window.Screens)Screens.go('play');
+  if(typeof Screens!=='undefined')Screens.go('play');
 }
 function netTryStart(){
   if(NET.role!=='host'||!NET.hostCast||!NET.guestCast)return;
-  SEAT=[NET.hostCast,NET.guestCast];seatSetup();NET.send({t:'start',seat:SEAT});NET.last='';newGame();
+  SEAT=[NET.hostCast,NET.guestCast];G.gid=(G.gid||0)+1;G.over=true;seatSetup();NET.send({t:'start',seat:SEAT,rounds:MATCH});NET.last='';const id=G.gid;showVS(SEAT[0],SEAT[1]).then(()=>{if(id===G.gid&&NET.on)newGame()});
 }
 function onNet(m){
   if(!m||typeof m!=='object')return;
   if(NET.role==='host'){
-    if(m.t==='cast'&&CASTS[m.k]&&m.k!==NET.hostCast){NET.guestCast=m.k;renderPick();netTryStart()}
+    if(m.t==='cast'&&CASTS[m.k]&&m.k!==NET.hostCast){NET.guestCast=m.k;olRefresh();netTryStart()}
     else if(m.t==='play'){
       if(G.cur!==AI||G.busy||G.over)return;const P=G.P[AI],c=P&&P.hand[m.i];if(!c||!playable(AI,c))return;
       let adj=+m.adj||0;if(adj&&(adj!==CASTS[SEAT[AI]].adjust||P.adjUsed||c.lower))adj=0;
@@ -85,8 +85,8 @@ function onNet(m){
     return;
   }
   switch(m.t){
-    case'hostcast':NET.hostCast=m.k;renderPick();break;
-    case'start':SEAT=[m.seat[1],m.seat[0]];seatSetup();$('feed').innerHTML='';break;
+    case'hostcast':NET.hostCast=m.k;olRefresh();break;
+    case'start':SEAT=[m.seat[1],m.seat[0]];G.rounds=m.rounds||G.rounds;seatSetup();$('feed').innerHTML='';showVS(SEAT[0],SEAT[1]);break;
     case'state':applySnap(m.s);break;
     case'clear':$('feed').innerHTML='';break;
     case'post':{const c=ALLC.find(x=>x.id===m.id);if(c)NET.lastEl=addPost(1-m.p,c,m.v);break}
@@ -95,6 +95,6 @@ function onNet(m){
     case'bustfx':bustFx(NET.lastEl);break;
     case'log':log(m.msg,flipCls(m.cls),1);break;
     case'ask':ask(m.title,m.text,m.labels.map((l,k)=>({label:l,value:k}))).then(k=>NET.send({t:'ans',id:m.id,k}));break;
-    case'result':{const w=m.w===null?null:1-m.w;if(m.final){NET.hostCast=null;NET.guestCast=null;showResult(true,w).then(showPick)}else showResult(false,w,true);break}
+    case'result':{const w=m.w===null?null:1-m.w;if(m.final){NET.hostCast=null;NET.guestCast=null;showResult(true,w).then(toOnline)}else showResult(false,w,true);break}
   }
 }
