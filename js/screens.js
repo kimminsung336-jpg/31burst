@@ -58,7 +58,10 @@ const Screens=(()=>{
 })();
 const S=Screens.SCR;
 const av=k=>`img/p/${k}_av.webp`;
-const spr=(k,x,y,h,st='')=>`<img class="spr" src="img/p/${k}.webp" alt="${CASTS[k].name}" style="left:${x}px;top:${y}px;height:${h}px;${st}">`;
+// 캐스트마다 그림 여백이 달라서 키를 맞춘다 (아이리 스프라이트가 크게 잘려 있음)
+const SPR_SCALE={iri:.86,miko:1,haru:1,mina:1};
+const spr=(k,x,y,h,st='')=>{const f=SPR_SCALE[k]||1,h2=Math.round(h*f);
+  return `<img class="spr" src="img/p/${k}.webp" alt="${CASTS[k].name}" style="left:${Math.round(x+h*(1-f)*.3)}px;top:${Math.round(y+(h-h2)*.55)}px;height:${h2}px;${st}">`};
 const sceneBg=(night)=>`<img class="bgi" src="img/p/${night?'bg_night':'bg_day'}.webp" alt="" style="filter:blur(${night?0:1.6}px)">`;
 const counter=(props=[],night)=>`<img class="ctrimg" src="img/p/counter.webp" alt="">`+
   props.map(([n,x])=>{const P={cake:[187,106],cups:[123,97],jar:[144,149],tin:[182,109]}[n];return `<img class="spr" src="img/p/prop_${n}.webp" alt="" style="left:${x}px;top:${483-P[1]}px;width:${P[0]}px">`}).join('')+
@@ -139,9 +142,23 @@ S.match.bind=s=>{
 function startMatch(opt={}){const k=Save.d.duty,o={...MATCH_OPT,...opt};
   let opp=o.opp;if(opp==='rand'||opp===k){const c=CAST_KEYS.filter(x=>x!==k);opp=c[Math.random()*c.length|0]}
   DIFF=o.diff;MATCH=o.rounds;SEAT=[k,opp];Screens.ctx.story=o.story||null;CURRENT={story:o.story||null,opt:o};
-  seatSetup();Screens.go('play');newGame();
+  seatSetup();Screens.go('play');showVS(k,opp,o).then(()=>newGame());
 }
 let CURRENT={story:null,opt:{}};
+// 대전 시작 전 VS 화면. 누르거나 아무 키나 누르면 넘어간다
+function showVS(me,op,o={}){return new Promise(res=>{
+  const st=o.story&&STORY.find(x=>x.id===o.story);
+  const info=st?`스토리 · ${CASTS[st.k].name} 1장`:`${MATCH===1?'단판':MATCH+'판'} · AI ${{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]}`;
+  const v=document.createElement('div');v.className='vs';v.setAttribute('role','dialog');v.setAttribute('aria-label',`${CASTS[me].name} 대 ${CASTS[op].name}`);
+  v.innerHTML=`<div class="vsl c${CAST_COL[me]}"></div><div class="vsr c${CAST_COL[op]}"></div><div class="vsline"></div>
+   <div class="vsp l">${spr(me,0,0,780)}</div><div class="vsp r">${spr(op,0,0,780)}</div>
+   <div class="vsn l"><b>${CASTS[me].name}</b><span>${Save.d.manager?Save.d.manager+' 매니저':'나'} · ${CASTS[me].type}</span></div>
+   <div class="vsn r"><b>${CASTS[op].name}</b><span>AI · ${CASTS[op].type}</span></div>
+   <div class="vsx">VS</div><div class="vsi">${info}</div>`;
+  $('stage').appendChild(v);let done=false;
+  const end=()=>{if(done)return;done=true;removeEventListener('keydown',end);v.classList.add('out');setTimeout(()=>{v.remove();res()},350)};
+  v.onclick=end;addEventListener('keydown',end);setTimeout(end,2200*Math.max(SPEED,.5));
+})}
 // 온라인 2인은 기존 캐스트 고르기 창(방 만들기·참가)을 그대로 쓴다
 function openOnline(){showPick();
   if(!$('pickClose')){const b=document.createElement('button');b.id='pickClose';b.type='button';b.className='guidebtn';b.textContent='돌아가기';

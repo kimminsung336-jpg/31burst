@@ -60,7 +60,7 @@ function seatSetup(){
   const[me,op]=SEAT;DECK=[(!NET.on&&window.myDeck&&myDeck(me))||CASTS[me].deck,CASTS[op].deck];NAME[ME]=CASTS[me].name;NAME[AI]=CASTS[op].name;
   const tag=NET.on?' (상대)':' (AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF]+')';
   $('nMe').textContent=NAME[ME];$('nAi').textContent=NAME[AI];$('nAiTag').textContent=NET.on?'상대':'AI · '+{easy:'쉬움',normal:'보통',hard:'어려움'}[DIFF];
-  $('sbMeAv').src=`img/p/${me}_av.webp`;$('sbAiAv').src=`img/p/${op}_av.webp`;$('meAv').src=`img/p/${me}_av.webp`;$('meName').textContent=NAME[ME];$('oppSp').src=`img/p/${op}.webp`;
+  $('sbMeAv').src=`img/p/${me}_av.webp`;$('sbAiAv').src=`img/p/${op}_av.webp`;$('meAv').src=`img/p/${me}_av.webp`;$('meName').textContent=NAME[ME];$('oppSp').src=`img/p/${op}.webp`;{const f=(typeof SPR_SCALE!=='undefined'&&SPR_SCALE[op])||1,o=$('oppSp');o.style.height=Math.round(500*f)+'px';o.style.top=Math.round(58+500*(1-f)*.55)+'px';o.style.left=Math.round(150+500*(1-f)*.3)+'px'}
   const rs=document.documentElement.style;rs.setProperty('--cMe',CASTS[me].back[0]);rs.setProperty('--cAi',CASTS[op].back[0]);$('aiWho').textContent=NAME[AI]+(NET.on?' (상대)':' (AI)');
   $('meAbil').innerHTML=CASTS[me].abil;$('aiAbil').innerHTML=CASTS[op].abil;
   document.documentElement.style.setProperty('--backA',CASTS[op].back[0]);document.documentElement.style.setProperty('--backB',CASTS[op].back[1]);
