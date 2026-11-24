@@ -1,0 +1,409 @@
+/* VOICE: 콘카페 SNS 판, 시끄럽고 표독한데 정돈된 테스트 도구
+   IDEA: 타임라인 화제성 게이지를 둘이 같이 미는 판
+   PICTURE: 화면 가운데 큰 게이지 링과 숫자, 목표까지 남은 칸
+   COLOUR and TYPE: 마젠타 #ff2e8a 주도, 먹색 #16121a 받침, 시안 #19c6e6 날카로운 포인트 / Black Han Sans 숫자 + Noto Sans KR
+   LAYOUT: 위 점수줄, 가운데 게이지와 상대 손, 아래 내 손패, 옆 로그(좁으면 아래로) */
+:root{color-scheme:light dark;--bg:light-dark(#fff4f9,#16121a);--ink:light-dark(#16121a,#fbeef5);--sub:light-dark(#6b5a66,#b9a6b3);--m:#ff2e8a;--c:#19c6e6;--y:#ffd23f;--k:light-dark(#16121a,#000);--card:light-dark(#ffffff,#221b27);--line:light-dark(#f3cfe0,#3a2d40)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--c);outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px max(4vw,14px);background:var(--k);color:#fbeef5}
+.top h1{margin:0;font:400 26px/1 "Black Han Sans",sans-serif;letter-spacing:.5px}
+.top h1 b{color:var(--m)}
+.score{display:flex;gap:10px;flex-wrap:wrap;font-size:14px}
+.pill{padding:6px 12px;border-radius:999px;background:#2a2230;white-space:nowrap}
+.pill strong{font:400 18px "Black Han Sans";margin-left:6px}
+.pill.me strong{color:var(--m)}.pill.ai strong{color:var(--c)}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;padding:20px max(4vw,14px);max-width:1240px;margin:0 auto}
+.board{display:grid;gap:18px}
+.opp{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.opp .backs{display:flex;gap:6px}
+.back{width:30px;height:42px;border-radius:6px;background:repeating-linear-gradient(45deg,var(--backA,#7a4cc4) 0 6px,var(--backB,#4b2a85) 6px 12px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.who{font-weight:700}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:13px;padding:3px 10px;border-radius:999px;background:var(--line);white-space:nowrap}
+.chip.warn{background:var(--y);color:#16121a}
+.gauge{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:22px;align-items:center;background:var(--card);border-radius:22px;padding:22px;box-shadow:0 10px 30px -18px rgba(255,46,138,.6)}
+.ring{position:relative;aspect-ratio:1}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .num b{font:400 clamp(56px,10vw,84px)/1 "Black Han Sans";color:var(--m);transition:transform .25s}
+.ring .num span{display:block;font-size:15px;color:var(--sub);margin-top:4px}
+.ring .num b.pop{transform:scale(1.15)}
+.info h2{margin:0 0 6px;font:400 30px/1.1 "Black Han Sans"}
+.info p{margin:0 0 10px;color:var(--sub)}
+.stake{position:relative;display:inline-flex;align-items:center;gap:0;margin-bottom:14px;border-radius:14px;background:var(--m);color:#fff;border:3px solid #16121a;box-shadow:4px 4px 0 #16121a;transition:background .3s,color .3s}
+.stake .sk{align-self:stretch;display:grid;place-items:center;padding:0 10px;font:700 13px/1 "Noto Sans KR",sans-serif;border-right:3px dashed rgba(22,18,26,.35)}
+.stake b{font:400 44px/1 "Black Han Sans",sans-serif;padding:8px 4px 8px 14px;min-width:1.1em;text-align:right}
+.stake .su{font:700 15px/1 "Noto Sans KR",sans-serif;align-self:flex-end;padding:0 14px 12px 3px}
+.stake .sch{display:flex;align-items:center;gap:3px;padding:0 0 0 12px;font:400 15px/1 "Black Han Sans",sans-serif;opacity:.9}
+.stake .sch:empty{display:none}
+.stake .sch i{font-style:normal}.stake .sch i:last-child{display:none}.stake .sch em{font-style:normal;font-size:11px;opacity:.7}
+.stake[data-t="2"]{background:#16121a;color:var(--y);box-shadow:4px 4px 0 var(--m)}
+.stake[data-t="2"] .sk{border-color:rgba(255,210,63,.35)}
+.stake[data-t="3"]{background:var(--y);color:#16121a;box-shadow:5px 5px 0 var(--m);animation:wob 1.6s ease-in-out infinite}
+.stake[data-t="4"]{background:#16121a;color:var(--y);box-shadow:0 0 0 3px var(--m),0 0 22px 4px rgba(255,46,138,.65),5px 5px 0 var(--m);animation:wob .7s ease-in-out infinite}
+.stake[data-t="4"] .sk{color:var(--m);border-color:rgba(255,46,138,.5)}
+.stake[data-t="4"] .sk::after{content:"잭팟";display:block;margin-top:3px;font-size:10px}
+.stake.up{animation:stup .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes stup{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-6deg)}60%{transform:scale(.95) rotate(2deg)}100%{transform:none}}
+@keyframes wob{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.turn{font-weight:700;font-size:18px}
+.hand h3{margin:0 0 6px;font-size:16px}
+.abil{margin:4px 0 10px;font-size:13px;color:var(--sub)}
+.abil b{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:999px;background:var(--k);color:var(--y);font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.cardb{position:relative;text-align:left;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:12px 12px 12px 56px;min-height:112px;transition:transform .12s,border-color .12s}
+.cardb:hover:not(:disabled){transform:translateY(-3px);border-color:var(--m)}
+.cardb:disabled{opacity:.42;cursor:not-allowed}
+.cardb .v{position:absolute;left:10px;top:10px;width:38px;height:46px;border-radius:9px;display:grid;place-items:center;font:400 24px "Black Han Sans";background:var(--m);color:#fff}
+.cardb .v.neg{background:var(--k);color:var(--c)}.cardb .v.q{background:var(--k);color:var(--y)}.cardb .v.zero{background:var(--c);color:#16121a}
+.cardb .n{display:block;font-weight:700;font-size:15px;line-height:1.25}
+.cardb .t{display:block;font-size:13px;color:var(--sub);margin-top:4px}
+.side{display:grid;gap:14px;align-content:start}
+.rules{font-size:13px;color:var(--sub);background:var(--card);border-radius:16px;padding:14px}
+.rules summary{font-weight:700;color:var(--ink);cursor:pointer}
+.rules ul{padding-left:18px;margin:8px 0 0}
+.phone{position:sticky;top:16px;background:#0d0a10;border-radius:44px;padding:11px;height:min(720px,calc(100vh - 150px));min-height:480px;margin-bottom:24px;box-shadow:0 14px 30px -14px rgba(255,46,138,.55),inset 0 0 0 2px #2a2230}
+.screen{position:relative;background:var(--card);border-radius:34px;overflow:hidden;height:100%;display:flex;flex-direction:column}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:92px;height:24px;border-radius:14px;background:#0d0a10;z-index:2}
+.appbar{display:flex;align-items:center;gap:10px;padding:40px 16px 10px;border-bottom:1px solid var(--line)}
+.appbar b{font:400 20px "Black Han Sans"}
+.appbar .dot{width:30px;height:30px;border-radius:50%;background:conic-gradient(var(--c) 0 25%,var(--m) 0 50%,var(--y) 0 75%,var(--k) 0)}
+.note{font-size:12px;text-align:center;color:var(--sub);padding:8px 12px;border-bottom:1px solid var(--line);animation:drop .3s ease-out}
+.note.hot{color:var(--m);font-weight:700;font-size:13px}
+.feed{flex:1;overflow-y:auto;overscroll-behavior:contain}
+.feed:empty::before{content:"아직 올라온 글이 없어요";display:block;padding:18px;color:var(--sub);font-size:14px}
+.post{display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);animation:drop .35s ease-out}
+.post.bust{background:light-dark(#ffe6f1,#2e1524)}
+.av{width:40px;height:40px;border-radius:50%;object-fit:cover;display:block}
+.av.iri{box-shadow:0 0 0 2px var(--m)}.av.miko{box-shadow:0 0 0 2px #7a4cc4}.av.haru{box-shadow:0 0 0 2px #f5b800}.av.mina{box-shadow:0 0 0 2px #12c6dc}
+.ph{font-size:14px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.ph span{color:var(--sub)}
+.tag{font-size:12px;padding:1px 8px;border-radius:999px;background:var(--line);white-space:nowrap}
+.tag.b{background:var(--k);color:var(--y)}
+.pt{margin:3px 0 7px;overflow-wrap:anywhere}
+.pimg{margin:0 0 8px;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.pimg svg{display:block;width:100%;height:auto}
+.pimg img{display:block;width:100%;aspect-ratio:1;object-fit:cover;object-position:center 28%}
+.pa{display:flex;gap:20px;color:var(--sub);font-size:13px;align-items:center}
+.pa span{display:inline-flex;gap:5px;align-items:center;white-space:nowrap}
+.pa svg{width:16px;height:16px}
+.pa .h{color:var(--m)}.pa .r{color:var(--c)}
+@keyframes drop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+.fx{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden}
+.fly{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;animation:fly var(--d) cubic-bezier(.2,.7,.3,1) var(--w) forwards;opacity:0}
+.fly svg{width:100%;height:100%;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+@keyframes fly{0%{transform:translate(0,0) scale(.5);opacity:1}70%{opacity:1}100%{transform:translate(var(--x),var(--y)) scale(var(--s)) rotate(var(--r));opacity:0}}
+.bustbig{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:6;overflow:hidden}
+.bustbig::before{content:"";position:absolute;inset:0;background:radial-gradient(circle,rgba(255,210,63,.55),rgba(255,46,138,.35) 40%,transparent 70%);animation:flash 2.8s ease-out forwards}
+.bustbig .w{animation:bustIn 2.8s cubic-bezier(.2,1.5,.4,1) forwards}
+.bustbig .t{display:block;font:400 clamp(96px,19vw,230px)/.9 "Black Han Sans",sans-serif;color:var(--y);-webkit-text-stroke:clamp(3px,.6vw,7px) #16121a;paint-order:stroke fill;text-shadow:0 .06em 0 #ff2e8a,0 0 .4em rgba(255,46,138,.9);animation:jit .09s linear 16}
+.bustbig small{display:block;text-align:center;font:400 clamp(28px,5vw,60px)/1.1 "Black Han Sans",sans-serif;color:#fff;-webkit-text-stroke:2px #16121a;paint-order:stroke fill;text-shadow:0 4px 0 #16121a;margin-top:.15em}
+@keyframes bustIn{0%{transform:scale(0) rotate(-35deg);opacity:0}12%{transform:scale(1.3) rotate(-4deg);opacity:1}19%{transform:scale(.92) rotate(-11deg)}25%{transform:scale(1.06) rotate(-6deg)}30%,85%{transform:scale(1) rotate(-8deg);opacity:1}100%{transform:scale(1.5) rotate(-8deg);opacity:0}}
+@keyframes jit{0%,100%{translate:0 0}25%{translate:-7px 5px}50%{translate:6px -6px}75%{translate:-5px -4px}}
+@keyframes flash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+.quake{animation:quake .55s ease-out}
+@keyframes quake{0%,100%{transform:none}15%{transform:translate(-10px,6px) rotate(-.6deg)}30%{transform:translate(9px,-7px) rotate(.5deg)}45%{transform:translate(-7px,-4px)}60%{transform:translate(6px,5px)}80%{transform:translate(-3px,2px)}}
+.hit{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:6;overflow:hidden}
+.hit::before{content:"";position:absolute;inset:0;background:radial-gradient(circle,#fff 0,rgba(255,46,138,.5) 35%,transparent 70%);animation:flash 2.8s ease-out forwards}
+.hit .rays{position:absolute;left:50%;top:50%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;border-radius:50%;background:repeating-conic-gradient(rgba(255,210,63,.55) 0 7deg,transparent 7deg 18deg);-webkit-mask:radial-gradient(circle,#000 8%,transparent 55%);mask:radial-gradient(circle,#000 8%,transparent 55%);animation:spin 6s linear,raysFade 2.8s ease-out forwards}
+.hit .n{position:relative;font:400 clamp(100px,20vw,240px)/.9 "Black Han Sans",sans-serif;color:var(--m);-webkit-text-stroke:clamp(5px,.9vw,11px) #fff;paint-order:stroke fill;text-shadow:0 .05em 0 #16121a,0 0 .35em rgba(255,46,138,.85);animation:slam 2.8s cubic-bezier(.2,1.4,.3,1) forwards}
+@keyframes slam{0%{transform:scale(3.2) rotate(6deg);opacity:0}9%{transform:scale(.88) rotate(-3deg);opacity:1}15%{transform:scale(1.08) rotate(-3deg)}21%,85%{transform:scale(1) rotate(-3deg);opacity:1}100%{transform:scale(1.25) rotate(-3deg);opacity:0}}
+@keyframes spin{to{transform:rotate(90deg)}}
+@keyframes raysFade{0%{opacity:0}10%{opacity:1}80%{opacity:.8}100%{opacity:0}}
+.ring.near{animation:beat .85s ease-in-out infinite}
+.ring.near #arc{filter:drop-shadow(0 0 5px rgba(255,46,138,.9)) drop-shadow(0 0 12px rgba(255,46,138,.5))}
+@keyframes beat{0%,100%{transform:scale(1)}12%{transform:scale(1.06)}24%{transform:scale(.99)}36%{transform:scale(1.04)}}
+.pick{position:fixed;inset:0;z-index:7;background:rgba(10,6,12,.72);display:none;place-items:center;padding:16px;overflow:auto}
+.pick.on{display:grid}
+.pbox{background:var(--card);border-radius:24px;padding:24px;max-width:760px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.pbox h2{margin:0 0 4px;font:400 32px/1.1 "Black Han Sans",sans-serif}
+.pbox>p{margin:0;color:var(--sub)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:16px}
+.diff{display:flex;align-items:center;gap:8px;margin:0 0 14px;flex-wrap:wrap}.diff span{font-size:14px;color:var(--sub);margin-right:4px}.diff button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 16px;font-size:14px}.diff button.on{background:var(--k);color:var(--y);border-color:var(--k)}
+.deckbtn{border:0;color:var(--y);font:inherit;cursor:pointer}.deckbtn:hover{background:#3a2f42}
+.dv{max-width:960px;max-height:calc(100dvh - 32px);display:flex;flex-direction:column;padding:20px 22px}
+.dvh{display:flex;justify-content:space-between;align-items:center;gap:12px;flex:none}.dvh h2{margin:0}
+.dvh button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 16px;font:inherit}
+.dvtabs{display:none}
+.dvg{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:12px;overflow:auto;min-height:0;overscroll-behavior:contain}
+.dvhd{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;padding:4px 0 10px;background:var(--card)}
+.dvhd img{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px var(--cc)}
+.dvhd span{font:400 22px/1.05 "Black Han Sans",sans-serif}.dvhd small{display:block;margin-bottom:3px;font:700 12px/1.3 "Noto Sans KR",sans-serif;color:var(--sub)}
+.dvhd em{margin-left:auto;font-style:normal;font-size:13px;color:var(--sub)}
+.dvs h4{display:flex;align-items:center;gap:6px;margin:12px 0 6px;font:700 13px/1 "Noto Sans KR",sans-serif;color:var(--sub)}
+.dvs h4 b{min-width:22px;padding:3px 7px;border-radius:999px;background:var(--bg);color:var(--ink);text-align:center;font-size:12px}
+.dvs ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.dvs li{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:start;padding:9px 10px;border-radius:12px;background:var(--bg);border:2px solid transparent}
+.dvs .v{width:36px;height:42px;border-radius:9px;display:grid;place-items:center;font:400 20px/1 "Black Han Sans",sans-serif;background:var(--m);color:#fff}
+.dvs .v.neg{background:var(--k);color:var(--c)}.dvs .v.q{background:var(--k);color:var(--y)}.dvs .v.zero{background:var(--c);color:#16121a}
+.dvs .nm{min-width:0;word-break:keep-all}.dvs .nm b{font-size:15px;line-height:1.3}
+.dvs .nm small{display:block;margin-top:2px;font-size:12.5px;line-height:1.4;color:var(--sub)}
+.dvs .tg{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font:700 11px/1.5 "Noto Sans KR",sans-serif;font-style:normal;vertical-align:1px;background:var(--k);color:var(--y)}
+.dvs .tg.ph{background:var(--m);color:#fff}
+.dvs.inhand li{border-color:var(--m);background:var(--card);box-shadow:0 3px 0 var(--m)}.dvs.inhand h4{color:var(--m)}
+.dvs.gone li{opacity:.42}.dvs.gone .nm b{text-decoration:line-through;text-decoration-thickness:2px}
+@media(max-width:600px){
+  #deckView{padding:0}
+  .dv{max-width:none;height:100dvh;max-height:none;border-radius:0;padding:14px 12px 0}
+  .dvtabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px;padding:4px;border-radius:16px;background:var(--bg);flex:none}
+  .dvtabs button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:46px;border:0;border-radius:12px;background:none;color:var(--sub);font:700 14px/1.1 "Noto Sans KR",sans-serif}
+  .dvtabs button small{font:400 16px/1 "Black Han Sans",sans-serif;color:inherit}
+  .dvtabs button img{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px var(--cc)}
+  .dvtabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+  .dvg{grid-template-columns:1fr;margin-top:6px;padding-bottom:24px}
+  .dvg[data-s="0"] .dvc:nth-child(2),.dvg[data-s="1"] .dvc:nth-child(1){display:none}
+  .dvhd{display:none}
+}
+.pc{text-align:left;border:3px solid var(--line);border-radius:18px;background:var(--bg);padding:0;overflow:hidden;color:var(--ink);transition:transform .15s,border-color .15s}
+.pc:hover,.pc:focus-visible{border-color:var(--m);transform:translateY(-3px)}
+.pc.miko:hover,.pc.miko:focus-visible{border-color:#7a4cc4}
+.pc.haru:hover,.pc.haru:focus-visible{border-color:#f5b800}.pc.mina:hover,.pc.mina:focus-visible{border-color:#12c6dc}
+.phead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.guidebtn{border:2px solid var(--ink);background:var(--y);color:#16121a;border-radius:999px;padding:8px 18px;font:700 15px/1.2 inherit;font-family:inherit;cursor:pointer;min-height:44px}
+.guidebtn:hover,.guidebtn:focus-visible{background:var(--ink);color:var(--y)}
+.online{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 6px;padding:10px 12px;border-radius:16px;background:var(--bg);border:2px dashed var(--line)}
+.online b{font-size:14px;margin-right:2px}
+.online button{min-height:40px;border:2px solid var(--c);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;font-weight:700}
+.online .olj{display:inline-flex;gap:6px}.online input{width:96px;min-height:40px;border:2px solid var(--line);border-radius:12px;padding:4px 10px;font:700 16px/1 inherit;font-family:inherit;background:var(--card);color:var(--ink);letter-spacing:2px}
+.olmsg{flex-basis:100%;font-size:14px;color:var(--sub)}.olmsg:empty{display:none}.olmsg b{font:400 22px/1 "Black Han Sans",sans-serif;color:var(--m);letter-spacing:3px}
+.online.live{border-style:solid;border-color:var(--c)}.online.live button,.online.live .olj{display:none}
+.pc.mine{border-color:var(--c);box-shadow:0 0 0 3px var(--c)}.pc:disabled{cursor:default}.pc:disabled:not(.mine){opacity:.55}
+/* ---------- 게임 설명서 (슬라이드) ---------- */
+.gview{position:fixed;inset:0;z-index:8;display:none;place-items:center;padding:14px;background:rgba(10,6,12,.78)}
+.gview.on{display:grid}
+.gwrap{position:relative;width:min(920px,100%);height:min(600px,calc(100dvh - 28px));border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);background:#16121a}
+.gtrack{display:flex;height:100%;transition:transform .45s cubic-bezier(.2,.85,.25,1);touch-action:pan-y}
+.gs{flex:0 0 100%;height:100%;display:flex;flex-direction:column;align-items:center;padding:28px 34px 84px;overflow:hidden;position:relative;--fg:#fff;--hl:#ffd23f;--hlt:#16121a;color:var(--fg)}
+.gk{font:700 13px/1 "Noto Sans KR",sans-serif;letter-spacing:.5px;padding:7px 14px;border-radius:999px;background:rgba(0,0,0,.18);color:var(--fg)}
+.gt{margin:12px 0 18px;font:400 clamp(38px,6vw,58px)/1 "Black Han Sans",sans-serif;color:var(--tc,#fff);-webkit-text-stroke:var(--ts,0) #16121a;paint-order:stroke fill;text-shadow:0 .07em 0 var(--tsh,rgba(0,0,0,.25));letter-spacing:.5px}
+.gpair{flex:1;min-height:0;width:100%;max-width:720px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px 48px;position:relative;align-items:center}
+.gpair.arrow::before{content:"";position:absolute;left:50%;top:40%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#ffd23f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12h12m-5-6 6 6-6 6' fill='none' stroke='%2316121a' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/24px no-repeat;border:3px solid #16121a;z-index:2;box-shadow:3px 3px 0 #16121a}
+.gpair figure{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:0;position:relative}
+.gp{position:relative;flex:0 1 auto;width:100%;max-width:270px;aspect-ratio:3/4;max-height:calc(100% - 76px);border-radius:20px;background:#fff;border:3px solid #16121a;box-shadow:7px 7px 0 #16121a}
+.gp img{position:absolute;inset:10px;width:calc(100% - 20px);height:calc(100% - 20px);object-fit:contain;border-radius:12px}
+.gpair figure:first-child .gp{transform:rotate(-2deg)}.gpair figure:last-child .gp{transform:rotate(1.8deg)}
+.gp-wide{aspect-ratio:auto;max-width:320px;padding:12px}
+.gp-wide img{position:static;display:block;width:100%;height:auto}
+.gchip{position:absolute;right:-18px;top:-16px;width:58px;height:78px;display:grid;place-items:center;border-radius:12px;background:#fff;border:3px solid #ff2e8a;color:#ff2e8a;font:400 30px/1 "Black Han Sans",sans-serif;transform:rotate(10deg);box-shadow:4px 5px 0 #16121a}
+.gtag{position:relative;z-index:2;margin-bottom:-14px;padding:6px 14px;border-radius:999px;background:#16121a;color:#fff;font:700 14px/1 "Noto Sans KR",sans-serif;transform:rotate(-2deg)}
+.gpair figcaption{margin-top:16px;word-break:keep-all;text-align:center;font:700 clamp(14px,1.9vw,18px)/1.45 "Noto Sans KR",sans-serif;color:var(--fg);text-wrap:balance}
+.gpair mark{background:linear-gradient(transparent 52%,var(--hl) 52%);color:var(--hlt,inherit);padding:0 2px}
+/* 장별 색 */
+.s-cover{background:radial-gradient(circle at 50% 120%,#ff7ab8 0,transparent 55%),#ff2e8a;justify-content:center;--tc:#ffd23f;--ts:8px;--tsh:#16121a}
+.s-cover .gt{font-size:clamp(64px,13vw,128px);margin:18px 0 10px;transform:rotate(-4deg)}
+.gsub{margin:6px 0 0;word-break:keep-all;font:700 clamp(15px,2vw,19px)/1.4 "Noto Sans KR",sans-serif;text-align:center}
+.gsub b{font-family:"Black Han Sans",sans-serif;font-weight:400;color:#ffd23f;font-size:1.3em}
+.gfan{display:flex;justify-content:center;margin-top:26px;height:clamp(120px,24vh,190px)}
+.gfan img{height:100%;aspect-ratio:3/4;object-fit:cover;object-position:center 20%;border-radius:14px;border:3px solid #16121a;box-shadow:5px 5px 0 #16121a;margin:0 -10px;background:#fff}
+.gfan img:nth-child(1){transform:rotate(-12deg) translateY(10px)}.gfan img:nth-child(2){transform:rotate(-4deg)}.gfan img:nth-child(3){transform:rotate(4deg)}.gfan img:nth-child(4){transform:rotate(12deg) translateY(10px)}
+.s-rule{background:#fff4f9;--fg:#16121a;--tc:#ff2e8a;--tsh:rgba(255,46,138,.18);--hl:#bdf1fb}
+.s-rule .gk{background:#16121a;color:#fff}
+.s-just{background:linear-gradient(160deg,#ff5ea8,#ff2e8a);--tc:#fff;--ts:6px;--tsh:#16121a;--hlt:#16121a}
+.s-bust{background:#16121a;--tc:#ffd23f;--ts:0;--tsh:#ff2e8a;--hl:#ff2e8a;--hlt:#fff}
+.s-bust .gk{background:#ffd23f;color:#16121a}
+.s-bust .gp{box-shadow:7px 7px 0 #ff2e8a}
+.s-win{background:#19c6e6;--fg:#16121a;--tc:#fff;--ts:6px;--tsh:#16121a;--hl:#fff}
+.s-win .gk{background:#16121a;color:#fff}
+.s-tip{background:#ffd23f;--fg:#16121a;--tc:#ff2e8a;--ts:6px;--tsh:#16121a;--hl:#fff}
+.s-tip .gk{background:#16121a;color:#fff}
+.s-deck{background:#bdf1fb;--fg:#16121a;--tc:#16121a;--tsh:rgba(18,198,220,.35);--hl:#fff}
+.s-deck .gk{background:#16121a;color:#fff}
+.gpair.plus::before{content:"";position:absolute;left:50%;top:40%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#ffd23f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 5v14M5 12h14' fill='none' stroke='%2316121a' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") center/24px no-repeat;border:3px solid #16121a;z-index:2;box-shadow:3px 3px 0 #16121a}
+.gnote{position:absolute;left:0;right:0;bottom:78px;margin:0 auto;max-width:640px;padding:0 20px;text-align:center;word-break:keep-all;font:700 clamp(13px,1.6vw,16px)/1.45 "Noto Sans KR",sans-serif;color:var(--fg)}
+.gnote b{color:#ff2e8a}
+.s-deck{padding-bottom:118px}
+/* 내비 */
+.gx{position:absolute;right:14px;top:14px;z-index:3;width:44px;height:44px;border-radius:50%;border:3px solid #16121a;background:#fff;color:#16121a;font:700 18px/1 sans-serif;box-shadow:3px 3px 0 #16121a}
+.gnav{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px}
+.gnav button{min-height:46px;min-width:46px;border:3px solid #16121a;border-radius:999px;background:#fff;color:#16121a;font:700 16px/1 "Noto Sans KR",sans-serif;box-shadow:3px 3px 0 #16121a;padding:0 18px}
+.gnav button:disabled{opacity:0;pointer-events:none}
+.gnav .gnext{background:#ffd23f}
+.gdots{display:flex;gap:8px}
+.gdots i{width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.55);border:2px solid #16121a;transition:width .25s}
+.gdots i.on{width:28px;background:#fff}
+@media(max-width:600px){
+  .gview{padding:0}
+  .gwrap{width:100%;height:100dvh;border-radius:0}
+  .gs{padding:22px 16px 82px}
+  .gt{margin:10px 0 14px}
+  .gpair{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:stretch;max-width:420px}
+  .gpair figure{flex-direction:row;justify-content:flex-start;align-items:center;gap:18px}
+  .gpair figure:last-child{flex-direction:row-reverse}
+  .gp,.gp-wide{flex:none;width:50%;max-width:none;max-height:100%}
+  .gp-wide{width:56%}
+  .gpair figcaption{margin:0;text-align:left;font-size:16px;line-height:1.5}
+  .gpair figure:last-child figcaption{text-align:right}
+  .gpair.arrow::before{width:36px;height:36px;margin:-18px 0 0 -18px;background-size:20px;top:50%;left:50%;transform:rotate(90deg)}
+  .gtag{position:absolute;top:2px;left:6px;margin:0;z-index:3}
+  .gpair.plus::before{width:36px;height:36px;margin:-18px 0 0 -18px;background-size:20px;top:50%}
+  .gnote{bottom:74px;font-size:13px}
+  .s-deck{padding-bottom:112px}
+  .gpair figure:last-child .gtag{left:auto;right:6px}
+  .gp{border-radius:14px;box-shadow:5px 5px 0 #16121a;padding:6px}
+  .s-bust .gp{box-shadow:5px 5px 0 #ff2e8a}
+  .gchip{width:42px;height:58px;font-size:22px;right:-10px;top:-12px}
+  .gtag{font-size:12px;padding:5px 10px;margin-bottom:-10px}
+  .gfan{height:128px;margin-top:22px}.gfan img{margin:0 -8px;border-width:2px;box-shadow:3px 3px 0 #16121a}
+  .gp{max-height:calc(100% - 64px)}
+}
+@media(prefers-reduced-motion:reduce){.gtrack{transition:none}}
+/* ---------- 점수판 ---------- */
+.top{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center}
+.sb{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;max-width:620px;width:100%;justify-self:center}
+.sbp{display:flex;align-items:center;gap:9px;min-width:0}
+.sbp.ai{justify-content:flex-end}
+.sba{width:38px;height:38px;border-radius:50%;object-fit:cover;flex:none;box-shadow:0 0 0 3px var(--cMe,var(--m))}
+.sbp.ai .sba{box-shadow:0 0 0 3px var(--cAi,var(--c))}
+.sbn{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.sbn span{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbn small{font-size:11px;color:#b9a6b3;white-space:nowrap}
+.sbp.ai .sbn{text-align:right}
+.sbp strong{font:400 34px/1 "Black Han Sans",sans-serif;min-width:1.2em;text-align:center;color:#fff;transition:transform .25s}
+.sb[data-lead=me] .sbp.me strong{color:var(--y)}.sb[data-lead=ai] .sbp.ai strong{color:var(--y)}
+.sbr{display:flex;flex-direction:column;align-items:center;gap:5px}
+.sbl{font:700 14px/1 "Noto Sans KR",sans-serif;color:#fbeef5;letter-spacing:.5px}
+.sbd{display:flex;gap:5px}
+.sbd i{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font:400 15px/1 "Black Han Sans",sans-serif;font-style:normal;background:#2a2230;color:#fff;border:1px solid #3a2f42}
+.sbd i.m{background:var(--cMe,var(--m));border-color:transparent;color:#16121a}
+.sbd i.a{background:var(--cAi,var(--c));border-color:transparent;color:#16121a}
+.sbd i.d{color:#fbeef5;background:#4a3d55}
+.sbd i.now{border:2px solid var(--y);animation:nowp 1.4s ease-in-out infinite}
+@keyframes nowp{50%{box-shadow:0 0 0 3px rgba(255,210,63,.35)}}
+/* ---------- 결과판 ---------- */
+.res{position:fixed;inset:0;z-index:6;display:none;place-items:center;padding:16px;background:rgba(10,6,12,.72);overflow:auto}
+.res.on{display:grid}
+.rbox{position:relative;width:min(560px,100%);border-radius:28px;padding:26px 24px 22px;text-align:center;background:var(--card);border:3px solid #16121a;box-shadow:8px 8px 0 #16121a;animation:rin .45s cubic-bezier(.2,1.3,.4,1)}
+@keyframes rin{from{transform:translateY(30px) scale(.92);opacity:0}}
+.rbox[data-res=win]{background:linear-gradient(170deg,#ff5ea8,#ff2e8a);color:#fff}
+.rbox[data-res=lose]{background:#16121a;color:#fbeef5;box-shadow:8px 8px 0 #19c6e6}
+.rbox[data-res=draw]{background:#19c6e6;color:#16121a}
+.rk:empty,.rs:empty{display:none}.rk{display:inline-block;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.22);font:700 13px/1 "Noto Sans KR",sans-serif;color:inherit}
+.rt{margin:12px 0 4px;font:400 clamp(48px,11vw,76px)/1 "Black Han Sans",sans-serif;color:#ffd23f;-webkit-text-stroke:6px #16121a;paint-order:stroke fill;text-shadow:0 .07em 0 #16121a;transform:rotate(-3deg)}
+.rbox[data-res=lose] .rt{color:#19c6e6;text-shadow:0 .07em 0 #ff2e8a}
+.rs{margin:6px 0 16px;font:700 16px/1.4 "Noto Sans KR",sans-serif;word-break:keep-all}
+.rvs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;margin:0 auto 16px;max-width:400px}
+.rp{margin:0;position:relative;transition:transform .3s,opacity .3s}
+.rp img{display:block;width:100%;aspect-ratio:1;object-fit:cover;object-position:center 22%;border-radius:18px;border:3px solid #16121a;background:#fff}
+.rp figcaption{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:8px;font:700 14px/1 "Noto Sans KR",sans-serif}
+.rp figcaption b{font:400 38px/1 "Black Han Sans",sans-serif}
+.rbox.fin .rp:not(.won){opacity:.55;transform:scale(.92)}
+.rp.won img{box-shadow:0 0 0 4px #ffd23f}
+.rp.won::after{content:"WIN";position:absolute;top:-12px;left:50%;transform:translateX(-50%) rotate(-6deg);padding:3px 12px;border-radius:999px;background:#ffd23f;color:#16121a;border:2px solid #16121a;font:400 16px/1.2 "Black Han Sans",sans-serif}
+.rcol{font:400 40px/1 "Black Han Sans",sans-serif;opacity:.7}
+.rrounds{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;max-width:440px}
+.rrounds li{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 2px;border-radius:12px;background:rgba(0,0,0,.16);font-size:13px;min-height:96px}
+.rrounds li span{font-weight:700;opacity:.8}
+.rrounds li img{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid #16121a}
+.rrounds li em{font-style:normal;font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.rrounds li b{font:400 22px/1 "Black Han Sans",sans-serif}
+.rrounds li i{font-style:normal;font-size:11px;font-weight:700;padding:1px 6px;border-radius:999px;background:#16121a;color:#ffd23f}
+.rrounds li.m{background:rgba(255,255,255,.88);color:#16121a}
+.rrounds li.a{background:rgba(22,18,26,.75);color:#fff}
+.rbox[data-res=lose] .rrounds li.a{background:#2a2230}
+.rrounds li.e{opacity:.45}
+.rrounds li.last{outline:3px solid #ffd23f;outline-offset:-1px}
+.rnote{margin:12px 0 0;font:700 14px/1.4 "Noto Sans KR",sans-serif;opacity:.9}.rnote:empty{display:none}
+.rgo{margin-top:18px;min-height:50px;min-width:180px;border:3px solid #16121a;border-radius:999px;background:#ffd23f;color:#16121a;font:700 17px/1 "Noto Sans KR",sans-serif;box-shadow:4px 4px 0 #16121a;cursor:pointer}
+@media(max-width:600px){
+  .top{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:8px 10px}
+  .sb{gap:6px}.sbn{display:none}.sba{width:30px;height:30px}.sbp{gap:6px}.sbp strong{font-size:26px}
+  .sbd{gap:4px}.sbd i{width:21px;height:21px;font-size:13px;border-radius:6px}.sbl{font-size:12px}
+  .deckbtn{padding:6px 10px;font-size:12px}
+  .rbox{padding:22px 16px 18px;border-radius:22px}
+  .rvs{gap:8px}.rp figcaption b{font-size:30px}
+  .rrounds{gap:5px}.rrounds li{min-height:88px;font-size:12px}.rrounds li em{font-size:12px}.rrounds li b{font-size:19px}.rrounds li img{width:28px;height:28px}.rrounds li i{font-size:10px;padding:1px 4px}
+}
+.pc.foe{opacity:.45;pointer-events:none}.diff .pback{margin-left:auto;border:2px solid var(--m);background:var(--card);color:var(--m);font-weight:700}.diff .pback[hidden]{display:none}
+@media(max-width:600px){.diff{gap:6px;flex-wrap:nowrap}.diff span{margin-right:0;white-space:nowrap}.diff button{padding:6px 11px;white-space:nowrap}.diff .pbl{display:none}}
+.pc img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;object-position:center 22%}
+.pc .pi{display:block;padding:12px 14px 16px}
+.pc .pi{position:relative}.pc .pn{display:block;padding-right:40px;font:400 26px/1.1 "Black Han Sans",sans-serif}
+.pdeck{position:absolute;right:12px;top:10px;width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--card);border:2px solid var(--line);color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s}
+.pdeck svg{width:20px;height:20px}.pdeck rect{fill:var(--card);stroke:currentColor;stroke-width:2}
+.pdeck:hover,.pdeck:focus-visible{border-color:var(--m);color:var(--m);outline:none}
+.pc:disabled .pdeck{pointer-events:auto}
+#deckView{z-index:9}#deckView.pv .dvtabs{display:none}#deckView.pv .tg.own{display:none}.dvhd.pv small{margin:4px 0 0}.dvab{margin:2px 0 4px;font-size:14px;word-break:keep-all}.dvab b{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:999px;background:var(--k);color:var(--y);font-size:13px}
+.dvg[data-s="p"]{grid-template-columns:minmax(0,640px);justify-content:center}
+@media(max-width:600px){.dvg[data-s="p"] .dvc{display:block!important}.dvhd.pv{display:flex}.pdeck{width:28px;height:28px;border-radius:8px;right:8px;top:7px}.pc .pn{padding-right:32px}.pdeck svg{width:16px;height:16px}}
+.pc .pn small{margin-left:8px;font:500 13px/1 "Noto Sans KR",sans-serif;color:var(--sub);vertical-align:2px;white-space:nowrap}
+.pc .ab{margin-top:8px;word-break:keep-all}
+.pc .ty{display:block;font-size:13px;color:var(--sub);margin-bottom:8px}
+.pc .ab{display:block;font-size:14px;margin-bottom:6px}
+.pc .ab b{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:999px;background:var(--k);color:var(--y);font-size:13px}
+.pc .st{display:block;font-size:13px;color:var(--sub)}
+@media(max-width:600px){.pbox{padding:16px;border-radius:18px}.pbox h2{font-size:24px}.pgrid{grid-template-columns:1fr 1fr;gap:10px}.pc img{aspect-ratio:1}.pc .pi{padding:8px 10px 12px}.pc .pn{font-size:20px}.pc .ab,.pc .st{font-size:12px}}
+.modal{position:fixed;inset:0;background:rgba(10,6,12,.6);display:none;place-items:center;padding:16px;z-index:5}
+.modal.on{display:grid}
+.box{background:var(--card);border-radius:20px;padding:22px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.box h3{margin:0 0 6px;font:400 26px "Black Han Sans"}
+.box p{margin:0 0 14px;color:var(--sub)}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button{min-height:44px;padding:8px 16px;border-radius:12px;border:2px solid var(--m);background:transparent;color:var(--ink);font-weight:700}
+.opts button.main{background:var(--m);color:#fff}
+@media(max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}.phone{position:relative;top:0;height:480px;min-height:0;max-width:420px;width:100%;margin:0 auto}}
+@media(max-width:600px){
+  .top{padding:8px 12px;gap:6px}.top h1{font-size:20px}.score{gap:6px;font-size:12px}.pill{padding:4px 9px}.pill strong{font-size:15px;margin-left:4px}
+  .wrap{display:flex;flex-direction:column;gap:8px;padding:8px 10px 0;height:calc(100dvh - 46px);overflow:hidden}
+  .board,.side{display:contents}
+  .opp{order:1;flex-wrap:nowrap;gap:8px}.opp .abil{margin:2px 0 0;font-size:11px}.opp .chips .chip{font-size:11px;padding:1px 7px}
+  .back{width:16px;height:24px;border-radius:4px}.opp .backs{gap:3px;flex:none}
+  .gauge{order:2;grid-template-columns:92px minmax(0,1fr);gap:12px;padding:10px 12px;border-radius:16px;text-align:left}
+  .ring{max-width:92px;margin:0}.ring .num b{font-size:38px}.ring .num span{font-size:11px;margin-top:0}
+  .info h2{font-size:20px;margin:0 0 2px}.info p{display:none}.turn{font-size:14px}
+  .phone{order:3;position:relative;top:0;flex:1;min-height:0;height:auto;max-width:none;margin:0;padding:0;background:none;border-radius:16px;box-shadow:0 0 0 1px var(--line)}
+  .screen{border-radius:16px}.notch{display:none}.appbar{padding:8px 12px}.appbar b{font-size:16px}.appbar .dot{width:20px;height:20px}
+  .post{padding:9px 11px;gap:8px;grid-template-columns:32px minmax(0,1fr)}.av{width:32px;height:32px}.pt{font-size:14px}
+  .pimg img{aspect-ratio:16/9}
+  .hand{order:4;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+  .hand h3{font-size:13px;margin:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.hand .abil{font-size:11px;margin:2px 0 6px}
+  .cards{display:flex;overflow-x:auto;gap:8px;scroll-snap-type:x mandatory;padding-bottom:4px}
+  .cardb{flex:0 0 128px;min-height:92px;padding:8px 8px 8px 44px;scroll-snap-align:start;border-radius:12px}
+  .cardb .v{left:7px;top:8px;width:30px;height:38px;font-size:19px;border-radius:7px}
+  .cardb .n{font-size:13px}.cardb .t{font-size:11px;line-height:1.35}
+  .rules{display:none}
+}
+.vbar,.tmini,.tltab,.tlback,.tlclose{display:none}
+@media(max-width:600px){
+  body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+  .top{flex:none;flex-wrap:nowrap}.top h1{display:none}.score{flex-wrap:nowrap;overflow-x:auto;width:100%}
+  .wrap{flex:1;height:auto;min-height:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;gap:8px;padding:8px 10px 0;overflow:hidden}
+  .opp{grid-row:1;align-items:center}.opp .who{font-size:14px}.gauge{grid-row:2}.hand{grid-row:3}
+  .abil,.opp .abil,.hand .abil,#gapLine,#hint{display:none}
+  /* 가운데: 큰 원형 게이지 */
+  .gauge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:14px 12px;min-height:0;border-radius:20px}
+  .ring{width:min(66vw,38dvh,300px);max-width:none;margin:0}
+  .ring .num b{font-size:clamp(60px,18vw,92px)}
+  .ring .num span{font:400 20px/1.1 "Black Han Sans",sans-serif;color:var(--ink);margin-top:4px}
+  .info{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+  .stake{margin:0;box-shadow:3px 3px 0 #16121a}.stake b{font-size:32px;padding:6px 3px 6px 10px}.stake .sk{font-size:12px;padding:0 8px}.stake .su{font-size:13px;padding:0 10px 9px 2px}.stake .sch{font-size:13px;padding-left:9px}.turn{font-size:15px}
+  /* 타임라인: 오른쪽 서랍 */
+  .phone{position:fixed;top:0;right:0;bottom:0;left:auto;width:min(88vw,400px);height:auto;max-width:none;margin:0;padding:0;z-index:4;border-radius:20px 0 0 20px;background:var(--card);box-shadow:-12px 0 40px rgba(0,0,0,.35);transform:translateX(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  .screen{border-radius:20px 0 0 20px;padding-top:env(safe-area-inset-top)}
+  body.tl .phone{transform:none}
+  .tlback{display:block;position:fixed;inset:0;z-index:3;background:rgba(10,6,12,.45);opacity:0;pointer-events:none;transition:opacity .2s}
+  body.tl .tlback{opacity:1;pointer-events:auto}
+  .tltab{display:flex;flex-direction:column;align-items:center;gap:6px;position:fixed;right:0;top:46%;transform:translateY(-50%);z-index:2;border:0;border-radius:14px 0 0 14px;padding:14px 9px;background:var(--k);color:#fff;font:700 14px/1.1 "Noto Sans KR",sans-serif;box-shadow:-4px 4px 14px rgba(0,0,0,.25)}
+  .tltab span{writing-mode:vertical-rl;letter-spacing:2px}
+  .tltab .bd{min-width:22px;padding:2px 6px;border-radius:999px;background:var(--m);color:#fff;font-size:12px;text-align:center}
+  .tltab .bd:empty{display:none}
+  .tlclose{display:inline-flex;margin-left:auto;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:4px 14px;font-weight:700;min-height:36px;align-items:center}
+  .tmini{display:inline;font-size:12px;font-weight:700;color:var(--m)}
+  .tmini.wait{color:var(--sub);font-weight:500}
+  .appbar{padding:10px 12px}
+}
+.flyc{position:fixed;left:0;top:0;z-index:5;pointer-events:none}
+.flyc .fin{position:absolute;inset:0}
+.flyc .fc{position:absolute;inset:0;border-radius:12px;box-shadow:0 10px 24px -6px rgba(0,0,0,.45)}
+.flyc .front{display:grid;place-items:center;background:var(--card);border:3px solid var(--m)}
+.flyc .front b{font:400 clamp(30px,8vw,46px)/1 "Black Han Sans",sans-serif;color:var(--m)}
+.flyc .front.zero{border-color:var(--c)}.flyc .front.zero b{color:var(--c)}
+.flyc .front.neg{background:var(--k);border-color:var(--c)}.flyc .front.neg b{color:var(--c)}
+.flyc .fbk{background:repeating-linear-gradient(45deg,var(--backA,#7a4cc4) 0 8px,var(--backB,#4b2a85) 8px 16px);border:3px solid #fff}
+.flyc.b .front,.flyc:not(.b) .fbk{display:none}
+@keyframes vbeat{0%,100%{scale:1}12%{scale:1.22}24%{scale:.97}36%{scale:1.14}}
+@keyframes vglow{0%,100%{filter:brightness(1)}12%{filter:brightness(1.35)}36%{filter:brightness(1.2)}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.fly{display:none}}
