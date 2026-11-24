@@ -364,3 +364,6 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 .hmic.new{background:var(--cY);animation:hmPulse 1.4s infinite}
 .hmic.new::after{content:"!";position:absolute;margin:-30px 0 0 30px;width:20px;height:20px;border-radius:50%;background:var(--cM);color:#fff;border:2px solid var(--ink2);font:900 12px/16px "Noto Sans KR";text-align:center}
 @keyframes hmPulse{50%{box-shadow:0 4px 0 var(--ink2),0 0 0 8px rgba(255,46,138,.25)}}
+
+.cbio{font-size:14px}.cbio b{font-size:14px}
+.cbio p{margin:0;flex:1;position:relative;padding:10px 14px;background:#fff;border:3px solid var(--ink2);border-radius:4px 16px 16px 16px;font-size:15px;font-weight:700;line-height:1.55;box-shadow:3px 3px 0 var(--ink2)}

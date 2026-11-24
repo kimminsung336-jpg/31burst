@@ -33,6 +33,9 @@ function deckIds(k){const s=Save.d.decks[k];return s&&s.own&&s.shared?s:{own:OWN
 function myDeck(k){const s=Save.d.decks[k];if(!s)return null;return[...s.shared,...s.own].map(id=>BYID[id]).filter(Boolean)}
 
 /* ---------- 스토리 데이터는 story.js, 진행·해금은 progress.js ---------- */
+// 캐스트 프로필 한마디 (상태 메시지처럼)
+const CAST_BIO={iri:['셀카는 찍을 때마다 갱신이지. 매니저, 오늘 내 각 어때?','happy'],miko:['…오늘의 점괘, 궁금하세요? 저는 이미 봤어요.','base'],
+  haru:['천천히 하셔도 돼요. 마지막 한 칸은 제가 맞춰 드릴게요.','happy'],mina:['기세 올리면 다 된다! 매니저, 한 판 뛰자.','happy']};
 const WIN_LINE={iri:['역시 매니저! 오늘 조회수 미쳤다.','다음엔 내가 이길 거야. 사진 각 다시 잡는다.'],miko:['…액땜, 됐어요.','괜찮아요. 점괘엔 그렇게 나왔거든요.'],
   haru:['역시 매니저님. 오늘 장사 잘 되겠네요.','괜찮아요. 내일 또 하면 되죠.'],mina:['봤지? 이게 기세야!','한 판 더. 이대로는 못 끝내.']};
 
@@ -327,7 +330,7 @@ S.cast=()=>{const k=CAST_UI.k||Save.d.duty,c=CASTS[k],tab=CAST_UI.tab;CAST_UI.k=
   <div class="grow col">${head}<div style="flex:1;position:relative;overflow:hidden">
    <div style="position:absolute;left:0;top:0;bottom:0;width:340px;background:#fff3dc;border-right:3px solid var(--ink2)"></div>${spr(k,20,10,640)}
    <div style="position:absolute;left:370px;top:24px;right:30px;display:flex;flex-direction:column;gap:16px">
-    <div style="font-size:14px;line-height:1.7"><b>${c.handle}</b><br>${c.style}</div>
+    <div class="cbio"><b>${c.handle}</b><div class="row2" style="gap:10px;align-items:flex-start;margin-top:8px"><img src="${faceImg(k,CAST_BIO[k][1])}" alt="" class="fc" style="width:44px;height:44px"><p>${CAST_BIO[k][0]}</p></div></div>
     <div class="panel" style="padding:14px 16px"><div class="row2" style="justify-content:space-between"><span class="lab">호감도</span><b style="font-size:14px">Lv${Progress.lv(k)}</b></div>${(()=>{const L=Progress.AFF_LV,l=Progress.lv(k),n=L[l],p=L[l-1],a=Progress.aff(k);return `<div class="affbar"><i style="width:${n?Math.round(100*(a-p)/(n-p)):100}%"></i></div><div style="font-size:12px;color:var(--sub2);font-weight:700;margin-top:4px">${n?`다음 레벨까지 ${n-a} · 이 캐스트로 이기면 +1, 스토리를 깨면 +2`:'최고 레벨'}</div>`})()}</div>
     <div class="panel" style="padding:14px 16px"><span class="lab">능력</span><div style="font-size:15px;margin-top:4px">${c.abil}</div></div>
     <div class="panel" style="padding:14px 16px"><span class="lab">덱</span><div style="font-size:14px;margin-top:4px">${Save.d.decks[k]?'직접 짠 덱':'기본 덱'} · 전용 8장 + 공용 12장</div></div>
