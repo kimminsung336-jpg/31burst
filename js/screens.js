@@ -299,26 +299,35 @@ S.story.bind=s=>{s.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>Scree
 /* 스토리 장면: 마감 후 가게에서 마주 보고 하는 대화. 대사마다 표정·자세가 바뀐다 */
 S.scene=()=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k;
   return `${sceneBg(true)}<div id="scSpr" class="scspr">${spr(k,330,40,700).replace(`img/p/${k}.webp`,exImg(k,'base'))}</div>${counter([['cups',70],['cake',1020]],true)}
+<div class="scph" id="scPh" aria-live="polite"><div class="phone"><div class="screen"><div class="appbar"><b>타임라인</b></div><div class="feed" id="scFeed"></div></div></div><span class="tap">눌러서 계속</span></div>
 <div class="vnch" id="scCh"></div>
 <div class="vnbox c${CAST_COL[k]}" id="scBox" role="button" tabindex="0" aria-live="polite"><span class="vnnm" id="scNm">${CASTS[k].name}</span><p id="scTx"></p><i class="vnnx" id="scNx">▼</i></div>
 <div class="vntop"><span class="chip2" style="cursor:default">${chLabel(st)} · ${st.title}</span><button class="chip2" id="scSkip">건너뛰기</button></div>`};
 S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.querySelector('#scCh'),sp=s.querySelector('#scSpr'),box=s.querySelector('#scBox'),tx=s.querySelector('#scTx'),nmEl=s.querySelector('#scNm'),nx=s.querySelector('#scNx');
   let i=0,done=false,typing=null,full='',wait=false;
+  const ph=s.querySelector('#scPh'),feed=s.querySelector('#scFeed');
+  // SNS 글: 휴대폰을 꺼내서 타임라인 맨 위에 올린다
+  const post=(e,t)=>{box.classList.add('hide');ph.classList.add('on');feed.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot'));
+    const el=document.createElement('article');el.className='post hot';const h=Math.round(Math.random()*40+12),r=Math.round(Math.random()*12+2);
+    el.innerHTML=`<img class="av" src="img/p/${e}_av.webp" alt=""><div><div class="ph"><b>${CASTS[e].name}</b><span>${CASTS[e].handle} · 방금</span></div><p class="pt">${nm(t)}</p><div class="pa"><span class="r">${REPLY}<em>${r}</em></span><span class="h">${HEART}<em>${h}</em></span></div></div>`;
+    feed.prepend(el);SFX.notify(0,.12)};
+  const putAway=()=>{ph.classList.remove('on');box.classList.remove('hide')};
+  ph.onclick=()=>step();
   const si=sp.querySelector('img');EXPR.forEach(e=>{const im=new Image();im.src=exImg(k,e)});   // 표정 그림 미리 불러오기
   const react=e=>{e=e||'base';sp.dataset.e=e;si.src=exImg(k,e);sp.classList.remove('go');void sp.offsetWidth;sp.classList.add('go')};
   const say=(who,t,me,post)=>{nmEl.textContent=who;box.classList.toggle('me',!!me);box.classList.toggle('snsp',!!post);box.dataset.pc=post?CAST_COL[post]:'';full=t;tx.textContent='';nx.hidden=true;let n=0;clearInterval(typing);
     typing=setInterval(()=>{n+=1;tx.textContent=t.slice(0,n);if(n>=t.length){clearInterval(typing);typing=null;nx.hidden=false}},Math.max(8,28*SPEED))};
-  const fin=()=>{if(done)return;done=true;clearInterval(typing);ch.innerHTML='';wait=true;
+  const fin=()=>{if(done)return;done=true;clearInterval(typing);ch.innerHTML='';wait=true;putAway();
     const o=CASTS[st.vs].name,FIN={iri:`가자! 상대는 ${o}.`,miko:`…시작할게요. 상대는 ${o} 씨.`,haru:`그럼, 시작해 볼까요? 상대는 ${o}.`,mina:`간다! 상대는 ${o}!`};
     say(CASTS[k].name,FIN[k]||`상대는 ${o}.`);
     const b=document.createElement('button');b.className='btn y';b.style.minWidth='240px';b.textContent=`대전 시작 · vs ${CASTS[st.vs].name}`;b.onclick=()=>storyMatch(st);ch.appendChild(b);b.focus()};
   const step=()=>{if(Screens.cur!=='scene'||done||wait)return;
     if(typing){clearInterval(typing);typing=null;tx.textContent=full;nx.hidden=false;return}   // 글자 나오는 중이면 한 번에 다 보여준다
     if(i>=st.lines.length)return fin();const[w,t,e]=st.lines[i++];
-    if(w==='c'){wait=true;nx.hidden=true;ch.innerHTML='';t.forEach(x=>{const b=document.createElement('button');b.className='btn';b.textContent=nm(x);
+    if(w==='c'){putAway();wait=true;nx.hidden=true;ch.innerHTML='';t.forEach(x=>{const b=document.createElement('button');b.className='btn';b.textContent=nm(x);
       b.onclick=()=>{ch.innerHTML='';wait=false;say(Save.d.manager||'손님',nm(x),true)};ch.appendChild(b)});ch.firstChild.focus();return}
-    if(w==='p'){say(CASTS[e].handle,nm(t),false,e);return}   // SNS 글: 쓴 캐스트 계정으로 보여 준다
-    react(e);say(CASTS[k].name,nm(t))};
+    if(w==='p'){post(e,t);return}
+    putAway();react(e);say(CASTS[k].name,nm(t))};
   box.onclick=step;box.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();step()}};
   const key=e=>{if(Screens.cur!=='scene'){removeEventListener('keydown',key);return}if((e.key===' '||e.key==='Enter')&&document.activeElement===document.body){e.preventDefault();step()}};
   addEventListener('keydown',key);

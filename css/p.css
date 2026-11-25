@@ -115,27 +115,27 @@ body{background:#1e1a22;overflow:hidden}
 #play .turn.wait{background:#fff;color:var(--ink2)}
 
 #play .side{position:absolute;left:960px;top:66px;width:290px;height:560px;display:block;margin:0;padding:0}
-#play .phone{position:absolute;inset:0;border-radius:38px;background:var(--ink2);padding:10px;box-shadow:8px 8px 0 var(--cM);height:auto;max-width:none;min-height:0;top:0}
-#play .screen{height:100%;border-radius:29px;background:var(--paper);display:flex;flex-direction:column;overflow:hidden;border:0}
-#play .appbar{display:flex;align-items:center;padding:12px 16px;border-bottom:3px solid var(--ink2);background:var(--cY);color:var(--ink2)}
-#play .appbar b{font:400 18px/1 "Black Han Sans"}
-#play .tlclose{display:none}
-#play .feed{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin}
-#play .feed:empty::before{content:"아직 올라온 포스트가 없어요";padding:8px;color:var(--sub2);font-size:13px}
-#play .post{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;padding:8px 10px;border-radius:12px;background:#fff;border:2px solid var(--ink2);color:var(--ink2)}
-#play .post .av{width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid var(--ink2)}
-#play .post .ph{display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline;font-size:12px;line-height:1.3}
-#play .post .ph span{font-size:10px;color:var(--sub2)}
-#play .post .ph .tag{order:3;flex-basis:100%;font-size:11px;font-weight:900;color:var(--ink2);background:none;padding:0}
-#play .post .pt{margin:3px 0 0;font-size:12px;line-height:1.45}
-#play .post .pimg{margin-top:6px;border:2px solid var(--ink2);border-radius:8px;overflow:hidden;max-width:150px}
-#play .post .pimg2{aspect-ratio:1}
-#play .post .pimg svg{display:block;width:100%;height:auto}
-#play .post .pa{display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--sub2)}
-#play .post .pa svg{width:13px;height:13px;vertical-align:-2px;margin-right:3px}
-#play .post .pa em{font-style:normal}
-#play .post.bust{background:var(--cK);color:#fff}#play .post.bust .ph span,#play .post.bust .pa{color:#c9b6c2}#play .post.bust .ph .tag{color:#ff6fae}
-#play .post.sys,#play .feed .sys{font-size:11px;color:var(--sub2);padding:2px 6px;border:0;background:none;display:block}
+:is(#play,.scph) .phone{position:absolute;inset:0;border-radius:38px;background:var(--ink2);padding:10px;box-shadow:8px 8px 0 var(--cM);height:auto;max-width:none;min-height:0;top:0}
+:is(#play,.scph) .screen{height:100%;border-radius:29px;background:var(--paper);display:flex;flex-direction:column;overflow:hidden;border:0}
+:is(#play,.scph) .appbar{display:flex;align-items:center;padding:12px 16px;border-bottom:3px solid var(--ink2);background:var(--cY);color:var(--ink2)}
+:is(#play,.scph) .appbar b{font:400 18px/1 "Black Han Sans"}
+:is(#play,.scph) .tlclose{display:none}
+:is(#play,.scph) .feed{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin}
+:is(#play,.scph) .feed:empty::before{content:"아직 올라온 포스트가 없어요";padding:8px;color:var(--sub2);font-size:13px}
+:is(#play,.scph) .post{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;padding:8px 10px;border-radius:12px;background:#fff;border:2px solid var(--ink2);color:var(--ink2)}
+:is(#play,.scph) .post .av{width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid var(--ink2)}
+:is(#play,.scph) .post .ph{display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline;font-size:12px;line-height:1.3}
+:is(#play,.scph) .post .ph span{font-size:10px;color:var(--sub2)}
+:is(#play,.scph) .post .ph .tag{order:3;flex-basis:100%;font-size:11px;font-weight:900;color:var(--ink2);background:none;padding:0}
+:is(#play,.scph) .post .pt{margin:3px 0 0;font-size:12px;line-height:1.45}
+:is(#play,.scph) .post .pimg{margin-top:6px;border:2px solid var(--ink2);border-radius:8px;overflow:hidden;max-width:150px}
+:is(#play,.scph) .post .pimg2{aspect-ratio:1}
+:is(#play,.scph) .post .pimg svg{display:block;width:100%;height:auto}
+:is(#play,.scph) .post .pa{display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--sub2)}
+:is(#play,.scph) .post .pa svg{width:13px;height:13px;vertical-align:-2px;margin-right:3px}
+:is(#play,.scph) .post .pa em{font-style:normal}
+:is(#play,.scph) .post.bust{background:var(--cK);color:#fff}:is(#play,.scph) .post.bust .ph span,:is(#play,.scph) .post.bust .pa{color:#c9b6c2}:is(#play,.scph) .post.bust .ph .tag{color:#ff6fae}
+:is(#play,.scph) .post.sys,:is(#play,.scph) .feed .sys{font-size:11px;color:var(--sub2);padding:2px 6px;border:0;background:none;display:block}
 
 #play .hand{position:absolute;left:230px;right:340px;z-index:3;top:478px;bottom:0;padding:0;margin:0;background:none;border:0}
 #play .cards{display:flex;justify-content:center;align-items:flex-start;gap:0;padding:0}
@@ -472,3 +472,16 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 /* 도감의 미발견 전용 카드는 앞면 정보 없이 공통 뒷면만 */
 .pc2.dex-back .pcb{display:grid;place-items:center;background:repeating-linear-gradient(135deg,#24202b 0 9px,#38253a 9px 18px);color:#ff92c5;box-shadow:0 0 0 4px #bd4b82 inset,3px 3px 0 var(--ink2)}
 .pc2.dex-back .pcb b{font:400 2.6em/1 "Black Han Sans",system-ui,sans-serif}
+
+/* 스토리 장면: SNS 글은 휴대폰을 꺼내 타임라인으로 보여 준다 */
+.scph{position:absolute;right:110px;top:56px;width:360px;height:580px;z-index:6;transform:translateY(760px) rotate(6deg);transition:transform .38s cubic-bezier(.2,1.2,.4,1);cursor:pointer}
+.scph.on{transform:translateY(0) rotate(-3deg)}
+.scph .phone{position:absolute;inset:0}
+.scph .feed:empty::before{content:none}
+.scph .post{animation:scPost .35s cubic-bezier(.2,1.4,.4,1)}
+.scph .post .pt{font-size:14px!important}
+.scph .post .ph{font-size:14px!important}
+.scph .post.hot{box-shadow:0 0 0 3px var(--cM)}
+.scph .tap{position:absolute;left:50%;bottom:-36px;transform:translateX(-50%) rotate(3deg);font:900 12px/1 "Noto Sans KR";color:#fff;background:var(--ink2);border-radius:999px;padding:6px 12px;white-space:nowrap}
+.scene .vnbox.hide{opacity:0;pointer-events:none;transform:translateY(20px);transition:.25s}
+@keyframes scPost{from{opacity:0;transform:translateY(-14px) scale(.96)}}
