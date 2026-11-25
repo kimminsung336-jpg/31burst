@@ -306,11 +306,20 @@ S.scene=()=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k;
 S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.querySelector('#scCh'),sp=s.querySelector('#scSpr'),box=s.querySelector('#scBox'),tx=s.querySelector('#scTx'),nmEl=s.querySelector('#scNm'),nx=s.querySelector('#scNx');
   let i=0,done=false,typing=null,full='',wait=false;
   const ph=s.querySelector('#scPh'),feed=s.querySelector('#scFeed');
-  // SNS 글: 휴대폰을 꺼내서 타임라인 맨 위에 올린다
-  const post=(e,t)=>{box.classList.add('hide');ph.classList.add('on');feed.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot'));
-    const el=document.createElement('article');el.className='post hot';const h=Math.round(Math.random()*40+12),r=Math.round(Math.random()*12+2);
-    el.innerHTML=`<img class="av" src="img/p/${e}_av.webp" alt=""><div><div class="ph"><b>${CASTS[e].name}</b><span>${CASTS[e].handle} · 방금</span></div><p class="pt">${nm(t)}</p><div class="pa"><span class="r">${REPLY}<em>${r}</em></span><span class="h">${HEART}<em>${h}</em></span></div></div>`;
-    feed.prepend(el);SFX.notify(0,.12)};
+  // SNS 글: 휴대폰을 꺼내서 타임라인 맨 위에 올린다. 처음 꺼낼 때는 바탕 글(feed)과 인용될 원본 글이 이미 깔려 있다
+  const pimg=(k2,id)=>id?`<div class="pimg"><div class="pimg2" style="${photoStyle({id},CAST_COL[k2])}"></div></div>`:'';
+  const likes=()=>`<div class="pa"><span class="r">${REPLY}<em>${Math.round(Math.random()*12+2)}</em></span><span class="h">${HEART}<em>${Math.round(Math.random()*40+12)}</em></span></div>`;
+  const art=(k2,t,o={})=>{const el=document.createElement('article');el.className='post';
+    el.innerHTML=`<img class="av" src="img/p/${k2}_av.webp" alt=""><div><div class="ph"><b>${CASTS[k2].name}</b><span>${CASTS[k2].handle} · ${o.old?'1시간 전':'방금'}</span></div>`+
+      (o.re?`<div class="rel">↳ <b>${CASTS[o.re].handle}</b> 님에게 답글</div>`:'')+`<p class="pt">${nm(t)}</p>`+
+      (o.q?`<div class="qt"><div class="ph"><img class="av" src="img/p/${o.q[0]}_av.webp" alt=""><b>${CASTS[o.q[0]].name}</b><span>${CASTS[o.q[0]].handle}</span></div><p class="pt">${nm(o.q[1])}</p>${pimg(o.q[0],o.q[2])}</div>`:'')+
+      (o.ph?pimg(o.ph[0],o.ph[1]):o.img?pimg(k2,o.img):'')+likes()+`</div>`;return el};
+  let seeded=false;
+  const seed=()=>{if(seeded)return;seeded=true;const L=[...(st.feed||[])];
+    st.lines.forEach(l=>{if(l[0]==='p'&&l[3]&&l[3].q&&!L.some(x=>x[1]===l[3].q[1]))L.push(l[3].q)});
+    L.forEach(([k2,t,img])=>feed.prepend(art(k2,t,{old:1,img})))};
+  const post=(e,t,o)=>{box.classList.add('hide');seed();ph.classList.add('on');feed.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot'));
+    const el=art(e,t,o||{});el.classList.add('hot');feed.prepend(el);feed.scrollTop=0;SFX.notify(0,.12)};
   const putAway=()=>{ph.classList.remove('on');box.classList.remove('hide')};
   ph.onclick=()=>step();
   const si=sp.querySelector('img');EXPR.forEach(e=>{const im=new Image();im.src=exImg(k,e)});   // 표정 그림 미리 불러오기
@@ -326,7 +335,7 @@ S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.query
     if(i>=st.lines.length)return fin();const[w,t,e]=st.lines[i++];
     if(w==='c'){putAway();wait=true;nx.hidden=true;ch.innerHTML='';t.forEach(x=>{const b=document.createElement('button');b.className='btn';b.textContent=nm(x);
       b.onclick=()=>{ch.innerHTML='';wait=false;say(Save.d.manager||'손님',nm(x),true)};ch.appendChild(b)});ch.firstChild.focus();return}
-    if(w==='p'){post(e,t);return}
+    if(w==='p'){post(e,t,st.lines[i-1][3]);return}
     putAway();react(e);say(CASTS[k].name,nm(t))};
   box.onclick=step;box.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();step()}};
   const key=e=>{if(Screens.cur!=='scene'){removeEventListener('keydown',key);return}if((e.key===' '||e.key==='Enter')&&document.activeElement===document.body){e.preventDefault();step()}};

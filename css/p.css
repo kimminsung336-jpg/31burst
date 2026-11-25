@@ -485,3 +485,12 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 .scph .tap{position:absolute;left:50%;bottom:-36px;transform:translateX(-50%) rotate(3deg);font:900 12px/1 "Noto Sans KR";color:#fff;background:var(--ink2);border-radius:999px;padding:6px 12px;white-space:nowrap}
 .scene .vnbox.hide{opacity:0;pointer-events:none;transform:translateY(20px);transition:.25s}
 @keyframes scPost{from{opacity:0;transform:translateY(-14px) scale(.96)}}
+/* 스토리 타임라인: 인용·답글 */
+.scph .post .rel{font-size:11px;color:var(--sub2);margin-top:2px}
+.scph .post .rel b{color:var(--ink2)}
+.scph .post .qt{margin-top:6px;border:2px solid var(--line,#e5dbe0);border-radius:10px;padding:7px 9px;background:#fffaf2}
+.scph .post .qt .ph{display:flex;align-items:center;gap:5px}
+.scph .post .qt .av{width:18px;height:18px;border-width:1.5px}
+.scph .post .qt .pt{font-size:12px!important;margin-top:2px}
+.scph .post .qt .pimg{max-width:120px}
+.scph .post .pimg{max-width:170px}
