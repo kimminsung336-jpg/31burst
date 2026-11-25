@@ -15,7 +15,7 @@ const Talk=(()=>{
     document.querySelectorAll('#play .tb').forEach(e=>{e.classList.add('out');setTimeout(()=>e.remove(),250)});
     const b=document.createElement('div');b.className=`tb ${w==='o'?'op':'me'} c${CAST_COL[k]}`;b.setAttribute('role','status');
     b.innerHTML=`<img src="img/p/${k}_av.webp" alt=""><span><b>${CASTS[k].name}</b>${nm(t)}</span>`;
-    $('play').appendChild(b);
+    $('play').appendChild(b);SFX.blip();
     const ms=Math.max(1400,Math.min(3200,700+t.length*55))*Math.max(SPEED,.6);
     setTimeout(()=>{b.classList.add('out');setTimeout(()=>b.remove(),250);pump()},ms);
   }

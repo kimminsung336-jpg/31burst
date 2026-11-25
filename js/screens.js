@@ -90,7 +90,7 @@ S.title=()=>`<img class="bgi" src="img/p/bg_day.webp" alt="" style="filter:blur(
 ${spr('iri',20,180,560,'',true)}${spr('mina',925,250,660)}${spr('miko',290,262,620)}${spr('haru',610,252,620)}
 <div class="fade"></div><div class="logo">${LOGO_SVG}</div>
 <button class="btn y go" id="tGo">${TOUCH?'눌러서 출근하기':'아무 키나 눌러 출근하기'}</button><span class="ver">v0.3 프로토타입</span>`;
-S.title.bind=s=>{const go=()=>{if(TOUCH&&!FS.on())FS.enter();Screens.go('home')};s.querySelector('#tGo').onclick=go;
+S.title.bind=s=>{const go=()=>{SFX.notify();if(TOUCH&&!FS.on())FS.enter();Screens.go('home')};s.querySelector('#tGo').onclick=go;
   const k=e=>{if(Screens.cur!=='title'){removeEventListener('keydown',k);return}if(e.key==='Tab')return;e.preventDefault();removeEventListener('keydown',k);setTimeout(go,0)};addEventListener('keydown',k)};
 
 /* 메인: 왼쪽 위 손님 명패, 가운데 오늘 지명한 캐스트, 오른쪽 메뉴 버튼 */
@@ -402,6 +402,7 @@ S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space
    <span class="lab" style="margin-top:6px">게임</span>
    ${row('전체 화면',`<button class="btn" id="stFull" style="min-height:36px;font-size:13px">${FS.on()?'끄기':'켜기'}</button>`)}
    ${row('연출 속도',`<div class="seg" style="width:220px" id="stSpeed"><button data-v="1" class="${SPEED===1?'on':''}">보통</button><button data-v="0.5" class="${SPEED===0.5?'on':''}">빠르게</button></div>`)}
+   ${row('효과음',`<span class="row2"><input id="stVol" type="range" min="0" max="1" step=".05" value="${Save.d.vol!=null?Save.d.vol:.6}" aria-label="효과음 크기" style="width:120px;accent-color:var(--cM)"><button class="chip2${Save.d.mute?' on':''}" id="stMute">${Save.d.mute?'꺼짐':'켜짐'}</button></span>`)}
    ${row('게임 설명서','<button class="btn" id="stGuide" style="min-height:36px;font-size:13px">다시 보기</button>')}
    <span class="lab" style="margin-top:18px">손님</span>
    ${row('이름',`<span class="row2"><input id="stName" maxlength="10" value="${(Save.d.manager||'').replace(/"/g,'&quot;')}" style="font:inherit;width:140px;padding:6px 10px;border:2px solid var(--ink2);border-radius:10px"><button class="btn" id="stNameOk" style="min-height:36px;font-size:13px">저장</button></span>`)}
@@ -412,7 +413,10 @@ S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space
    ${row('진행 초기화','<button class="btn" id="stReset" style="min-height:36px;font-size:13px;color:#d0103a">초기화</button>')}
    <div style="margin-top:auto;font-size:12px;color:var(--sub2);font-weight:700">31 버스트 · v0.3 프로토타입</div>
   </div></div></div></div>`};
-S.settings.bind=s=>{s.querySelector('#stSpeed').onclick=e=>{const b=e.target.closest('button');if(!b)return;SPEED=+b.dataset.v;Save.d.speed=SPEED;Save.put();Screens.go('settings')};
+S.settings.bind=s=>{
+  const vr=s.querySelector('#stVol');vr.oninput=()=>{Save.d.vol=+vr.value;Save.put();SFX.ctx()};vr.onchange=()=>SFX.notify();
+  s.querySelector('#stMute').onclick=()=>{Save.d.mute=!Save.d.mute;Save.put();if(!Save.d.mute)SFX.notify();Screens.go('settings')};
+s.querySelector('#stSpeed').onclick=e=>{const b=e.target.closest('button');if(!b)return;SPEED=+b.dataset.v;Save.d.speed=SPEED;Save.put();Screens.go('settings')};
   s.querySelector('#stGuide').onclick=()=>showGuide();
   s.querySelector('#stFull').onclick=async()=>{await FS.toggle();setTimeout(()=>Screens.go('settings'),300)};
   s.querySelector('#stNameOk').onclick=()=>{const v=s.querySelector('#stName').value.trim();if(!v)return;Save.d.manager=v;Save.put();Screens.toast('저장됨')};
@@ -444,3 +448,6 @@ function fitStage(){const pt=PT_FORCE?PT_FORCE==='1':innerHeight>innerWidth,r=do
 addEventListener('resize',fitStage);fitStage();
 document.addEventListener('fullscreenchange',()=>{fitStage();if(Screens.cur==='home'){const b=document.getElementById('hFull');if(b)b.innerHTML=FS.on()?ICO.fsx:ICO.fs}});
 Screens.go('title');
+
+// 버튼 누를 때 작은 클릭음 (손패 카드·타이틀 시작은 따로 소리가 있다)
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||b.closest('#hand')||b.id==='tGo'||b.id==='stMute')return;SFX.click()},true);

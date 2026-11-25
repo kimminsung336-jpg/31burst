@@ -48,7 +48,7 @@ function addPost(p,card,v){
   requestAnimationFrame(()=>{let r=el.querySelector('.h').getBoundingClientRect();if(r.left>innerWidth-4||r.right<4){const q=document.querySelector('.ring').getBoundingClientRect();r={left:q.left+q.width/2-8,top:q.top+q.height/2-8}}spawn(r.left+8,r.top+8,4+Math.min(10,Math.abs(v)*2),70)});
   return el;
 }
-function bigHit(n){
+function bigHit(n){SFX.just();
   NET.ev({t:'hit'});
   const d=document.createElement('div');d.className='hit';
   d.innerHTML=`<div class="rays"></div><span class="n">JUST!</span>`;
@@ -56,7 +56,7 @@ function bigHit(n){
   setTimeout(()=>{const m=document.getElementById('play');m.classList.remove('quake');void m.offsetWidth;m.classList.add('quake');
     spawn(innerWidth/2,innerHeight/2,40,340,false,'heart');rise('heart',140)},230);
 }
-function bigBust(k=1){
+function bigBust(k=1){SFX.bust();
   NET.ev({t:'bust',k});
   const d=document.createElement('div');d.className='bustbig';
   d.innerHTML=`<div class="w"><span class="t">BUST!</span>${k>1?`<small>${k}연속 버스트!</small>`:''}</div>`;
@@ -90,6 +90,7 @@ function flyCard(p,v,card){
   el.style.setProperty('--fw',W+'px');   // 앞면은 실제 카드 그림으로
   el.innerHTML=`<div class="fin"><div class="fc front ${cls}${card?' cardf':''}">${card?cardHTML(card,{num:v}):`<b>${v}</b>`}</div><div class="fc fbk"></div></div>`;
   document.body.appendChild(el);const fin=el.firstElementChild;
+  if(p===ME)SFX.play(v);else setTimeout(()=>SFX.flip(),760);
   let frames,dur;
   if(p===ME){
     const mx=(sx+dx)/2-20,my=Math.min(sy,dy)-60;

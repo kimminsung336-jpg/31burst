@@ -98,7 +98,7 @@ function ask(title,text,opts,cardOptions=false){
 
 function showResult(fin,w,wait){
   return new Promise(res=>{
-    const[a,b]=[G.score[ME],G.score[AI]],box=$('rBox');
+    const[a,b]=[G.score[ME],G.score[AI]],box=$('rBox');setTimeout(()=>w===ME?SFX.win():w===AI?SFX.lose():SFX.click(),120);
     $('rMeImg').src=`img/p/${SEAT[ME]}_av.webp`;$('rAiImg').src=`img/p/${SEAT[AI]}_av.webp`;
     $('rMeName').textContent=NAME[ME];$('rAiName').textContent=NAME[AI];$('rMeSc').textContent=a;$('rAiSc').textContent=b;
     let win=null,title,sub='',note='',kick;
@@ -128,7 +128,7 @@ function showResult(fin,w,wait){
 function newGame(){if(typeof Talk!=='undefined')Talk.reset();G.gid=(G.gid||0)+1;G.rounds=MATCH;G.round=0;G.score=[0,0];G.wins=[0,0];G.hist=[];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
 function newRound(){
   G.round++;G.P=[freshPlayer(ME),freshPlayer(AI)];draw(ME,5);draw(AI,5);
-  G.gauge=0;G.target=31;G.stake=1;G.stakeHist=[1];G.passes=0;G.busts=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
+  G.gauge=0;G.target=31;G.stake=1;G.nearSnd=0;G.stakeHist=[1];G.passes=0;G.busts=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
   log(`— ${G.round}판 시작. ${NAME[G.cur]} 선공 —`);
   if(typeof Talk!=='undefined')Talk.say(G.round===1?'start':G.round===G.rounds?'last':'round'+G.round);
   startTurn();
@@ -163,7 +163,7 @@ async function play(p,idx,choice,adj=0){
   const ng=Math.max(0,G.gauge+v);
   G.gauge=ng;if(card.photo)P.photoCount++;pop();render();
   const postEl=addPost(p,card,v);
-  if(typeof Talk!=='undefined'&&ng>=25&&ng<G.target)Talk.say('near');
+  if(ng>=25&&ng<G.target){if(!G.nearSnd){G.nearSnd=1;SFX.near()}if(typeof Talk!=='undefined')Talk.say('near')}
 
   if(ng===G.target&&!card.nofinish){if(card.fixed){G.stake+=2;log(`노필터 셀카로 저스트! 판돈 +2 → ${G.stake}점`,cls);render()}if(typeof Talk!=='undefined')Talk.say(p===ME?'justMe':'justOp');bigHit(G.target);await sleep(2600);G.busy=false;return endRound(p)}
   if(ng>G.target||(ng===G.target&&card.nofinish)){   // 저스트 불가 카드로 목표에 딱 맞으면 버스트
