@@ -171,7 +171,7 @@ async function play(p,idx,choice,adj=0){
     const plus=AB.filter(a=>a.bustPlus).length,drawers=[];
     for(const[e,q,c]of RULES.afterBust(G,AB,draw)){if(e==='bustDraw')drawers.push(q);if(e==='bustDiscard')log(`${CASTS[SEAT[q]].abName}: ${NAME[1-q]} 손패 「${c.name}」 버림`,'sys')}
     if(typeof Talk!=='undefined')Talk.say(p===ME?'bustMe':'bustOp');
-    bustFx(postEl);render();bigBust(k);await sleep(2300);
+    bustFx(postEl);render();bigBust(k);setTimeout(()=>SFX.coin(),1300);   // 판돈 별이 오를 때await sleep(2300);
     log(`버스트!${k>1?` ${k}연속,`:''} 묻고 ${card.triple?'트리플':'더블'}.${plus?' 흉조로 판돈 +1,':''} 판돈 ${G.stake}점, 목표 ${G.target}.${drawers.map(q=>` ${NAME[q]} 2장 뽑음`).join('')}`);
   }
   // 효과
