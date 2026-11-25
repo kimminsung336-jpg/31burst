@@ -173,4 +173,7 @@ body.pt .scph{right:auto;left:60px;top:calc(140px + var(--ex)/2);width:600px;hei
 body.pt .scph.on{transform:translateY(0) rotate(-2deg)}
 body.pt .scph .feed,body.pt .scph .dm{zoom:1.35}
 body.pt .scnoti{zoom:1.4;top:90px}
+body.pt .scene.duo #scSpr{translate:-150px 0}
+body.pt .scene .scspr.sc2{translate:520px 0}
+body.pt .scene.duo .scspr.sc2{translate:300px 0}
 body.pt .olfr{grid-template-columns:1fr}

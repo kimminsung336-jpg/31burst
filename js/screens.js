@@ -60,8 +60,9 @@ const faceImg=(k,e='base')=>`img/p/face/${k}_${e||'base'}.webp`;
 // 표정별 서 있는 그림 (인페인트로 얼굴·팔만 바꿈)
 const EXPR=['base','happy','pout','fluster','sad'];
 const exImg=(k,e='base')=>`img/p/ex/${k}_${e||'base'}.webp`;
-// 대사 속 {N} 을 손님 이름으로
-const nm=t=>String(t).replace(/\{N\}/g,Save.d.manager||'손님');
+// 대사 속 {N} 을 손님 이름으로. 바로 뒤에 붙은 조사(은/는·이/가·을/를·과/와)는 이름 끝 받침에 맞춘다
+const nm=t=>{const n=Save.d.manager||'손님',c=n.charCodeAt(n.length-1),bat=c>=0xAC00&&c<=0xD7A3?(c-0xAC00)%28>0:/[lmnrLMNR013678]$/.test(n);
+  return String(t).replace(/\{N\}(은|는|이|가|을|를|과|와)(?=[\s,.!?~…]|$)/g,(m,j)=>n+((bat?{는:'은',가:'이',를:'을',와:'과'}:{은:'는',이:'가',을:'를',과:'와'})[j]||j)).replace(/\{N\}/g,n)};
 const chLabel=st=>`${CASTS[st.k].name} ${st.ch}장`;
 const DIFF_KO={easy:'쉬움',normal:'보통',hard:'어려움',xhard:'매우 어려움'};
 // 캐스트마다 그림 여백이 달라서 키를 맞춘다 (아이리 스프라이트가 크게 잘려 있음)
@@ -160,7 +161,7 @@ S.match.bind=s=>{
 };
 function startMatch(opt={}){
   if(!Save.d.guide&&!NET.on)return showGuide(()=>startMatch(opt));   // 처음 대전이면 설명서부터 (닫거나 끝까지 보면 바로 시작)
-const k=Save.d.duty,o={...MATCH_OPT,...opt};G.gid=(G.gid||0)+1;G.over=true;
+const k=Save.d.duty,o={...MATCH_OPT,...opt};G.gid=(G.gid||0)+1;G.over=true;if(typeof Talk!=='undefined')Talk.reset();   // 앞 대전에서 밀린 말풍선이 새 대전에 끼어들지 않게
   let opp=o.opp;if(opp==='rand'||opp===k){const c=CAST_KEYS.filter(x=>x!==k);opp=c[Math.random()*c.length|0]}
   DIFF=o.diff;MATCH=o.rounds;SEAT=[k,opp];Screens.ctx.story=o.story||null;CURRENT={story:o.story||null,opt:o};
   seatSetup();Screens.go('play');showVS(k,opp,o).then(()=>newGame());
@@ -324,7 +325,8 @@ S.scene=()=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k;
 <div class="vnbox c${CAST_COL[k]}" id="scBox" role="button" tabindex="0" aria-live="polite"><span class="vnnm" id="scNm">${CASTS[k].name}</span><p id="scTx"></p><i class="vnnx" id="scNx">▼</i></div>
 <div class="vntop"><span class="chip2" style="cursor:default">${chLabel(st)} · ${st.title}</span><button class="chip2" id="scSkip">건너뛰기</button></div>`};
 S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.querySelector('#scCh'),sp=s.querySelector('#scSpr'),box=s.querySelector('#scBox'),tx=s.querySelector('#scTx'),nmEl=s.querySelector('#scNm'),nx=s.querySelector('#scNx');
-  let i=0,done=false,typing=null,full='',wait=false,pend=null;
+  let i=0,done=false,typing=null,full='',wait=false;const Q=[];   // Q: 고른 보기에 딸린 줄. 다 쓰면 본문으로 돌아온다
+  const flat=L=>L.flatMap(l=>l[0]==='c'&&l[2]?[l,...l[2].filter(r=>Array.isArray(r[0])).flatMap(flat)]:[l]),ALL=flat(st.lines);
   const ph=s.querySelector('#scPh'),feed=s.querySelector('#scFeed');
   // SNS 글: 휴대폰을 꺼내서 타임라인 맨 위에 올린다. 처음 꺼낼 때는 바탕 글(feed)과 인용될 원본 글이 이미 깔려 있다
   const pimg=(k2,id)=>id?`<div class="pimg"><div class="pimg2" style="${photoStyle({id},CAST_COL[k2])}"></div></div>`:'';
@@ -335,27 +337,37 @@ S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.query
       (o.q?`<div class="qt"><div class="ph"><img class="av" src="img/p/${o.q[0]}_av.webp" alt=""><b>${CASTS[o.q[0]].name}</b><span>${CASTS[o.q[0]].handle}</span></div><p class="pt">${nm(o.q[1])}</p>${pimg(o.q[0],o.q[2])}</div>`:'')+
       (o.ph?pimg(o.ph[0],o.ph[1]):o.img?pimg(k2,o.img):'')+likes()+`</div>`;return el};
   let seeded=false;
-  const seed=()=>{if(seeded)return;seeded=true;const L=[...(st.feed||[])];
-    st.lines.forEach(l=>{if(l[0]==='p'&&l[3]&&l[3].q&&!L.some(x=>x[1]===l[3].q[1]))L.push(l[3].q)});
+  const seed=()=>{if(seeded)return;seeded=true;const L=[...(st.feed||[])],own=new Set(ALL.filter(l=>l[0]==='p'||l[0]==='n').map(l=>l[2]+'|'+l[1]));
+    ALL.forEach(l=>{const q=(l[0]==='p'||l[0]==='n')&&l[3]&&l[3].q;if(q&&!own.has(q[0]+'|'+q[1])&&!L.some(x=>x[1]===q[1]))L.push(q)});
     L.forEach(([k2,t,img])=>feed.prepend(art(k2,t,{old:1,img})))};
   const post=(e,t,o)=>{box.classList.add('hide');noti.classList.remove('on');seed();ph.classList.add('on');feed.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot'));
     view('tl');const el=art(e,t,o||{});el.classList.add('hot');feed.prepend(el);feed.scrollTop=0;SFX.notify(0,.12)};
   const putAway=()=>{ph.classList.remove('on');box.classList.remove('hide')};
   // DM: ['d', 말, 보낸 캐스트, {to:받는 캐스트}] 휴대폰을 DM 창으로 꺼낸다. 이 장 주인공이 보낸 건 오른쪽
-  const dm=s.querySelector('#scDm'),app=s.querySelector('#scApp');let room=null;
+  const dm=s.querySelector('#scDm'),app=s.querySelector('#scApp'),rooms={};let room=null;
   const view=v=>{const isDm=v!=='tl';feed.hidden=isDm;dm.hidden=!isDm;app.textContent=isDm?'DM · '+CASTS[v].name:'타임라인'};
-  const bub=(e,t)=>{const el=document.createElement('div');el.className='bub'+(e===k?' me':'');
+  const bub=(e,t,old)=>{const el=document.createElement('div');el.className='bub'+(e===k?' me':'')+(old?' old':'');
     el.innerHTML=(e===k?'':`<img class="av" src="img/p/${e}_av.webp" alt="">`)+`<p>${nm(t)}</p>`;dm.appendChild(el);dm.scrollTop=dm.scrollHeight};
-  const dmTo=(e,o)=>{const other=e===k?(o&&o.to)||st.vs:e;if(room!==other){room=other;dm.innerHTML=''}return other};
-  const dmSay=(e,t,o)=>{box.classList.add('hide');noti.classList.remove('on');view(dmTo(e,o));bub(e,t);ph.classList.add('on');SFX.notify(0,.12)};
+  const dmPush=(e,t,o)=>{const r=e===k?(o&&o.to)||room||st.vs:e;(rooms[r]=rooms[r]||[]).push([e,t]);return r};
+  const dmSay=(e,t,o)=>{box.classList.add('hide');noti.classList.remove('on');const r=dmPush(e,t,o);
+    if(room!==r){room=r;dm.innerHTML='';rooms[r].slice(0,-1).forEach(([a,b])=>bub(a,b,1))}view(r);bub(e,t);ph.classList.add('on');SFX.notify(0,.12)};
   // 실시간 알림: ['n', 말, 쓴 캐스트, {dm:1, …글 옵션}] 대화는 그대로 이어지고 화면 위에 알림이 잠깐 뜬다
   const noti=s.querySelector('#scNoti');let notiT=null;
-  const live=(e,t,o={})=>{if(o.dm){dmTo(e,o);bub(e,t)}else{seed();feed.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot'));feed.prepend(art(e,t,o))}
+  const live=(e,t,o={})=>{if(o.dm){if(dmPush(e,t,o)===room)bub(e,t)}else{seed();feed.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot'));feed.prepend(art(e,t,o))}
     noti.innerHTML=`<img class="av" src="img/p/${e}_av.webp" alt=""><div><div class="nh"><b>${CASTS[e].name}</b><span>${o.dm?'DM':o.re?CASTS[o.re].handle+' 님에게 답글':CASTS[e].handle}</span></div><p>${nm(t)}</p></div>`;
     noti.classList.remove('on');void noti.offsetWidth;noti.classList.add('on');clearTimeout(notiT);notiT=setTimeout(()=>noti.classList.remove('on'),4200);SFX.notify(0,.12)};
   ph.onclick=()=>step();
-  const si=sp.querySelector('img');EXPR.forEach(e=>{const im=new Image();im.src=exImg(k,e)});   // 표정 그림 미리 불러오기
-  const react=e=>{e=e||'base';sp.dataset.e=e;si.src=exImg(k,e);sp.classList.remove('go');void sp.offsetWidth;sp.classList.add('go')};
+  EXPR.forEach(e=>{const im=new Image();im.src=exImg(k,e)});   // 표정 그림 미리 불러오기
+  const face=(el,who,e)=>{e=e||'base';el.dataset.e=e;el.querySelector('img').src=exImg(who,e);el.classList.remove('go');void el.offsetWidth;el.classList.add('go')};
+  const react=e=>face(sp,k,e);
+  // 라이벌 등장: ['o', 말, 표정, 누구(생략하면 대전 상대)] 가게에 직접 와서 말한다. 말하는 쪽은 밝게, 듣는 쪽은 어둡게. ['x'] 는 퇴장
+  const sp2=()=>s.querySelector('#scSpr2');
+  const guest=(who,e)=>{let g=sp2();
+    if(!g||g.dataset.k!==who){if(g)g.remove();sp.insertAdjacentHTML('afterend',`<div id="scSpr2" class="scspr sc2" data-k="${who}">${spr(who,330,40,700).replace(`img/p/${who}.webp`,exImg(who,e||'base'))}</div>`);g=sp2();void g.offsetWidth}
+    s.classList.add('duo');return g};
+  const turn=mine=>{sp.classList.toggle('dim',!mine);const g=sp2();if(g)g.classList.toggle('dim',!!mine)};
+  const col=who=>['M','K','Y','C'].forEach(c=>box.classList.toggle('c'+c,c===CAST_COL[who]));
+  [...new Set(ALL.filter(l=>l[0]==='o').map(l=>l[3]||st.vs))].forEach(w=>EXPR.forEach(e=>{const im=new Image();im.src=exImg(w,e)}));
   const say=(who,t,me,post)=>{nmEl.textContent=who;box.classList.toggle('me',!!me);box.classList.toggle('snsp',!!post);box.dataset.pc=post?CAST_COL[post]:'';full=t;tx.textContent='';nx.hidden=true;let n=0;clearInterval(typing);
     typing=setInterval(()=>{n+=1;tx.textContent=t.slice(0,n);if(n>=t.length){clearInterval(typing);typing=null;nx.hidden=false}},Math.max(8,28*SPEED))};
   const fin=()=>{if(done)return;done=true;clearInterval(typing);noti.classList.remove('on');ch.innerHTML='';wait=true;putAway();
@@ -363,19 +375,20 @@ S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.query
       const b=document.createElement('button');b.className='btn y';b.style.minWidth='240px';b.textContent='다음';
       b.onclick=()=>{Progress.onTalkEnd(st.id);CURRENT={story:st.id,talk:true,opt:null};Screens.go('reward')};ch.appendChild(b);b.focus();return}
     const o=CASTS[st.vs].name,FIN={iri:`가자! 상대는 ${o}.`,miko:`…시작할게요. 상대는 ${o} 씨.`,haru:`그럼, 시작해 볼까요? 상대는 ${o}.`,mina:`간다! 상대는 ${o}!`};
-    say(CASTS[k].name,FIN[k]||`상대는 ${o}.`);
+    turn(true);col(k);say(CASTS[k].name,FIN[k]||`상대는 ${o}.`);
     const b=document.createElement('button');b.className='btn y';b.style.minWidth='240px';b.textContent=`대전 시작 · vs ${CASTS[st.vs].name}`;b.onclick=()=>storyMatch(st);ch.appendChild(b);b.focus()};
   const step=()=>{if(Screens.cur!=='scene'||done||wait)return;
     if(typing){clearInterval(typing);typing=null;tx.textContent=full;nx.hidden=false;return}   // 글자 나오는 중이면 한 번에 다 보여준다
-    if(pend){const[t2,e2]=pend;pend=null;putAway();react(e2);say(CASTS[k].name,nm(t2));return}   // 고른 보기에 대한 반응
-    if(i>=st.lines.length)return fin();const[w,t,e]=st.lines[i++];
-    // 고르기: ['c', [보기…], [[보기별 반응, 표정]…]] 반응이 있으면 손님 말 다음에 캐스트가 받아친다
+    const ln=Q.length?Q.shift():i<st.lines.length?st.lines[i++]:null;if(!ln)return fin();const[w,t,e,o]=ln;
+    // 고르기: ['c', [보기…], [보기별 반응…]] 반응은 [말, 표정] 한 줄이거나, 줄 여러 개([[줄], [줄]…])다. 여러 줄이면 고른 보기대로 글·DM 이 실제로 올라간다
     if(w==='c'){putAway();wait=true;nx.hidden=true;ch.innerHTML='';const re=e;t.forEach((x,j)=>{const b=document.createElement('button');b.className='btn';b.textContent=nm(x);
-      b.onclick=()=>{ch.innerHTML='';wait=false;say(Save.d.manager||'손님',nm(x),true);if(re&&re[j])pend=re[j]};ch.appendChild(b)});ch.firstChild.focus();return}
-    if(w==='p'){post(e,t,st.lines[i-1][3]);return}
-    if(w==='d'){dmSay(e,t,st.lines[i-1][3]);return}
-    if(w==='n'){live(e,t,st.lines[i-1][3]);return step()}
-    putAway();react(e);say(CASTS[k].name,nm(t))};
+      b.onclick=()=>{ch.innerHTML='';wait=false;col(k);say(Save.d.manager||'손님',nm(x),true);const r=re&&re[j];if(r)Q.push(...(Array.isArray(r[0])?r:[['k',r[0],r[1]]]))};ch.appendChild(b)});ch.firstChild.focus();return}
+    if(w==='p'){post(e,t,o);return}
+    if(w==='d'){dmSay(e,t,o);return}
+    if(w==='n'){live(e,t,o);return step()}
+    if(w==='x'){s.classList.remove('duo');turn(true);return step()}
+    if(w==='o'){const who=o||st.vs,g=guest(who,e);putAway();face(g,who,e);turn(false);col(who);say(CASTS[who].name,nm(t));return}
+    putAway();react(e);turn(true);col(k);say(CASTS[k].name,nm(t))};
   box.onclick=step;box.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();step()}};
   const key=e=>{if(Screens.cur!=='scene'){removeEventListener('keydown',key);return}if((e.key===' '||e.key==='Enter')&&document.activeElement===document.body){e.preventDefault();step()}};
   addEventListener('keydown',key);

@@ -321,6 +321,11 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 .msgs .mrow.me{justify-content:flex-end}
 .msgs .mrow .b{max-width:230px}
 .scspr{position:absolute;inset:0;pointer-events:none;transform-origin:30% 100%}
+.scspr{transition:translate .4s cubic-bezier(.2,1.1,.4,1),filter .25s,opacity .3s}
+.scspr.sc2{translate:560px 0;opacity:0}
+.scene.duo #scSpr{translate:-200px 0}
+.scene.duo .scspr.sc2{translate:330px 0;opacity:1}
+.scspr.dim{filter:brightness(.6) saturate(.75)}
 .scspr.go[data-e=happy]{animation:eHop .45s}
 .scspr.go[data-e=pout]{animation:eShake .35s}
 .scspr.go[data-e=fluster]{animation:eShake .25s 2}
@@ -490,6 +495,7 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 .scph .bub .av{width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid var(--ink2);flex:none}
 .scph .bub p{margin:0;padding:8px 11px;border:2px solid var(--ink2);border-radius:14px 14px 14px 4px;background:#fff;color:var(--ink2);font-size:14px;line-height:1.45}
 .scph .bub.me{align-self:flex-end}
+.scph .bub.old{animation:none}
 .scph .bub.me p{background:var(--cM);color:#fff;border-radius:14px 14px 4px 14px}
 .scnoti{position:absolute;left:50%;top:64px;z-index:9;width:420px;display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:center;padding:10px 14px;border:3px solid var(--ink2);border-radius:18px;background:#fff;color:var(--ink2);box-shadow:5px 5px 0 var(--cM);transform:translate(-50%,-160px);opacity:0;transition:transform .35s cubic-bezier(.2,1.3,.4,1),opacity .25s;pointer-events:none}
 .scnoti.on{transform:translate(-50%,0);opacity:1}
