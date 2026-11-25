@@ -470,6 +470,23 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 #play .backs .back.seen b{font:400 18px/1 "Black Han Sans";color:var(--ink2)}
 #play .backs .back.seen em{font-style:normal;font-size:8px;font-weight:900;line-height:1.1;text-align:center;color:var(--ink2);max-width:36px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 /* 염탐 순간 크게 보여 주기 */
+#play .peekov{position:absolute;inset:0;z-index:25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding-bottom:80px;background:rgba(20,12,24,.62);pointer-events:none;animation:pkFade .2s}
+#play .peekov.out{opacity:0;transition:.3s}
+#play .peekov .pkl{font:400 24px/1 "Black Han Sans";color:#fff;background:var(--ink2);border:3px solid var(--cY);border-radius:999px;padding:8px 20px;transform:rotate(-2deg)}
+#play .peekov .peekrow{display:flex;justify-content:center;align-items:flex-end;padding:0 40px}
+#play .peekov .pks{margin:0 -14px;transform:translateY(40px) rotate(calc((var(--i) - (var(--n) - 1)/2)*4deg));opacity:0;animation:pkDeal .3s cubic-bezier(.2,1.2,.4,1) forwards;animation-delay:calc(var(--i)*45ms);transition:transform .3s,filter .3s}
+#play .peekov .pks.flip{z-index:2;transform:translateY(-6px) scale(1.15) rotate(0deg);animation:pkDeal .3s forwards,pkFlip .3s}
+#play .peekov .pks:not(.hit){filter:brightness(.8)}
+#play .peekov .pks.kill{transition:transform .7s cubic-bezier(.5,0,.9,.5) .45s,opacity .5s .65s,filter .2s;transform:translateY(260px) scale(1.1) rotate(14deg);opacity:0!important;filter:grayscale(.8)}
+#play .peekov .pks.kill::after{content:"버림";position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-16deg);font:400 30px/1 "Black Han Sans";color:#fff;background:var(--cM);border:3px solid var(--ink2);border-radius:10px;padding:6px 14px;animation:pkStamp .22s cubic-bezier(.2,1.6,.4,1)}
+#play .peekov .pks{position:relative;flex:none}
+#play .peekov .pkv{font:900 16px/1 "Noto Sans KR";color:var(--ink2);background:#fff;border:3px solid var(--ink2);border-radius:999px;padding:7px 16px}
+#play .peekov .pkv.bad{background:var(--cM);color:#fff}
+#play .peekov .pkv[hidden]{display:block;visibility:hidden}
+@keyframes pkFade{from{opacity:0}}
+@keyframes pkDeal{to{opacity:1}}
+@keyframes pkFlip{0%{rotate:y 0deg}50%{rotate:y 90deg}100%{rotate:y 0deg}}
+@keyframes pkStamp{from{transform:translate(-50%,-50%) rotate(-16deg) scale(2.4);opacity:0}}
 #play .peekc{position:absolute;left:120px;top:150px;z-index:25;display:flex;flex-direction:column;align-items:center;gap:6px;animation:pkIn .2s;pointer-events:none;transform:rotate(-4deg)}
 #play .peekc>span{font:400 18px/1 "Black Han Sans";color:#fff;background:var(--ink2);border:3px solid var(--cY);border-radius:999px;padding:6px 14px}
 #play .peekc.out{opacity:0;transition:.3s}

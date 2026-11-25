@@ -177,3 +177,8 @@ body.pt .scene.duo #scSpr{translate:-150px 0}
 body.pt .scene .scspr.sc2{translate:520px 0}
 body.pt .scene.duo .scspr.sc2{translate:300px 0}
 body.pt .olfr{grid-template-columns:1fr}
+
+body.pt #play .peekov .peekrow{zoom:1.25}
+body.pt #play .peekov .pks{margin:0 -34px}
+body.pt #play .peekov .pkl{zoom:1.3}
+body.pt #play .peekov .pkv{zoom:1.3}

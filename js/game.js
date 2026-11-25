@@ -179,8 +179,8 @@ async function play(p,idx,choice,adj=0){
     if(e==='regular')log(`단골 손님: ${NAME[p]} 1장 뽑음`,cls);
     if(e==='f4f')log('맞팔 이벤트: 둘 다 1장씩 뽑음',cls);
     if(e==='dm'){const seen=`염탐 결과: ${NAME[1-p]} 손에 「${c.name}」(${deckLabel(c)})`,peek=`${jo(NAME[p],'이','가')} 네 손패 한 장을 훔쳐봤다`;
-      if(p===ME){log(seen,cls,1);NET.ev({t:'log',msg:peek,cls});peekShow(c,'염탐 성공')}else{log(peek,cls,1);NET.ev({t:'log',msg:seen,cls})}}
-    if(e==='doll'&&p===ME)peekShow(c,killed?'저주 인형: 버리게 함':'저주 인형: 살아남음');
+      if(p===ME){log(seen,cls,1);NET.ev({t:'log',msg:peek,cls});peekShow(c,'DM 염탐',{n:G.P[1-p].hand.length})}else{log(peek,cls,1);NET.ev({t:'log',msg:seen,cls});if(!NET.on)peekShow(c,`${NAME[p]}의 DM 염탐`,{mine:1})}}
+    if(e==='doll'&&(p===ME||!NET.on))peekShow(c,p===ME?'저주 인형':`${NAME[p]}의 저주 인형`,{n:G.P[1-p].hand.length+(killed?1:0),killed,verdict:killed?'3 이상 · 버림':'2 이하 · 살아남음',mine:p!==ME});
     if(e==='doll')log(killed?`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv}) 버려짐`:`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv})는 살아남음`,cls);
     if(e==='convert')log(`포교: ${NAME[1-p]} 손에서 「${c.name}」 버려짐`,cls);
   }
@@ -211,9 +211,16 @@ async function endRound(w){
   newRound();
 }
 
-// 상대 손패를 봤을 때: 본 카드를 상대 카드 뒷면 옆에 잠깐 크게 띄운다 (그 뒤로는 뒷면 줄에서 앞면으로 남는다)
-function peekShow(c,label){
-  const el=document.createElement('div');el.className='peekc';
-  el.innerHTML=`<span>${label}</span>${cardHTML(c,{size:'m'})}`;
-  $('play').appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},1800*Math.max(SPEED,.6));
+// 손패를 들여다보는 효과: 화면이 어두워지고 상대 손패가 뒷면으로 펼쳐진 뒤, 걸린 한 장이 뒤집힌다. 버려지면 도장이 찍히고 떨어진다
+// (그 뒤로는 상대 뒷면 줄에서 앞면으로 남는다) o.n: 펼칠 장수, o.killed: 버려짐, o.verdict: 판정 문구, o.mine: 내 손패가 당한 경우(걸린 한 장만)
+function peekShow(c,label,o={}){
+  document.querySelectorAll('#play .peekov').forEach(e=>e.remove());
+  const n=o.mine?1:Math.max(1,Math.min(9,o.n||1)),at=Math.random()*n|0,sp=Math.max(SPEED,.6);
+  const el=document.createElement('div');el.className='peekov'+(o.mine?' mine':'');el.setAttribute('role','status');
+  el.innerHTML=`<span class="pkl">${label}</span><div class="peekrow" style="--n:${n}">${Array.from({length:n},(_,i)=>`<div class="pks${i===at?' hit':''}" style="--i:${i}">${cardHTML(c,{size:'m',back:true})}</div>`).join('')}</div><span class="pkv" hidden></span>`;
+  $('play').appendChild(el);const hit=el.querySelector('.pks.hit'),v=el.querySelector('.pkv'),gid=G.gid;
+  setTimeout(()=>{hit.classList.add('flip');SFX.flip&&SFX.flip();setTimeout(()=>{hit.innerHTML=cardHTML(c,{size:'m'})},140)},(o.mine?150:520)*sp);
+  setTimeout(()=>{if(o.verdict){v.textContent=o.verdict;v.hidden=false;v.classList.toggle('bad',!!o.killed)}if(o.killed){hit.classList.add('kill');SFX.bust&&gid===G.gid&&SFX.click&&SFX.click()}},(o.mine?700:1150)*sp);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},(o.killed||o.verdict?2500:2100)*sp);
 }
+
