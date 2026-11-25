@@ -164,9 +164,18 @@ function startMatch(opt={}){
 const k=Save.d.duty,o={...MATCH_OPT,...opt};G.gid=(G.gid||0)+1;G.over=true;if(typeof Talk!=='undefined')Talk.reset();   // 앞 대전에서 밀린 말풍선이 새 대전에 끼어들지 않게
   let opp=o.opp;if(opp==='rand'||opp===k){const c=CAST_KEYS.filter(x=>x!==k);opp=c[Math.random()*c.length|0]}
   DIFF=o.diff;MATCH=o.rounds;SEAT=[k,opp];Screens.ctx.story=o.story||null;CURRENT={story:o.story||null,opt:o};
-  seatSetup();Screens.go('play');showVS(k,opp,o).then(()=>newGame());
+  TUTOR=!NET.on&&o.story==='iri2'&&!Progress.storyDone('iri2');   // 첫 대전(아이리 2장을 깨기 전)에만 길잡이
+  seatSetup();Screens.go('play');showVS(k,opp,o).then(()=>TUTOR?tutDeck(opp):0).then(()=>newGame());
 }
 let CURRENT={story:null,opt:{}};
+// 첫 대전 길잡이: 시작하기 전에 상대 덱을 꼭 한 번 보게 한다. 닫으면 대전이 시작된다
+function tutDeck(opp){return new Promise(res=>{
+  previewDeck(opp,null);const c=CASTS[opp],own=c.deck.filter(x=>!SHARED.includes(x)),V=[...new Set(c.deck.filter(x=>!x.nofinish&&!x.lower).flatMap(x=>x.choice||[x.v]).filter(v=>v>0))].sort((a,b)=>a-b);
+  $('dvTitle').textContent='먼저 상대 덱을 보자';$('dvClose').textContent='확인했어';
+  const tip=document.createElement('div');tip.className='tuttip';
+  tip.innerHTML=`<b>${c.name}가 한 장으로 올릴 수 있는 숫자는 ${V[0]}~${V[V.length-1]}</b><span>화제성을 ${31-V[V.length-1]}~${31-V[0]}에 두고 차례를 넘기면 한 장에 31을 맞을 수 있다. 이 구간은 원 바깥에 빨간 띠로 표시된다.</span>`;
+  $('dvGrid').prepend(tip);
+  const t=setInterval(()=>{if(!$('deckView').classList.contains('on')){clearInterval(t);$('dvClose').textContent='닫기';res()}},120)})}
 // 대전 시작 전 VS 화면. 누르거나 아무 키나 누르면 넘어간다
 function showVS(me,op,o={}){return new Promise(res=>{
   const st=o.story&&STORY.find(x=>x.id===o.story);

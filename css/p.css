@@ -567,3 +567,11 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 .newc.a{background:#fff}
 .newc:nth-child(3){animation-delay:.08s}.newc:nth-child(4){animation-delay:.16s}.newc:nth-child(5){animation-delay:.24s}.newc:nth-child(6){animation-delay:.32s}
 @keyframes newIn{from{opacity:0;transform:scale(.7)}}
+
+/* 첫 대전 길잡이 */
+#play .num #gDz{display:block;margin-top:4px;font:900 12px/1 "Noto Sans KR";font-style:normal;color:#ff2e4d}
+#play .num #gDz[hidden]{display:none}
+#play .num #gDz.on{color:#fff;background:#ff2e4d;border-radius:999px;padding:4px 8px}
+#play .ring.indz{box-shadow:8px 8px 0 var(--ink2),0 0 0 5px #ff2e4d}
+.tuttip{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;margin:0 0 12px;padding:12px 14px;border:3px solid var(--ink2);border-radius:14px;background:#fff0f3;color:var(--ink2)}
+.tuttip b{font-size:16px;color:#e0183a}.tuttip span{font-size:13px;font-weight:700;line-height:1.5}

@@ -32,6 +32,7 @@ function render(){
      h+=`<i data-t="${T(v)}" style="left:${(170+R*Math.cos(a)).toFixed(1)}px;top:${(170+R*Math.sin(a)).toFixed(1)}px;width:${s}px;height:${s}px;--fs:${Math.round(s*.46)}px;--r:${(i%2?-10:10)}deg">${v}</i>`});
     $('stakeChain').innerHTML=h}
    if(render._st!==undefined&&n>render._st){st.classList.remove('up');void st.offsetWidth;st.classList.add('up')}render._st=n}
+  dangerZone();
   const gap=G.target-G.gauge;
   document.querySelector('.ring').classList.toggle('near',gap>0&&gap<=5&&!G.over);
   $('turnLine').textContent=G.over?'게임 끝':G.cur===ME?'내 차례':`${jo(NAME[AI],'이','가')} 고민 중…`;$('turnLine').classList.toggle('wait',G.cur!==ME||G.over);
@@ -210,6 +211,19 @@ async function endRound(w){
   if(fin)return NET.on?toOnline():Screens.go('home');
   newRound();
 }
+
+// 첫 대전 길잡이(TUTOR): 상대가 한 장으로 끝낼 수 있는 화제성 구간을 원 바깥에 빨간 띠로 그린다. 상대 덱에서 이번 판에 아직 안 나온 카드로 계산한다
+let TUTOR=false;
+function dangerVals(){const O=G.P&&G.P[AI];if(!O||!O.def)return[];const S=new Set();
+  O.def.filter(c=>!O.played.includes(c.id)&&!c.nofinish&&!c.lower&&!c.reactive).forEach(c=>(c.choice||[c.v,RULES.valOf(G,AI,c,null)]).forEach(v=>{if(v>0)S.add(v)}));
+  return[...S].sort((a,b)=>a-b)}
+function dangerZone(){const g=$('dz'),lab=$('gDz');if(!g)return;
+  if(!TUTOR||G.over||!G.P||!G.P[AI]){g.innerHTML='';lab.hidden=true;document.querySelector('.ring').classList.remove('indz');return}
+  const V=dangerVals(),C=2*Math.PI*58,u=C/31;
+  g.innerHTML=V.filter(v=>v<=31).map(v=>`<circle cx="60" cy="60" r="58" fill="none" stroke="#ff2e4d" stroke-width="4" stroke-dasharray="${(u*.9).toFixed(2)} ${(C-u*.9).toFixed(2)}" stroke-dashoffset="${(-(31-v-.45)*u).toFixed(2)}"/>`).join('');
+  const zs=V.map(v=>G.target-v).filter(x=>x>=0).sort((a,b)=>a-b),rs=[];zs.forEach(x=>{const l=rs[rs.length-1];if(l&&x===l[1]+1)l[1]=x;else rs.push([x,x])});
+  lab.hidden=!zs.length;lab.textContent='위험 '+rs.map(([a,b])=>a===b?a:`${a}~${b}`).join(', ');
+  const inz=zs.includes(G.gauge);lab.classList.toggle('on',inz);document.querySelector('.ring').classList.toggle('indz',inz)}
 
 // 손패를 들여다보는 효과: 화면이 어두워지고 상대 손패가 뒷면으로 펼쳐진 뒤, 걸린 한 장이 뒤집힌다. 버려지면 도장이 찍히고 떨어진다
 // (그 뒤로는 상대 뒷면 줄에서 앞면으로 남는다) o.n: 펼칠 장수, o.killed: 버려짐, o.verdict: 판정 문구, o.mine: 내 손패가 당한 경우(걸린 한 장만)
