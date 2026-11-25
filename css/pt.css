@@ -101,7 +101,7 @@ body.pt .olgrid{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,
 /* 결과 */
 body.pt .rwrow{flex-direction:column-reverse!important}
 body.pt .rwart{height:260px!important}
-body.pt .rwart>.spr{top:80px!important}
+body.pt .rwart>.spr{top:118px!important}
 
 /* VS: 위아래로 나눈다 */
 body.pt .vsov .vsl,body.pt .vsov .vsr{left:-20%;right:auto;width:140%;height:56%;transform:skewY(-10deg)}
