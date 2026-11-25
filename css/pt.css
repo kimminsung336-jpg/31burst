@@ -100,7 +100,9 @@ body.pt .olgrid{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,
 
 /* 결과 */
 body.pt .rwrow{flex-direction:column-reverse!important}
-body.pt .rwart{height:260px!important}
+body.pt .rwart{height:auto!important;flex:1 1 auto!important;min-height:280px}
+body.pt .rwrow>.lmain{flex:0 0 auto!important}
+body.pt .rwrow>.lmain>.row2:last-child{margin-top:6px!important}
 body.pt .lrow>.lart.rwart>.spr{top:62px!important}
 
 /* VS: 위아래로 나눈다 */
