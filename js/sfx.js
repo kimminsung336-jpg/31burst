@@ -66,6 +66,8 @@ const SFX=(()=>{
     // 카드 내기: 숫자가 클수록 높은 음
     play(v=1){const i=Math.max(0,Math.min(SCALE.length-1,Math.round(v)+2));pluck(SCALE[i]/2,0,.12,.2);pluck(SCALE[i],.02,.1,.1,'triangle')},
     flip(){noise(0,.18,.16,6000,1200);pluck(MOTIF[0],.12,.1,.12)},
+    // 호감도가 1 오를 때마다: 모티프 음을 따라 한 칸씩 올라간다
+    pluckUp(i){const f=SCALE[Math.min(SCALE.length-1,3+i)];pluck(f,0,.12,.16);bell(f*2,.02,.25,.05)},
     click(){pluck(1975.53,0,.05,.08,'triangle')},
     blip(){pluck(1318.51,0,.06,.07,'triangle')},
     coin(){pluck(1975.53,0,.08,.14);pluck(2637.02,.07,.22,.14)},

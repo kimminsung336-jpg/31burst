@@ -505,3 +505,14 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 .scr.online .olin{padding-top:4px;padding-bottom:4px}
 .olfr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .olfr .seg button{padding-left:4px;padding-right:4px}
+/* 결과 화면 호감도 차오르기 */
+.affup .affbar{position:relative;overflow:visible;height:14px}
+.affup .affbar i{border-radius:999px;background:linear-gradient(90deg,var(--cM),#ff7ab8);box-shadow:0 0 0 0 rgba(255,46,147,.5)}
+.affup .lvup{position:absolute;right:-6px;top:-30px;font:400 18px/1 "Black Han Sans";font-style:normal;color:var(--cM);-webkit-text-stroke:1px var(--ink2);opacity:0;transform:scale(.6) rotate(-8deg);pointer-events:none}
+.affup.lv .lvup{animation:lvUp 1.4s cubic-bezier(.2,1.4,.4,1) forwards}
+.affup.lv .affbar i{animation:lvGlow .6s}
+.affup.done #rAffGain{animation:gainPop .35s}
+#rAffGain{display:inline-block}
+@keyframes lvUp{0%{opacity:0;transform:scale(.6) rotate(-8deg)}20%{opacity:1;transform:scale(1.15) rotate(-8deg)}80%{opacity:1}100%{opacity:0;transform:translateY(-8px) scale(1) rotate(-8deg)}}
+@keyframes lvGlow{0%{box-shadow:0 0 0 0 rgba(255,46,147,.6)}100%{box-shadow:0 0 0 10px rgba(255,46,147,0)}}
+@keyframes gainPop{50%{transform:scale(1.4)}}

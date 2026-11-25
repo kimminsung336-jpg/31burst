@@ -258,8 +258,8 @@ S.reward=()=>{const[a,b]=[G.score[ME],G.score[AI]],win=matchWinner();
    <div class="col" style="flex:1;gap:6px;min-width:0"><span class="lab">판별 기록</span>${hist}</div>
    <div class="panel rwd" style="width:300px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
     <span class="lab">보상</span>
-    <div><div class="row2" style="justify-content:space-between;font-size:13px;font-weight:900"><span>${CASTS[k].name} 호감도 Lv${g.lv||Progress.lv(k)}</span><span style="color:var(--cM)">${g.aff?`+${g.aff}`:'+0'}</span></div>
-     <div class="affbar"><i style="width:${pct}%"></i></div><div style="font-size:11px;color:var(--sub2);font-weight:700;margin-top:3px">${next?`다음 레벨까지 ${next-g.affNow}`:'최고 레벨'}</div></div>
+    <div class="affup" id="rAff" data-from="${(g.affNow||0)-(g.aff||0)}" data-to="${g.affNow||0}"><div class="row2" style="justify-content:space-between;font-size:13px;font-weight:900"><span>${CASTS[k].name} 호감도 <span id="rAffLv">Lv${g.lv||Progress.lv(k)}</span></span><span style="color:var(--cM)" id="rAffGain">${g.aff?`+${g.aff}`:'+0'}</span></div>
+     <div class="affbar"><i id="rAffBar" style="width:${pct}%"></i><em class="lvup" id="rLvUp">LEVEL UP!</em></div><div style="font-size:11px;color:var(--sub2);font-weight:700;margin-top:3px" id="rAffNext">${next?`다음 레벨까지 ${next-g.affNow}`:'최고 레벨'}</div></div>
     ${g.new.length?`<div class="col" style="gap:4px"><span class="lab" style="color:var(--cM)">새로 열림</span>${g.new.map(x=>`<div class="newx">${x}</div>`).join('')}</div>`:''}
     ${g.ach.length?`<div style="font-size:12px;font-weight:900">업적: ${g.ach.map(x=>Progress.ACH[x].name).join(', ')}</div>`:''}
     ${hint?`<div style="margin-top:auto;font-size:12px;color:var(--sub2);font-weight:700">${hint}</div>`:''}
@@ -272,6 +272,19 @@ S.reward=()=>{const[a,b]=[G.score[ME],G.score[AI]],win=matchWinner();
   <div class="panel row2" style="position:absolute;left:18px;top:20px;right:18px;padding:10px 12px;gap:10px;align-items:flex-start;border-radius:16px 16px 16px 4px"><img src="${faceImg(k,ex)}" alt="" class="facei"><span style="font-size:14px;font-weight:700;line-height:1.5">${line}</span></div>
  </div></div>`)};
 S.reward.bind=s=>{const r=s.querySelector('#rAgain');if(r)r.onclick=()=>startMatch(CURRENT.opt);
+  // 호감도: 이전 값에서 지금 값까지 쭈욱 차오른다. 레벨 선을 넘으면 꽉 찼다가 LEVEL UP 하고 다시 차오른다
+  {const box=s.querySelector('#rAff');if(box){const from=+box.dataset.from,to=+box.dataset.to,L=Progress.AFF_LV,bar=s.querySelector('#rAffBar'),lvEl=s.querySelector('#rAffLv'),gain=s.querySelector('#rAffGain'),nx=s.querySelector('#rAffNext'),up=s.querySelector('#rLvUp');
+    const lvOf=v=>{let l=1;L.forEach((x,i)=>{if(v>=x)l=i+1});return l};
+    const show=v=>{const l=lvOf(v),p=L[l-1],n=L[l];bar.style.width=(n?Math.min(100,100*(v-p)/(n-p)):100)+'%';lvEl.textContent='Lv'+l;
+      nx.textContent=n?`다음 레벨까지 ${Math.max(0,Math.ceil(n-v))}`:'최고 레벨';gain.textContent='+'+Math.round(v-from)};
+    if(to>from&&!matchMedia('(prefers-reduced-motion: reduce)').matches){bar.style.transition='none';show(from);gain.textContent='+0';
+      const per=Math.max(380,900/Math.max(1,to-from));let v=from,t0=null,lastI=0,lastL=lvOf(from);
+      setTimeout(()=>requestAnimationFrame(function tick(t){if(Screens.cur!=='reward')return;if(t0===null)t0=t;
+        v=Math.min(to,from+(t-t0)/per);const ease=v;show(ease);
+        const i=Math.floor(v-from);if(i>lastI){lastI=i;SFX.pluckUp&&SFX.pluckUp(i)}
+        const l=lvOf(v);if(l>lastL){lastL=l;box.classList.remove('lv');void box.offsetWidth;box.classList.add('lv');SFX.win()}
+        if(v<to)requestAnimationFrame(tick);else{show(to);box.classList.add('done')}}),650)}
+  }}
   const st=CURRENT.story&&STORY.find(x=>x.id===CURRENT.story),rs=s.querySelector('#rStory');
   if(rs)rs.onclick=()=>Progress.last&&Progress.last.clear?Screens.go('story',{sel:(Progress.nextStory(st.k)||st).id}):storyMatch(st)};
 
