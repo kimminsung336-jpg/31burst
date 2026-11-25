@@ -243,7 +243,8 @@ window.recordMatch=()=>{const g=Progress.onMatchEnd({k:SEAT[ME],won:matchWinner(
 window.afterMatch=async()=>{const id=G.gid;await sleep(1600);if(id===G.gid&&Screens.cur==='play')Screens.go('reward')};
 S.reward=()=>{const[a,b]=[G.score[ME],G.score[AI]],win=matchWinner();
   const k=SEAT[ME],o=SEAT[AI],title=win===null?'무승부':win===ME?'승리!':'패배…',g=Progress.last||{aff:0,new:[],ach:[]};
-  const hist=G.hist.map((h,i)=>`<div class="row2" style="gap:8px;padding:6px 10px;border-radius:10px;border:2px solid var(--ink2);background:${h.w===null?'#fff':h.w===ME?'var(--cY)':'#fff'}"><b style="width:34px;font-size:12px">${i+1}판</b>${h.w===null?'<span style="flex:1;font-size:13px">무승부</span>':`<img src="${av(SEAT[h.w])}" alt="" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--ink2)"><span style="flex:1;font-size:13px;font-weight:700">${CASTS[SEAT[h.w]].name}</span><b class="serif" style="font-size:18px">+${h.pts}</b>`}${h.busts?`<span style="font-size:11px;font-weight:900;color:var(--cM)">버스트 ×${h.busts}</span>`:''}</div>`).join('');
+  // 판별 기록: 한 줄짜리 작은 칩으로
+  const hist=G.hist.map((h,i)=>`<span class="rh ${h.w===null?'d':h.w===ME?'w':'l'}"><b>${i+1}판</b>${h.w===null?'무':`<img src="${av(SEAT[h.w])}" alt="${CASTS[SEAT[h.w]].name}">+${h.pts}`}${h.busts?`<i>버스트×${h.busts}</i>`:''}</span>`).join('');
   const st=CURRENT.story&&STORY.find(x=>x.id===CURRENT.story);
   const[line0,ex]=st?(g.clear?st.win:st.lose):[WIN_LINE[k][win===ME?0:1],win===ME?'happy':'pout'];const line=nm(line0);
   const affMax=Progress.AFF_LV[Progress.AFF_LV.length-1],next=g.affNext,prev=Progress.AFF_LV[(g.lv||1)-1];
@@ -254,16 +255,13 @@ S.reward=()=>{const[a,b]=[G.score[ME],G.score[AI]],win=matchWinner();
   <div><span class="lab">${st?`스토리 · ${chLabel(st)} · `:''}${G.rounds===1?'단판':G.rounds+'판'} · ${'AI '+DIFF_KO[DIFF]} · vs ${CASTS[o].name}</span>
    <div class="row2" style="align-items:baseline;gap:18px;margin-top:2px"><span class="serif" style="font-size:52px;color:${win===ME?'var(--cM)':'var(--ink2)'}">${title}</span><span class="serif" style="font-size:34px">${a} <span style="color:var(--sub2)">:</span> ${b}</span>
    ${st?`<span class="chip2 ${g.clear?'on':''}" style="cursor:default;margin-left:auto">${g.clear?'스토리 클리어':g.goalMiss?`조건 실패 · 판돈 ${st.goal.stake}점 이상 저스트`:'다시 도전'}</span>`:''}</div></div>
-  <div class="row2 rwmid" style="gap:14px;align-items:stretch">
-   <div class="col" style="flex:1;gap:6px;min-width:0"><span class="lab">판별 기록</span>${hist}</div>
-   <div class="panel rwd" style="width:300px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
-    <span class="lab">보상</span>
-    <div class="affup" id="rAff" data-from="${(g.affNow||0)-(g.aff||0)}" data-to="${g.affNow||0}"><div class="row2" style="justify-content:space-between;font-size:13px;font-weight:900"><span>${CASTS[k].name} 호감도 <span id="rAffLv">Lv${g.lv||Progress.lv(k)}</span></span><span style="color:var(--cM)" id="rAffGain">${g.aff?`+${g.aff}`:'+0'}</span></div>
+  <div class="rhrow"><span class="lab">판별</span>${hist}</div>
+  <div class="panel rwd" style="padding:14px 18px;display:flex;flex-direction:column;gap:10px">
+    <div class="affup" id="rAff" data-from="${(g.affNow||0)-(g.aff||0)}" data-to="${g.affNow||0}"><div class="row2" style="justify-content:space-between;font-size:14px;font-weight:900"><span>${CASTS[k].name} 호감도 <span id="rAffLv">Lv${g.lv||Progress.lv(k)}</span></span><span style="color:var(--cM)" id="rAffGain">${g.aff?`+${g.aff}`:'+0'}</span></div>
      <div class="affbar"><i id="rAffBar" style="width:${pct}%"></i><em class="lvup" id="rLvUp">LEVEL UP!</em></div><div style="font-size:11px;color:var(--sub2);font-weight:700;margin-top:3px" id="rAffNext">${next?`다음 레벨까지 ${next-g.affNow}`:'최고 레벨'}</div></div>
-    ${g.new.length?`<div class="col" style="gap:4px"><span class="lab" style="color:var(--cM)">새로 열림</span>${g.new.map(x=>`<div class="newx">${x}</div>`).join('')}</div>`:''}
-    ${g.ach.length?`<div style="font-size:12px;font-weight:900">업적: ${g.ach.map(x=>Progress.ACH[x].name).join(', ')}</div>`:''}
-    ${hint?`<div style="margin-top:auto;font-size:12px;color:var(--sub2);font-weight:700">${hint}</div>`:''}
-   </div>
+    ${(()=>{const nw=g.new.filter(x=>!/호감도 Lv/.test(x)),ach=g.ach.map(x=>Progress.ACH[x].name);   // 호감도 레벨은 위 게이지가 보여 주니 뺀다
+      return nw.length||ach.length?`<div class="newrow"><span class="lab" style="color:var(--cM)">새로 열림</span>${nw.map(x=>`<span class="newc">${x}</span>`).join('')}${ach.map(x=>`<span class="newc a">업적 · ${x}</span>`).join('')}</div>`:''})()}
+    ${hint?`<div style="font-size:12px;color:var(--sub2);font-weight:700">${hint}</div>`:''}
   </div>
   <div class="row2" style="margin-top:auto;justify-content:flex-end"><button class="btn" data-go="home">메인으로</button>${st?`<button class="btn y" id="rStory" style="min-width:180px">${g.clear?'스토리로':'다시 도전'}</button>`:'<button class="btn y" id="rAgain" style="min-width:180px">한 판 더</button>'}</div>
  </div>

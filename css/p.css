@@ -516,3 +516,17 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 @keyframes lvUp{0%{opacity:0;transform:scale(.6) rotate(-8deg)}20%{opacity:1;transform:scale(1.15) rotate(-8deg)}80%{opacity:1}100%{opacity:0;transform:translateY(-8px) scale(1) rotate(-8deg)}}
 @keyframes lvGlow{0%{box-shadow:0 0 0 0 rgba(255,46,147,.6)}100%{box-shadow:0 0 0 10px rgba(255,46,147,0)}}
 @keyframes gainPop{50%{transform:scale(1.4)}}
+/* 결과 화면 정리: 판별 기록은 한 줄 칩, 새로 열림도 칩 */
+.rhrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.rhrow .lab{margin-right:4px}
+.rh{display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 4px;border:2px solid var(--ink2);border-radius:999px;background:#fff;font-size:13px;font-weight:900}
+.rh b{font-size:11px;background:var(--ink2);color:#fff;border-radius:999px;padding:2px 7px}
+.rh img{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--ink2)}
+.rh.w{background:var(--cY)}.rh.d{background:#eee}
+.rh i{font-style:normal;font-size:10px;color:var(--cM)}
+.newrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.newrow .lab{flex-basis:100%}
+.newc{padding:4px 11px;border:2px solid var(--ink2);border-radius:999px;background:var(--cY);font-size:12px;font-weight:900;animation:newIn .35s cubic-bezier(.2,1.4,.4,1) backwards}
+.newc.a{background:#fff}
+.newc:nth-child(3){animation-delay:.08s}.newc:nth-child(4){animation-delay:.16s}.newc:nth-child(5){animation-delay:.24s}.newc:nth-child(6){animation-delay:.32s}
+@keyframes newIn{from{opacity:0;transform:scale(.7)}}
