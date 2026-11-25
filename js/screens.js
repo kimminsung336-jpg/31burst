@@ -252,9 +252,9 @@ S.reward=()=>{const[a,b]=[G.score[ME],G.score[AI]],win=matchWinner();
   const hint=Progress.hint(k);
   return landPhone('결과',`<div class="lrow rwrow" style="flex:1;display:flex;min-height:0">
  <div class="lmain" style="flex:1;padding:22px 32px;display:flex;flex-direction:column;gap:12px;min-height:0">
-  <div><span class="lab">${st?`스토리 · ${chLabel(st)} · `:''}${G.rounds===1?'단판':G.rounds+'판'} · ${'AI '+DIFF_KO[DIFF]} · vs ${CASTS[o].name}</span>
-   <div class="row2" style="align-items:baseline;gap:18px;margin-top:2px"><span class="serif" style="font-size:52px;color:${win===ME?'var(--cM)':'var(--ink2)'}">${title}</span><span class="serif" style="font-size:34px">${a} <span style="color:var(--sub2)">:</span> ${b}</span>
-   ${st?`<span class="chip2 ${g.clear?'on':''}" style="cursor:default;margin-left:auto">${g.clear?'스토리 클리어':g.goalMiss?`조건 실패 · 판돈 ${st.goal.stake}점 이상 저스트`:'다시 도전'}</span>`:''}</div></div>
+  <div>
+   <div class="row2" style="align-items:baseline;gap:18px"><span class="serif" style="font-size:52px;color:${win===ME?'var(--cM)':'var(--ink2)'}">${title}</span><span class="serif" style="font-size:34px">${a} <span style="color:var(--sub2)">:</span> ${b}</span>
+   ${st?`<span class="chip2 ${g.clear?'on':''}" style="cursor:default;margin-left:auto">${g.clear?`${chLabel(st)} 클리어`:g.goalMiss?`조건 실패 · 판돈 ${st.goal.stake}점 이상 저스트`:'다시 도전'}</span>`:''}</div></div>
   <div class="rhrow"><span class="lab">판별</span>${hist}</div>
   <div class="panel rwd" style="padding:14px 18px;display:flex;flex-direction:column;gap:10px">
     <div class="affup" id="rAff" data-from="${(g.affNow||0)-(g.aff||0)}" data-to="${g.affNow||0}"><div class="row2" style="justify-content:space-between;font-size:14px;font-weight:900"><span>${CASTS[k].name} 호감도 <span id="rAffLv">Lv${g.lv||Progress.lv(k)}</span></span><span style="color:var(--cM)" id="rAffGain">${g.aff?`+${g.aff}`:'+0'}</span></div>
