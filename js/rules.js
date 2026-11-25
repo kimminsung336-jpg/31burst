@@ -95,7 +95,7 @@ function effect(R,p,card,draw){
     case'snipe':O.snipe=true;break;
     case'charm':O.capture=true;break;
     case'silence':O.skip=true;P.usedOnce=true;break;
-    case'dm':if(O.hand.length){const c=O.hand[Math.random()*O.hand.length|0];P.known.push(c);ev.push(['dm',c])}break;
+    case'dm':if(O.hand.length){O.hand.forEach(c=>{if(!P.known.includes(c))P.known.push(c)});ev.push(['dm',[...O.hand]])}break;   // 상대 손패를 전부 본다
     case'doll':if(O.hand.length){const k=Math.random()*O.hand.length|0,c=O.hand[k];
       const cv=c.choice?Math.max(...c.choice):c.lower?0:valOf(R,1-p,c,null);
       if(cv>=3){O.hand.splice(k,1);P.out.push(c.id);ev.push(['doll',c,cv,true])}else{P.known.push(c);ev.push(['doll',c,cv,false])}}break;

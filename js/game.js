@@ -178,8 +178,8 @@ async function play(p,idx,choice,adj=0){
   for(const[e,c,cv,killed]of RULES.effect(G,p,card,draw)){
     if(e==='regular')log(`단골 손님: ${NAME[p]} 1장 뽑음`,cls);
     if(e==='f4f')log('맞팔 이벤트: 둘 다 1장씩 뽑음',cls);
-    if(e==='dm'){const seen=`염탐 결과: ${NAME[1-p]} 손에 「${c.name}」(${deckLabel(c)})`,peek=`${jo(NAME[p],'이','가')} 네 손패 한 장을 훔쳐봤다`;
-      if(p===ME){log(seen,cls,1);NET.ev({t:'log',msg:peek,cls});peekShow(c,'DM 염탐',{n:G.P[1-p].hand.length})}else{log(peek,cls,1);NET.ev({t:'log',msg:seen,cls});if(!NET.on)peekShow(c,`${NAME[p]}의 DM 염탐`,{mine:1})}}
+    if(e==='dm'){const seen=`염탐 결과: ${NAME[1-p]} 손에 ${c.map(x=>`「${x.name}」(${deckLabel(x)})`).join(', ')}`,peek=`${jo(NAME[p],'이','가')} 네 손패를 전부 훔쳐봤다`;
+      if(p===ME){log(seen,cls,1);NET.ev({t:'log',msg:peek,cls});peekShow(null,'DM 염탐',{cards:c})}else{log(peek,cls,1);NET.ev({t:'log',msg:seen,cls});if(!NET.on)peekShow(null,`${NAME[p]}의 DM 염탐`,{note:'손패를 전부 들켰다'})}}
     if(e==='doll'&&(p===ME||!NET.on))peekShow(c,p===ME?'저주 인형':`${NAME[p]}의 저주 인형`,{n:G.P[1-p].hand.length+(killed?1:0),killed,verdict:killed?'3 이상 · 버림':'2 이하 · 살아남음',mine:p!==ME});
     if(e==='doll')log(killed?`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv}) 버려짐`:`저주 인형: ${NAME[1-p]} 손의 「${c.name}」(${cv})는 살아남음`,cls);
     if(e==='convert')log(`포교: ${NAME[1-p]} 손에서 「${c.name}」 버려짐`,cls);
@@ -215,12 +215,18 @@ async function endRound(w){
 // (그 뒤로는 상대 뒷면 줄에서 앞면으로 남는다) o.n: 펼칠 장수, o.killed: 버려짐, o.verdict: 판정 문구, o.mine: 내 손패가 당한 경우(걸린 한 장만)
 function peekShow(c,label,o={}){
   document.querySelectorAll('#play .peekov').forEach(e=>e.remove());
-  const n=o.mine?1:Math.max(1,Math.min(9,o.n||1)),at=Math.random()*n|0,sp=Math.max(SPEED,.6);
-  const el=document.createElement('div');el.className='peekov'+(o.mine?' mine':'');el.setAttribute('role','status');
-  el.innerHTML=`<span class="pkl">${label}</span><div class="peekrow" style="--n:${n}">${Array.from({length:n},(_,i)=>`<div class="pks${i===at?' hit':''}" style="--i:${i}">${cardHTML(c,{size:'m',back:true})}</div>`).join('')}</div><span class="pkv" hidden></span>`;
-  $('play').appendChild(el);const hit=el.querySelector('.pks.hit'),v=el.querySelector('.pkv'),gid=G.gid;
-  setTimeout(()=>{hit.classList.add('flip');SFX.flip&&SFX.flip();setTimeout(()=>{hit.innerHTML=cardHTML(c,{size:'m'})},140)},(o.mine?150:520)*sp);
-  setTimeout(()=>{if(o.verdict){v.textContent=o.verdict;v.hidden=false;v.classList.toggle('bad',!!o.killed)}if(o.killed){hit.classList.add('kill');SFX.bust&&gid===G.gid&&SFX.click&&SFX.click()}},(o.mine?700:1150)*sp);
-  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},(o.killed||o.verdict?2500:2100)*sp);
+  const all=o.cards,n=all?Math.min(9,all.length):o.mine||o.note?(o.note?0:1):Math.max(1,Math.min(9,o.n||1)),at=Math.random()*n|0,sp=Math.max(SPEED,.6);
+  const el=document.createElement('div');el.className='peekov'+(o.mine?' mine':'')+(all?' all':'');el.setAttribute('role','status');
+  el.innerHTML=`<span class="pkl">${label}</span><div class="peekrow" style="--n:${n}">${Array.from({length:n},(_,i)=>`<div class="pks${!all&&i===at?' hit':''}" style="--i:${i}">${cardHTML(all?all[i]:c,{size:'m',back:true})}</div>`).join('')}</div><span class="pkv" hidden></span>`;
+  $('play').appendChild(el);const v=el.querySelector('.pkv');
+  if(o.note){v.textContent=o.note;v.hidden=false;v.classList.add('bad')}
+  if(all){   // 전부 보기: 왼쪽부터 차례로 뒤집힌다
+    el.querySelectorAll('.pks').forEach((x,i)=>setTimeout(()=>{x.classList.add('open');if(i%2===0&&SFX.flip)SFX.flip();setTimeout(()=>{x.innerHTML=cardHTML(all[i],{size:'m'})},140)},(420+i*110)*sp));
+    setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},(2600+n*110)*sp);return}
+  const hit=el.querySelector('.pks.hit');
+  if(hit){setTimeout(()=>{hit.classList.add('flip');SFX.flip&&SFX.flip();setTimeout(()=>{hit.innerHTML=cardHTML(c,{size:'m'})},140)},(o.mine?150:520)*sp);
+    setTimeout(()=>{if(o.verdict){v.textContent=o.verdict;v.hidden=false;v.classList.toggle('bad',!!o.killed)}if(o.killed){hit.classList.add('kill');SFX.click&&SFX.click()}},(o.mine?700:1150)*sp)}
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},(o.killed||o.verdict?2500:o.note?1500:2100)*sp);
 }
+
 

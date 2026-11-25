@@ -477,6 +477,8 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 #play .peekov .pks{margin:0 -14px;transform:translateY(40px) rotate(calc((var(--i) - (var(--n) - 1)/2)*4deg));opacity:0;animation:pkDeal .3s cubic-bezier(.2,1.2,.4,1) forwards;animation-delay:calc(var(--i)*45ms);transition:transform .3s,filter .3s}
 #play .peekov .pks.flip{z-index:2;transform:translateY(-6px) scale(1.15) rotate(0deg);animation:pkDeal .3s forwards,pkFlip .3s}
 #play .peekov .pks:not(.hit){filter:brightness(.8)}
+#play .peekov.all .pks{filter:none;margin:0 -6px}
+#play .peekov.all .pks.open{animation:pkDeal .3s forwards,pkFlip .3s}
 #play .peekov .pks.kill{transition:transform .7s cubic-bezier(.5,0,.9,.5) .45s,opacity .5s .65s,filter .2s;transform:translateY(260px) scale(1.1) rotate(14deg);opacity:0!important;filter:grayscale(.8)}
 #play .peekov .pks.kill::after{content:"버림";position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-16deg);font:400 30px/1 "Black Han Sans";color:#fff;background:var(--cM);border:3px solid var(--ink2);border-radius:10px;padding:6px 14px;animation:pkStamp .22s cubic-bezier(.2,1.6,.4,1)}
 #play .peekov .pks{position:relative;flex:none}
