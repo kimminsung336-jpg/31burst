@@ -172,3 +172,4 @@ body.pt #play .peekc{left:auto;right:30px;top:calc(200px + var(--ex)/4);zoom:1.2
 body.pt .scph{right:auto;left:60px;top:calc(140px + var(--ex)/2);width:600px;height:800px;transform:translateY(1400px) rotate(4deg)}
 body.pt .scph.on{transform:translateY(0) rotate(-2deg)}
 body.pt .scph .feed{zoom:1.35}
+body.pt .olfr{grid-template-columns:1fr}

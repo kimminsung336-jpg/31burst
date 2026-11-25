@@ -34,7 +34,7 @@ function netErr(e){
   if(t==='unavailable-id'){netReset();return netHost()}
   netMsg('연결에 실패했어. 이 화면에선 온라인 연결이 막혀 있을 수 있으니 GitHub 주소로 열어줘.');netReset(true);olRefresh();
 }
-function netReset(keepMsg){dismissCardOptions?.(false);try{NET.conn&&NET.conn.close()}catch(e){}try{NET.peer&&NET.peer.destroy()}catch(e){}
+function netReset(keepMsg){dismissCardOptions?.(false);clearTimeout(NET.quickT);NET.quick=null;try{NET.conn&&NET.conn.close()}catch(e){}try{NET.peer&&NET.peer.destroy()}catch(e){}
   Object.assign(NET,{on:false,role:null,peer:null,conn:null,code:'',hostCast:null,guestCast:null,last:'',wait:{}});
   $('online').classList.remove('live');if(!keepMsg)netMsg('');$('diff').hidden=false}
 function netHost(){
@@ -43,6 +43,24 @@ function netHost(){
   NET.peer.on('open',()=>{NET.code=code;netMsg('');olRefresh()});
   NET.peer.on('connection',c=>{if(NET.conn){c.close();return}bindConn(c)});
   NET.peer.on('error',netErr);
+}
+/* 빠른 매칭: 정해 둔 대기 자리(burst31-q-1~5)를 먼저 차지하면 기다리고, 이미 누가 있으면 거기로 들어간다.
+   만나면 방장은 대기 자리를 비우고(중개 서버 연결만 끊고 상대와의 연결은 유지) 다음 사람들이 그 자리를 쓴다 */
+const QSLOTS=5;
+function netQuick(s=1,tries=0){
+  if(!window.Peer)return netMsg('연결 도구를 못 불러왔어. GitHub 주소로 열어줘.');
+  if(tries>=QSLOTS*3){netReset(true);netMsg('지금은 상대가 안 잡혀. 잠시 뒤 다시 해줘.');return olRefresh()}
+  netReset(true);NET.quick={s,tries};MATCH=MATCH_OPT.rounds=3;NET.role='host';netMsg('상대 찾는 중…');olRefresh();
+  const id='burst31-q-'+s,next=()=>{if(NET.quick&&!NET.on)netQuick(s%QSLOTS+1,tries+1)};
+  NET.peer=new Peer(id);
+  NET.peer.on('connection',c=>{if(NET.conn){c.close();return}bindConn(c);c.on('open',()=>{try{NET.peer.disconnect()}catch(e){}})});
+  NET.peer.on('error',e=>{if(!NET.quick)return;
+    if(e.type!=='unavailable-id')return next();
+    // 누가 이 자리에서 기다리는 중: 그쪽으로 들어간다
+    try{NET.peer.destroy()}catch(_){}
+    NET.role='guest';NET.peer=new Peer();
+    NET.peer.on('open',()=>{bindConn(NET.peer.connect(id,{reliable:true}));NET.quickT=setTimeout(next,5000)});
+    NET.peer.on('error',next)});
 }
 function netJoin(code){
   if(!window.Peer)return netMsg('연결 도구를 못 불러왔어. GitHub 주소로 열어줘.');

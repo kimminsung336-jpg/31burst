@@ -189,19 +189,25 @@ S.online=()=>{const on=NET.on,host=NET.role==='host',k=Save.d.duty;
   const seg=(key,opts,cur,dis)=>`<div class="seg" data-k="${key}">${opts.map(([v,l])=>`<button data-v="${v}" class="${String(cur)===String(v)?'on':''}" ${dis?'disabled':''}>${l}</button>`).join('')}</div>`;
   const msg=`<div class="olst" id="olSt" role="status">${NET.msg||''}</div>`;
   if(!on){const waiting=host&&NET.code;
+    if(NET.quick)return landPhone('온라인 2인',`<div class="olbody" style="align-items:center;justify-content:center;text-align:center">
+ <div class="serif" style="font-size:34px">상대 찾는 중…</div>
+ <div style="font-size:13px;font-weight:700;color:var(--sub2)">빠른 매칭 · 3판 · 잡히면 캐스트를 고르는 화면으로 넘어가</div>
+ <div class="olspin" aria-hidden="true"><i></i><i></i><i></i></div>
+ <button class="btn" id="olCancel">취소</button></div>`,'match');
     return landPhone('온라인 2인',`<div class="lrow" style="flex:1;display:flex;min-height:0">
  <div class="lart" style="width:360px;position:relative;overflow:hidden;background:#fff3dc;border-right:3px solid var(--ink2)">${spr(k,40,10,640)}
-  <div style="position:absolute;left:0;right:0;bottom:0;padding:18px 22px;background:linear-gradient(rgba(255,243,220,0),#fff3dc 35%)"><span class="lab">친구와 대전</span><div style="font-size:13px;line-height:1.6;margin-top:4px">한 명이 방을 만들고, 다른 한 명이 방 코드 네 자리를 넣으면 연결돼.</div></div></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:18px 22px;background:linear-gradient(rgba(255,243,220,0),#fff3dc 35%)"><span class="lab">온라인 대전</span><div style="font-size:13px;line-height:1.6;margin-top:4px">빠른 매칭이면 아무나, 방 코드면 친구랑 붙어.</div></div></div>
  <div class="olbody">
-  <div class="olbox"><span class="lab">방 만들기</span>
+  <div class="olbox olq"><span class="lab">빠른 매칭</span><div class="row2" style="justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:700">아무나 붙자. 3판</span><button class="btn y" id="olQuick" style="min-width:180px" ${waiting?'disabled':''}>빠른 매칭</button></div></div>
+  <div class="olor">또는 친구와</div>
+  <div class="olfr"><div class="olbox"><span class="lab">방 만들기</span>
    ${waiting?`<div class="olcode serif">${NET.code}</div><div style="font-size:13px;font-weight:700">상대에게 이 숫자를 알려줘. 들어올 때까지 기다리는 중…</div><div class="row2"><button class="btn" id="olCancel">취소</button></div>`
-   :`<div class="col" style="gap:8px"><span style="font-size:12px;font-weight:700">판 수</span>${seg('rounds',[[1,'단판'],[3,'3판'],[5,'5판']],MATCH_OPT.rounds)}</div><div class="row2"><button class="btn y" id="olMake" style="min-width:180px">방 만들기</button></div>`}
+   :`<div class="col" style="gap:8px"><span style="font-size:12px;font-weight:700">판 수</span>${seg('rounds',[[1,'단판'],[3,'3판'],[5,'5판']],MATCH_OPT.rounds)}</div><div class="row2"><button class="btn y" id="olMake" style="min-width:140px">방 만들기</button></div>`}
   </div>
-  <div class="olor">또는</div>
   <div class="olbox"><span class="lab">코드로 참가</span>
    <input id="olIn" class="olin serif" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="0000" aria-label="방 코드 네 자리" value="${OL_CODE}" ${waiting?'disabled':''}>
-   <div class="row2"><button class="btn y" id="olGo" style="min-width:180px" ${waiting?'disabled':''}>참가</button></div>
-  </div>
+   <div class="row2"><button class="btn y" id="olGo" style="min-width:140px" ${waiting?'disabled':''}>참가</button></div>
+  </div></div>
   ${msg}
  </div></div>`,'match')}
   const mine=host?NET.hostCast:NET.guestCast,foe=host?NET.guestCast:NET.hostCast;
@@ -218,6 +224,7 @@ S.online=()=>{const on=NET.on,host=NET.role==='host',k=Save.d.duty;
 S.online.bind=s=>{
   const back=s.querySelector('.back');back.addEventListener('click',()=>{netReset();OL_CODE=''});
   const g=s.querySelector('.seg');if(g)g.onclick=e=>{const b=e.target.closest('button');if(!b)return;MATCH_OPT.rounds=+b.dataset.v;Screens.go('online')};
+  const qk=s.querySelector('#olQuick');if(qk)qk.onclick=()=>netQuick(1,0);
   const mk=s.querySelector('#olMake');if(mk)mk.onclick=()=>{MATCH=MATCH_OPT.rounds;netHost()};
   const cc=s.querySelector('#olCancel');if(cc)cc.onclick=()=>{netReset();Screens.go('online')};
   const inp=s.querySelector('#olIn');if(inp){inp.oninput=()=>{inp.value=inp.value.replace(/\D/g,'').slice(0,4);OL_CODE=inp.value};
