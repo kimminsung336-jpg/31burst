@@ -10,7 +10,7 @@ const Progress=(()=>{
   // 카드풀 카드 해금 조건. 기본 덱 카드는 처음부터 열려 있다
   const CARD={
     reup:{lv:['iri',2]},omurice:{lv:['haru',2]},
-    nofilter:{story:'iri3'},nofate:{story:'miko3'},entrust:{story:'haru3'},rematch:{story:'mina3'},
+    nofilter:{story:'iri4'},nofate:{story:'miko4'},entrust:{story:'haru4'},rematch:{story:'mina4'},
     unfollow:{ach:'bust3'},unlike:{ach:'bigJust'},lurk:{ach:'drawRound'},challenge:{ach:'hardWin'},
   };
   const d=()=>{const s=Save.d;s.aff=s.aff||{};s.ach=s.ach||{};s.story=s.story||{};return s};
@@ -24,7 +24,7 @@ const Progress=(()=>{
   const storyDone=id=>!!d().story[id];
   // 캐스트 해금: 처음엔 아이리만. 각 캐스트 스토리 2장을 깨면 그 라이벌이 열린다 (설정의 전원 해금으로 다 열 수도 있다)
   const CAST_FROM={miko:'iri',haru:'miko',mina:'haru'};
-  const castOpen=k=>!CAST_FROM[k]||!!d().allCast||storyDone(CAST_FROM[k]+'2');
+  const castOpen=k=>!CAST_FROM[k]||!!d().allCast||storyDone(CAST_FROM[k]+'4');
   const owner=id=>COLOR_CAST[COLOR_OF[id]];
   const cardDiscovered=id=>Save.d.seenCards?.[id]===true;
   function dexCardBack(id){const k=owner(id);return !!k&&!castOpen(k)&&!cardDiscovered(id)}
@@ -35,7 +35,7 @@ const Progress=(()=>{
     if(!s.seenCards||typeof s.seenCards!=='object'||Array.isArray(s.seenCards))s.seenCards={};
     s.seenCards[id]=true;Save.put();
   }
-  const castCond=k=>CAST_FROM[k]?`${CASTS[CAST_FROM[k]].name} 스토리 2장 클리어`:'';
+  const castCond=k=>CAST_FROM[k]?`${CASTS[CAST_FROM[k]].name} 스토리 4장 클리어`:'';
   function storyOpen(st){if(!castOpen(st.k))return false;if(st.ch===1)return true;const p=chapter(st.k,st.ch-1);return!!p&&storyDone(p.id)}
   const nextStory=k=>STORY.filter(x=>x.k===k).find(x=>storyOpen(x)&&!storyDone(x.id));
   // 두 번째 캐스트(더미): 같은 색 캐스트 3장을 깨면 합류
@@ -63,8 +63,7 @@ const Progress=(()=>{
     if(won&&(diff==='hard'||diff==='xhard')&&!online)mark('hardWin');
     if(won)gain.aff+=1;
     if(story){const st=STORY.find(x=>x.id===story);
-      const ok=won&&(!st.goal||!st.goal.stake||hist.some(h=>h.w===0&&h.pts>=st.goal.stake));
-      gain.goalMiss=won&&!ok;
+      const ok=st.free||won;   // 4장(화해)은 플레이만 하면 클리어
       if(ok){gain.clear=true;if(!s.story[story]){s.story[story]=1;gain.aff+=2;gain.first=true}}}
     s.aff[k]=(s.aff[k]||0)+gain.aff;
     Save.put();
@@ -72,6 +71,12 @@ const Progress=(()=>{
     gain.lv=lv(k);gain.affNow=aff(k);gain.affNext=nextLv(k);
     return last=gain;
   }
+  // 대전 없는 장(1장)을 끝까지 읽었을 때
+  function onTalkEnd(id){const st=STORY.find(x=>x.id===id),k=st.k,before=snapshot(),s=d(),gain={aff:0,ach:[],clear:true,story:id,talk:true};
+    if(!s.story[id]){s.story[id]=1;gain.aff+=2;gain.first=true}
+    s.aff[k]=(s.aff[k]||0)+gain.aff;Save.put();
+    gain.new=[...snapshot()].filter(x=>!before.has(x)).map(label);gain.lv=lv(k);gain.affNow=aff(k);gain.affNext=nextLv(k);
+    return last=gain}
   // 다음 해금 힌트: 이 캐스트로 열 수 있는 것 중 가장 가까운 것
   function hint(k){
     const ns=nextStory(k);if(ns&&!storyDone(ns.id))return`다음 스토리: ${CASTS[k].name} ${ns.ch}장 「${ns.title}」`;
@@ -79,5 +84,5 @@ const Progress=(()=>{
     const a=Object.entries(ACH).find(([id])=>!d().ach[id]);if(a)return`업적 「${a[1].name}」: ${a[1].cond}`;
     return'';
   }
-  return{AFF_LV,ACH,CARD,castOpen,castCond,aff,lv,nextLv,condText,cardOpen,dexCardBack,dexCardVisible,discoverOpponentCard,storyOpen,storyDone,nextStory,secondOpen,onMatchEnd,hint,get last(){return last}};
+  return{AFF_LV,ACH,CARD,castOpen,castCond,onTalkEnd,aff,lv,nextLv,condText,cardOpen,dexCardBack,dexCardVisible,discoverOpponentCard,storyOpen,storyDone,nextStory,secondOpen,onMatchEnd,hint,get last(){return last}};
 })();

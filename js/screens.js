@@ -169,7 +169,7 @@ let CURRENT={story:null,opt:{}};
 // 대전 시작 전 VS 화면. 누르거나 아무 키나 누르면 넘어간다
 function showVS(me,op,o={}){return new Promise(res=>{
   const st=o.story&&STORY.find(x=>x.id===o.story);
-  const n=NET.on&&NET.role!=='host'?G.rounds||MATCH:MATCH,info=st?`스토리 · ${chLabel(st)}${st.goal&&st.goal.stake?` · 판돈 ${st.goal.stake}점 이상 저스트`:''}`:NET.on?`${n===1?'단판':n+'판'} · 온라인`:`${MATCH===1?'단판':MATCH+'판'} · AI ${DIFF_KO[DIFF]}`;
+  const n=NET.on&&NET.role!=='host'?G.rounds||MATCH:MATCH,info=st?`스토리 · ${chLabel(st)}`:NET.on?`${n===1?'단판':n+'판'} · 온라인`:`${MATCH===1?'단판':MATCH+'판'} · AI ${DIFF_KO[DIFF]}`;
   const v=document.createElement('div');v.className='vsov';v.setAttribute('role','dialog');v.setAttribute('aria-label',`${CASTS[me].name} 대 ${CASTS[op].name}`);
   v.innerHTML=`<div class="vsl c${CAST_COL[me]}"></div><div class="vsr c${CAST_COL[op]}"></div><div class="vsline"></div>
    <div class="vsp l">${spr(me,0,0,780)}</div><div class="vsp r">${spr(op,0,0,780)}</div>
@@ -241,21 +241,22 @@ function matchWinner(){const[a,b]=G.score;return a>b?ME:a<b?AI:G.wins[ME]>G.wins
 window.recordMatch=()=>{const g=Progress.onMatchEnd({k:SEAT[ME],won:matchWinner()===ME,hist:G.hist,diff:DIFF,online:NET.on,story:NET.on?null:CURRENT.story});
   if(NET.on&&g.new.length)Screens.toast('새로 열림: '+g.new.join(', '));return g};
 window.afterMatch=async()=>{const id=G.gid;await sleep(1600);if(id===G.gid&&Screens.cur==='play')Screens.go('reward')};
-S.reward=()=>{const[a,b]=[G.score[ME],G.score[AI]],win=matchWinner();
-  const k=SEAT[ME],o=SEAT[AI],title=win===null?'무승부':win===ME?'승리!':'패배…',g=Progress.last||{aff:0,new:[],ach:[]};
+S.reward=()=>{const talk=!!CURRENT.talk,st0=CURRENT.story&&STORY.find(x=>x.id===CURRENT.story);   // talk: 대전 없는 장을 읽고 온 경우
+  const[a,b]=talk?[0,0]:[G.score[ME],G.score[AI]],win=talk?ME:matchWinner();
+  const k=talk?st0.k:SEAT[ME],o=talk?null:SEAT[AI],title=talk?`「${st0.title}」`:win===null?'무승부':win===ME?'승리!':'패배…',g=Progress.last||{aff:0,new:[],ach:[]};
   // 판별 기록: 한 줄짜리 작은 칩으로
-  const hist=G.hist.map((h,i)=>`<span class="rh ${h.w===null?'d':h.w===ME?'w':'l'}"><b>${i+1}판</b>${h.w===null?'무':`<img src="${av(SEAT[h.w])}" alt="${CASTS[SEAT[h.w]].name}">+${h.pts}`}${h.busts?`<i>버스트×${h.busts}</i>`:''}</span>`).join('');
+  const hist=talk?'':G.hist.map((h,i)=>`<span class="rh ${h.w===null?'d':h.w===ME?'w':'l'}"><b>${i+1}판</b>${h.w===null?'무':`<img src="${av(SEAT[h.w])}" alt="${CASTS[SEAT[h.w]].name}">+${h.pts}`}${h.busts?`<i>버스트×${h.busts}</i>`:''}</span>`).join('');
   const st=CURRENT.story&&STORY.find(x=>x.id===CURRENT.story);
-  const[line0,ex]=st?(g.clear?st.win:st.lose):[WIN_LINE[k][win===ME?0:1],win===ME?'happy':'pout'];const line=nm(line0);
+  const[line0,ex]=st?(talk?st.end:st.free?(win===ME?st.win:st.lose):g.clear?st.win:st.lose):[WIN_LINE[k][win===ME?0:1],win===ME?'happy':'pout'];const line=nm(line0);
   const affMax=Progress.AFF_LV[Progress.AFF_LV.length-1],next=g.affNext,prev=Progress.AFF_LV[(g.lv||1)-1];
   const pct=next?Math.round(100*(g.affNow-prev)/(next-prev)):100;
   const hint=Progress.hint(k);
   return landPhone('결과',`<div class="lrow rwrow" style="flex:1;display:flex;min-height:0">
  <div class="lmain" style="flex:1;padding:22px 32px;display:flex;flex-direction:column;gap:12px;min-height:0">
   <div>
-   <div class="row2" style="align-items:baseline;gap:18px"><span class="serif" style="font-size:52px;color:${win===ME?'var(--cM)':'var(--ink2)'}">${title}</span><span class="serif" style="font-size:34px">${a} <span style="color:var(--sub2)">:</span> ${b}</span>
-   ${st?`<span class="chip2 ${g.clear?'on':''}" style="cursor:default;margin-left:auto">${g.clear?'스토리 클리어':g.goalMiss?`조건 실패 · 판돈 ${st.goal.stake}점 이상 저스트`:'다시 도전'}</span>`:''}</div></div>
-  <div class="rhrow"><span class="lab">판별</span>${hist}</div>
+   <div class="row2" style="align-items:baseline;gap:18px"><span class="serif" style="font-size:${talk?40:52}px;color:${win===ME?'var(--cM)':'var(--ink2)'}">${title}</span>${talk?'':`<span class="serif" style="font-size:34px">${a} <span style="color:var(--sub2)">:</span> ${b}</span>`}
+   ${st?`<span class="chip2 ${g.clear?'on':''}" style="cursor:default;margin-left:auto">${g.clear?'스토리 클리어':'다시 도전'}</span>`:''}</div></div>
+  ${talk?'':`<div class="rhrow"><span class="lab">판별</span>${hist}</div>`}
   <div class="panel rwd" style="padding:14px 18px;display:flex;flex-direction:column;gap:10px">
     <div class="affup" id="rAff" data-from="${(g.affNow||0)-(g.aff||0)}" data-to="${g.affNow||0}"><div class="row2" style="justify-content:space-between;font-size:14px;font-weight:900"><span>${CASTS[k].name} 호감도 <span id="rAffLv">Lv${g.lv||Progress.lv(k)}</span></span><span style="color:var(--cM)" id="rAffGain">${g.aff?`+${g.aff}`:'+0'}</span></div>
      <div class="affbar"><i id="rAffBar" style="width:${pct}%"></i><em class="lvup" id="rLvUp">LEVEL UP!</em></div><div style="font-size:11px;color:var(--sub2);font-weight:700;margin-top:3px" id="rAffNext">${next?`다음 레벨까지 ${next-g.affNow}`:'최고 레벨'}</div></div>
@@ -293,7 +294,7 @@ S.story=()=>{const pick=Screens.ctx.sel&&STORY.find(x=>x.id===Screens.ctx.sel);
   const li=CAST_KEYS.map(k=>`<div class="lab" style="margin:10px 4px 4px">${CASTS[k].name}${Progress.castOpen(k)?'':` · ${Progress.castCond(k)}하면 열림`}</div>`+STORY.filter(x=>x.k===k).map(x=>{const open=Progress.storyOpen(x),done=Progress.storyDone(x.id);
     return open?`<button class="${x===sel?'on':''}" data-sel="${x.id}"><img src="${av(x.k)}" alt=""><span class="nm">${x.ch}장 ${x.title}</span><span class="st ${done?'':'new'}">${done?'완료':'NEW'}</span></button>`
       :`<button disabled><span class="q">?</span><span class="nm">${x.ch}장</span><span class="st">${Progress.castOpen(x.k)?`${x.ch-1}장 후`:'잠김'}</span></button>`}).join('')).join('');
-  const goal=sel.goal&&sel.goal.stake?`승리 + 판돈 ${sel.goal.stake}점 이상으로 저스트`:'승리';
+  const goal=sel.talkOnly?'끝까지 읽기':sel.free?'한 판 플레이 (승패 상관없음)':'승리';
   return landPhone('스토리',`<div class="lrow strow" style="flex:1;display:flex;min-height:0">
  <div class="side2"><div class="lst">${li}</div></div>
  <div class="grow stmain" style="position:relative;overflow:hidden">
@@ -304,7 +305,7 @@ S.story=()=>{const pick=Screens.ctx.sel&&STORY.find(x=>x.id===Screens.ctx.sel);
    <div><span class="lab">${chLabel(sel)}</span><div class="serif" style="font-size:40px;line-height:1.1;margin-top:4px">${sel.title}</div></div>
    <div style="font-size:15px;line-height:1.7">${sel.sum}</div>
    <div class="panel" style="padding:14px;display:flex;flex-direction:column;gap:8px;font-size:14px">
-    <div class="row2" style="justify-content:space-between"><span class="lab">대전</span><b>AI ${DIFF_KO[sel.diff||'normal']} ${sel.rounds||3}판 · vs ${CASTS[sel.vs].name}</b></div>
+    <div class="row2" style="justify-content:space-between"><span class="lab">대전</span><b>${sel.talkOnly?'없음 · 대화':`AI ${DIFF_KO[sel.diff||'normal']} ${sel.rounds||3}판 · vs ${CASTS[sel.vs].name}`}</b></div>
     <div class="row2" style="justify-content:space-between"><span class="lab">클리어</span><b>${goal}</b></div>
     <div class="row2" style="justify-content:space-between"><span class="lab">내 캐스트</span><b>${CASTS[sel.k].name}</b></div>
    </div>
@@ -345,6 +346,9 @@ S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.query
   const say=(who,t,me,post)=>{nmEl.textContent=who;box.classList.toggle('me',!!me);box.classList.toggle('snsp',!!post);box.dataset.pc=post?CAST_COL[post]:'';full=t;tx.textContent='';nx.hidden=true;let n=0;clearInterval(typing);
     typing=setInterval(()=>{n+=1;tx.textContent=t.slice(0,n);if(n>=t.length){clearInterval(typing);typing=null;nx.hidden=false}},Math.max(8,28*SPEED))};
   const fin=()=>{if(done)return;done=true;clearInterval(typing);ch.innerHTML='';wait=true;putAway();
+    if(st.talkOnly){   // 대전 없는 장: 끝까지 읽으면 클리어
+      const b=document.createElement('button');b.className='btn y';b.style.minWidth='240px';b.textContent='다음';
+      b.onclick=()=>{Progress.onTalkEnd(st.id);CURRENT={story:st.id,talk:true,opt:null};Screens.go('reward')};ch.appendChild(b);b.focus();return}
     const o=CASTS[st.vs].name,FIN={iri:`가자! 상대는 ${o}.`,miko:`…시작할게요. 상대는 ${o} 씨.`,haru:`그럼, 시작해 볼까요? 상대는 ${o}.`,mina:`간다! 상대는 ${o}!`};
     say(CASTS[k].name,FIN[k]||`상대는 ${o}.`);
     const b=document.createElement('button');b.className='btn y';b.style.minWidth='240px';b.textContent=`대전 시작 · vs ${CASTS[st.vs].name}`;b.onclick=()=>storyMatch(st);ch.appendChild(b);b.focus()};
