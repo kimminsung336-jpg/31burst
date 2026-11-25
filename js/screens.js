@@ -402,7 +402,7 @@ S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space
    <span class="lab" style="margin-top:6px">게임</span>
    ${row('전체 화면',`<button class="btn" id="stFull" style="min-height:36px;font-size:13px">${FS.on()?'끄기':'켜기'}</button>`)}
    ${row('연출 속도',`<div class="seg" style="width:220px" id="stSpeed"><button data-v="1" class="${SPEED===1?'on':''}">보통</button><button data-v="0.5" class="${SPEED===0.5?'on':''}">빠르게</button></div>`)}
-   ${row('효과음',`<span class="row2"><input id="stVol" type="range" min="0" max="1" step=".05" value="${Save.d.vol!=null?Save.d.vol:.6}" aria-label="효과음 크기" style="width:120px;accent-color:var(--cM)"><button class="chip2${Save.d.mute?' on':''}" id="stMute">${Save.d.mute?'꺼짐':'켜짐'}</button></span>`)}
+   ${row('효과음',`<span class="row2"><input id="stVol" type="range" min="0" max="1" step=".05" value="${Save.d.vol!=null?Save.d.vol:.6}" aria-label="효과음 크기" style="width:120px;accent-color:var(--cM)"><button class="chip2${Save.d.sound?' on':''}" id="stMute">${Save.d.sound?'켜짐':'꺼짐'}</button></span>`)}
    ${row('게임 설명서','<button class="btn" id="stGuide" style="min-height:36px;font-size:13px">다시 보기</button>')}
    <span class="lab" style="margin-top:18px">손님</span>
    ${row('이름',`<span class="row2"><input id="stName" maxlength="10" value="${(Save.d.manager||'').replace(/"/g,'&quot;')}" style="font:inherit;width:140px;padding:6px 10px;border:2px solid var(--ink2);border-radius:10px"><button class="btn" id="stNameOk" style="min-height:36px;font-size:13px">저장</button></span>`)}
@@ -415,7 +415,7 @@ S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space
   </div></div></div></div>`};
 S.settings.bind=s=>{
   const vr=s.querySelector('#stVol');vr.oninput=()=>{Save.d.vol=+vr.value;Save.put();SFX.ctx()};vr.onchange=()=>SFX.notify();
-  s.querySelector('#stMute').onclick=()=>{Save.d.mute=!Save.d.mute;Save.put();if(!Save.d.mute)SFX.notify();Screens.go('settings')};
+  s.querySelector('#stMute').onclick=()=>{Save.d.sound=!Save.d.sound;Save.put();if(Save.d.sound)SFX.notify();Screens.go('settings')};
 s.querySelector('#stSpeed').onclick=e=>{const b=e.target.closest('button');if(!b)return;SPEED=+b.dataset.v;Save.d.speed=SPEED;Save.put();Screens.go('settings')};
   s.querySelector('#stGuide').onclick=()=>showGuide();
   s.querySelector('#stFull').onclick=async()=>{await FS.toggle();setTimeout(()=>Screens.go('settings'),300)};

@@ -4,7 +4,7 @@ const SFX=(()=>{
   let ac=null,out=null,vol=null;
   const MOTIF=[987.77,1318.51,1661.22];                    // B5 E6 G#6
   const SCALE=[659.25,739.99,830.61,987.77,1108.73,1318.51,1479.98,1661.22,1975.53,2217.46]; // E 장조 펜타토닉
-  const on=()=>typeof Save!=='undefined'&&Save.d&&!Save.d.mute;
+  const on=()=>typeof Save!=='undefined'&&Save.d&&Save.d.sound===true;   // 기본은 꺼짐. 설정에서 켜야 난다
   const level=()=>typeof Save!=='undefined'&&Save.d&&Save.d.vol!=null?Save.d.vol:.6;
   function ctx(){
     if(!ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ac=new A();
