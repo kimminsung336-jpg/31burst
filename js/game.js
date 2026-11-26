@@ -166,7 +166,7 @@ async function play(p,idx,choice,adj=0){
   const postEl=addPost(p,card,v);
   if(ng>=25&&ng<G.target){if(!G.nearSnd){G.nearSnd=1;SFX.near()}if(typeof Talk!=='undefined')Talk.say('near')}
 
-  if(ng===G.target&&!card.nofinish){if(card.fixed){G.stake+=2;log(`노필터 셀카로 저스트! 판돈 +2 → ${G.stake}점`,cls);render()}if(typeof Talk!=='undefined')Talk.say(p===ME?'justMe':'justOp');bigHit(G.target);await sleep(2600);G.busy=false;return endRound(p)}
+  if(ng===G.target&&!card.nofinish){if(card.fixed){G.stake+=2;log(`${card.name}으로 저스트! 판돈 +2 → ${G.stake}점`,cls);render()}if(typeof Talk!=='undefined')Talk.say(p===ME?'justMe':'justOp');bigHit(G.target);await sleep(2600);G.busy=false;return endRound(p)}
   if(ng>G.target||(ng===G.target&&card.nofinish)){   // 저스트 불가 카드로 목표에 딱 맞으면 버스트
     G.stakeHist=G.stakeHist||[1];const k=RULES.bust(G,AB,card);G.busts+=k;
     const plus=AB.filter(a=>a.bustPlus).length,drawers=[];
