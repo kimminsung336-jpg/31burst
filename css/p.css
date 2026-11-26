@@ -575,3 +575,13 @@ body:not([data-screen=play]) :is(#fx,body>.hit,body>.bustbig,body>.fly){display:
 #play .ring.indz{box-shadow:8px 8px 0 var(--ink2),0 0 0 5px #ff2e4d}
 .tuttip{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;margin:0 0 12px;padding:12px 14px;border:3px solid var(--ink2);border-radius:14px;background:#fff0f3;color:var(--ink2)}
 .tuttip b{font-size:16px;color:#e0183a}.tuttip span{font-size:13px;font-weight:700;line-height:1.5}
+
+/* 첫 플레이(상대 없음) */
+#play.solo .opp,#play.solo .sbp.ai,#play.solo .osp,#play.solo #sbDots,#play.solo .stake,#play.solo .schs{visibility:hidden}
+/* 메인 화면 안내 */
+.tourov{position:absolute;inset:0;z-index:60;background:rgba(20,12,24,.55);cursor:pointer}
+.tourhl{position:relative;z-index:61!important;box-shadow:0 0 0 6px var(--cY),0 0 0 10px var(--ink2)!important}
+.tourtip{position:absolute;width:320px;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border:3px solid var(--ink2);border-radius:16px;background:#fff;color:var(--ink2);box-shadow:5px 5px 0 var(--cM)}
+.tourtip b{font:400 22px/1.1 "Black Han Sans"}.tourtip span{font-size:15px;font-weight:700;line-height:1.45}.tourtip small{font-size:12px;color:var(--sub2);margin-top:4px}
+#play .pc2.tutpick{animation:tutPick .9s ease-in-out infinite;z-index:3}
+@keyframes tutPick{50%{translate:0 -14px;filter:drop-shadow(0 0 10px var(--cY))}}

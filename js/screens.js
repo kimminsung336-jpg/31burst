@@ -123,7 +123,7 @@ S.home=()=>{if(!Progress.castOpen(Save.d.duty)){Save.d.duty='iri';Save.put()}con
 </div>`};
 S.home.bind=s=>{
   const ok=s.querySelector('#hNameOk');
-  if(ok){const inp=s.querySelector('#hName');const f=async()=>{const v=inp.value.trim();if(!v){inp.focus();return}Save.d.manager=v;Save.put();if(Progress.storyDone('iri1'))Screens.go('home');else Screens.go('scene',{id:'iri1'})};   // 가게 이름을 정하면 바로 개업 첫날(첫 대전)로
+  if(ok){const inp=s.querySelector('#hName');const f=async()=>{const v=inp.value.trim();if(!v){inp.focus();return}Save.d.manager=v;Save.put();if(Save.d.intro)Screens.go('home');else Screens.go('scene',{id:'open1'})};   // 가게 이름을 정하면 바로 첫 플레이로
     ok.onclick=f;inp.onkeydown=e=>{if(e.key==='Enter')f()};return}
   s.querySelector('#hPlay').onclick=()=>Screens.go('match');
   s.querySelector('#hGuide').onclick=()=>showGuide();
@@ -169,6 +169,33 @@ const k=Save.d.duty,o={...MATCH_OPT,...opt};G.gid=(G.gid||0)+1;G.over=true;if(ty
    .then(()=>newGame());
 }
 let CURRENT={story:null,opt:{}};
+// 첫 플레이. (앞에 개업부터 아이리 캐스팅까지의 만화가 들어갈 자리) → 아이리가 폰을 꺼냄 → 혼자 글을 올려 31 맞추기 → 미코의 댓글 → 메인 화면 안내
+const INTRO={
+ open1:{id:'open1',k:'iri',ch:0,title:'개업',lines:[
+   ['k','점장! 간판에 불 들어왔어! 오늘부터 {S} 영업 시작이야!','happy'],
+   ['k','근데 손님이 한 명도 없네. 이제 그러면 홍보를 해 볼까?','base']],
+  fin:'폰은 내가 들게. 점장은 뭘 올릴지 골라 줘!',btn:'첫 게시글 올리기',then:()=>startSolo()},
+ open2:{id:'open2',k:'iri',ch:0,title:'개업',feed:[['iri','{S} 오늘 오픈! 첫 손님 기다리는 중~ 조명 각 미쳤다','shot']],lines:[
+   ['k','와, 사람들 반응이 생각보다 좋은걸?','happy'],
+   ['n','이 사진… 뒤에 흉조가 보이네요. 오늘은 조심하세요.','miko',{re:'iri'}],
+   ['k','…이건 뭐야? 개업 첫날에 흉조라니!','pout']],
+  fin:'일단 가게부터 둘러보자, 점장. 저 댓글은 내가 가만 안 둬!',btn:'가게로',then:()=>{Save.d.intro=1;Save.put();Screens.go('home');homeTour()}}};
+TALK.open={start:[['k','첫 게시글을 올려 보자! 「개업 홍보」를 눌러.']],
+ fed:[['k','화제성이 20이 됐어! 이제 카드를 더 올려서 31을 딱 맞추는 거야. 넘기면 안 돼!']],
+ near:[['k','거의 다 왔어. 남은 숫자랑 똑같은 카드를 올려!']],
+ bustMe:[['k','넘쳤다! 괜찮아, 판이 커져서 목표가 10 늘었어. 다시 맞추면 돼.']],
+ justMe:[['k','딱 31! 봤지, 점장? 이게 저스트야!']]};
+function startSolo(){G.gid=(G.gid||0)+1;G.over=true;Talk.reset();DIFF='veasy';MATCH=1;SEAT=['iri','miko'];Save.d.duty='iri';Screens.ctx.story=null;CURRENT={story:'open',opt:{}};TUTOR=false;SOLO=true;
+  seatSetup();Screens.go('play');$('play').classList.add('solo');newGame()}
+window.soloDone=()=>Screens.go('scene',{id:'open2'});
+// 메인 화면 안내: 버튼을 하나씩 짚어 준다. 화면을 누르면 다음으로 넘어간다
+function homeTour(){const steps=[['#hPlay','대전','캐스트를 골라 AI나 친구와 붙는다.'],['[data-go="story"]','스토리','캐스트들의 이야기. 깨면 새 캐스트와 카드가 열린다.'],['[data-go="cast"]','캐스트','근무할 캐스트를 고르고 덱을 짠다.'],['#hGuide','설명서','규칙이 헷갈리면 언제든 여기서 다시 본다.']];let i=0;
+  const ov=document.createElement('div');ov.className='tourov';$('stage').appendChild(ov);
+  const show=()=>{const el=document.querySelector('.scr.home '+steps[i][0]);document.querySelectorAll('.tourhl').forEach(e=>e.classList.remove('tourhl'));
+    if(!el)return end();el.classList.add('tourhl');const r=el.getBoundingClientRect(),sr=$('stage').getBoundingClientRect(),sc=sr.width/$('stage').offsetWidth;
+    ov.innerHTML=`<div class="tourtip" style="left:${Math.max(16,Math.min($('stage').offsetWidth-336,(r.left-sr.left)/sc-340))}px;top:${Math.max(16,(r.top-sr.top)/sc)}px"><b>${steps[i][1]}</b><span>${steps[i][2]}</span><small>${i+1} / ${steps.length} · 눌러서 다음</small></div>`};
+  const end=()=>{ov.remove();document.querySelectorAll('.tourhl').forEach(e=>e.classList.remove('tourhl'))};
+  ov.onclick=()=>{i++;if(i>=steps.length)end();else show()};show()}
 // 첫 대전 길잡이: 시작하기 전에 상대 덱을 꼭 한 번 보게 한다. 닫으면 대전이 시작된다
 function tutDeck(opp){return new Promise(res=>{
   previewDeck(opp,null);const c=CASTS[opp],own=c.deck.filter(x=>!SHARED.includes(x)),V=[...new Set(c.deck.filter(x=>!x.nofinish&&!x.lower).flatMap(x=>x.choice||[x.v]).filter(v=>v>0))].sort((a,b)=>a-b);
@@ -327,14 +354,14 @@ S.story.bind=s=>{s.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>Scree
   s.querySelector('#sGo').onclick=()=>{const b=s.querySelector('.lst button.on');Screens.go('scene',{id:b?b.dataset.sel:STORY[0].id})}};
 
 /* 스토리 장면: 마감 후 가게에서 마주 보고 하는 대화. 대사마다 표정·자세가 바뀐다 */
-S.scene=()=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k;
+S.scene=()=>{const st=STORY.find(x=>x.id===Screens.ctx.id)||INTRO[Screens.ctx.id],k=st.k;
   return `${sceneBg(true)}<div id="scSpr" class="scspr">${spr(k,330,40,700).replace(`img/p/${k}.webp`,exImg(k,'base'))}</div>${counter([['cups',70],['cake',1020]],true)}
 <div class="scph" id="scPh" aria-live="polite"><div class="phone"><div class="screen"><div class="appbar"><b id="scApp">타임라인</b></div><div class="feed" id="scFeed"></div><div class="dm" id="scDm" hidden></div></div></div><span class="tap">눌러서 계속</span></div>
 <div class="scnoti" id="scNoti" aria-live="polite"></div>
 <div class="vnch" id="scCh"></div>
 <div class="vnbox c${CAST_COL[k]}" id="scBox" role="button" tabindex="0" aria-live="polite"><span class="vnnm" id="scNm">${CASTS[k].name}</span><p id="scTx"></p><i class="vnnx" id="scNx">▼</i></div>
 <div class="vntop"><span class="chip2" style="cursor:default">${chLabel(st)} · ${st.title}</span><button class="chip2" id="scSkip">건너뛰기</button></div>`};
-S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.querySelector('#scCh'),sp=s.querySelector('#scSpr'),box=s.querySelector('#scBox'),tx=s.querySelector('#scTx'),nmEl=s.querySelector('#scNm'),nx=s.querySelector('#scNx');
+S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id)||INTRO[Screens.ctx.id],k=st.k,ch=s.querySelector('#scCh'),sp=s.querySelector('#scSpr'),box=s.querySelector('#scBox'),tx=s.querySelector('#scTx'),nmEl=s.querySelector('#scNm'),nx=s.querySelector('#scNx');
   let i=0,done=false,typing=null,full='',wait=false;const Q=[];   // Q: 고른 보기에 딸린 줄. 다 쓰면 본문으로 돌아온다
   const flat=L=>L.flatMap(l=>l[0]==='c'&&l[2]?[l,...l[2].filter(r=>Array.isArray(r[0])).flatMap(flat)]:[l]),ALL=flat(st.lines);
   const ph=s.querySelector('#scPh'),feed=s.querySelector('#scFeed');
@@ -381,11 +408,12 @@ S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.query
   const say=(who,t,me,post)=>{nmEl.textContent=who;box.classList.toggle('me',!!me);box.classList.toggle('snsp',!!post);box.dataset.pc=post?CAST_COL[post]:'';full=t;tx.textContent='';nx.hidden=true;let n=0;clearInterval(typing);
     typing=setInterval(()=>{n+=1;tx.textContent=t.slice(0,n);if(n>=t.length){clearInterval(typing);typing=null;nx.hidden=false}},Math.max(8,28*SPEED))};
   const fin=()=>{if(done)return;done=true;clearInterval(typing);noti.classList.remove('on');ch.innerHTML='';wait=true;putAway();
+    if(st.then){const b=document.createElement('button');b.className='btn y';b.textContent=st.btn||'다음';b.onclick=()=>st.then();ch.appendChild(b);b.focus();return}   // 첫 플레이 장면: 다음 단계로
     if(st.talkOnly){   // 대전 없는 장: 끝까지 읽으면 클리어
       const b=document.createElement('button');b.className='btn y';b.style.minWidth='240px';b.textContent='다음';
       b.onclick=()=>{Progress.onTalkEnd(st.id);CURRENT={story:st.id,talk:true,opt:null};Screens.go('reward')};ch.appendChild(b);b.focus();return}
     const o=CASTS[st.vs].name,FIN={iri:`가자! 상대는 ${o}.`,miko:`…시작할게요. 상대는 ${o} 씨.`,haru:`그럼, 시작해 볼까요? 상대는 ${o}.`,mina:`간다! 상대는 ${o}!`};
-    turn(true);col(k);say(CASTS[k].name,FIN[k]||`상대는 ${o}.`);
+    turn(true);col(k);say(CASTS[k].name,st.fin?nm(st.fin):FIN[k]||`상대는 ${o}.`);
     const b=document.createElement('button');b.className='btn y';b.style.minWidth='240px';b.textContent=`대전 시작 · vs ${CASTS[st.vs].name}`;b.onclick=()=>storyMatch(st);ch.appendChild(b);b.focus()};
   const step=()=>{if(Screens.cur!=='scene'||done||wait)return;
     if(typing){clearInterval(typing);typing=null;tx.textContent=full;nx.hidden=false;return}   // 글자 나오는 중이면 한 번에 다 보여준다

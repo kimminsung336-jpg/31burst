@@ -32,7 +32,7 @@ function render(){
      h+=`<i data-t="${T(v)}" style="left:${(170+R*Math.cos(a)).toFixed(1)}px;top:${(170+R*Math.sin(a)).toFixed(1)}px;width:${s}px;height:${s}px;--fs:${Math.round(s*.46)}px;--r:${(i%2?-10:10)}deg">${v}</i>`});
     $('stakeChain').innerHTML=h}
    if(render._st!==undefined&&n>render._st){st.classList.remove('up');void st.offsetWidth;st.classList.add('up')}render._st=n}
-  dangerZone();
+  dangerZone();soloHint();
   const gap=G.target-G.gauge;
   document.querySelector('.ring').classList.toggle('near',gap>0&&gap<=5&&!G.over);
   $('turnLine').textContent=G.over?'게임 끝':G.cur===ME?'내 차례':`${jo(NAME[AI],'이','가')} 고민 중…`;$('turnLine').classList.toggle('wait',G.cur!==ME||G.over);
@@ -127,10 +127,18 @@ function showResult(fin,w,wait){
   });
 }
 function newGame(){if(typeof Talk!=='undefined')Talk.reset();G.gid=(G.gid||0)+1;G.rounds=MATCH;G.round=0;G.score=[0,0];G.wins=[0,0];G.hist=[];G.over=false;G.starter=Math.random()<.5?ME:AI;newRound()}
+// 첫 플레이(SOLO): 상대 차례 없이 혼자 글을 올려 31을 맞춰 본다. 첫 손패는 「개업 홍보」(20) 한 장, 그걸 올리면 숫자 카드 네 장이 들어온다
+let SOLO=false;
+const SOLO_OPEN={id:'opening',name:'개업 홍보',v:20,text:'가게의 첫 게시글'},SOLO_FEED=['boom','menu','selfie','shot'];
+function soloFeed(){const P=G.P[ME];G.soloFed=1;SOLO_FEED.forEach(id=>{const i=P.deck.findIndex(c=>c.id===id);if(i>=0)P.hand.push(P.deck.splice(i,1)[0])});if(typeof Talk!=='undefined')Talk.say('fed')}
+// 첫 플레이에서 한 턴씩 짚어 주기: 지금 올리면 딱 맞는 카드(처음엔 개업 홍보)를 반짝이게 한다
+function soloHint(){if(!SOLO||G.over||!G.P||!G.P[ME])return;const gap=G.target-G.gauge,H=G.P[ME].hand;
+  setTimeout(()=>document.querySelectorAll('#hand .pc2').forEach((el,i)=>{const c=H[i];el.classList.toggle('tutpick',!!c&&G.cur===ME&&(c.id==='opening'||valOf(ME,c,null)===gap))}),0)}
 function newRound(){
   G.round++;G.P=[freshPlayer(ME),freshPlayer(AI)];draw(ME,5);draw(AI,5);
+  if(SOLO){const P=G.P[ME];P.deck.push(...P.hand);P.hand=[{...SOLO_OPEN}];G.soloFed=0;G.starter=ME}
   G.gauge=0;G.target=31;G.stake=1;G.nearSnd=0;G.stakeHist=[1];G.passes=0;G.busts=0;G.cur=G.starter;$('feed').innerHTML='';NET.ev({t:'clear'});
-  log(`— ${G.round}판 시작. ${NAME[G.cur]} 선공 —`);
+  log(SOLO?'— 첫 게시글을 올려 보자 —':`— ${G.round}판 시작. ${NAME[G.cur]} 선공 —`);
   if(typeof Talk!=='undefined')Talk.say(G.round===1?'start':G.round===G.rounds?'last':'round'+G.round);
   startTurn();
 }
@@ -138,10 +146,11 @@ function newRound(){
 async function startTurn(){
   if(G.over)return;
   render();const p=G.cur,P=G.P[p];
+  if(SOLO&&p===AI)return next(p);   // 첫 플레이는 상대 차례가 없다
   if(P.skip){P.skip=false;log(P.rest?`${NAME[p]} 이번 차례는 쉰다 (맡길게요)`:`${NAME[p]} 차례는 침묵의 주문에 걸려 건너뜀`,p?'ai':'me');P.rest=false;return next(p)}
   {const c=RULES.turnStart(G,ABS(),p);if(c)log(`${CASTS[SEAT[1-p]].abName}: ${NAME[p]} 손패 「${c.name}」 버림`,p?'ai':'me')}
   if(!anyPlayable(p)){
-    log(`${NAME[p]} 낼 카드가 없어서 패스`,p?'ai':'me');draw(p,1);G.passes++;P.snipe=false;P.press=false;
+    log(`${NAME[p]} 낼 카드가 없어서 패스`,p?'ai':'me');draw(p,1);if(!SOLO)G.passes++;P.snipe=false;P.press=false;
     if(G.passes>=2){log('둘 다 패스. 이 판은 무승부');await sleep(500);return endRound(null)}
     return next(p);
   }
@@ -149,7 +158,7 @@ async function startTurn(){
   if(p===AI&&!NET.on){const id=G.gid;await sleep(750);if(G.over||id!==G.gid)return;aiAct()}
 }
 function next(p){G.cur=1-p;const id=G.gid;setTimeout(()=>{if(id===G.gid)startTurn()},p===AI?250:400)}
-function endTurn(p){const P=G.P[p];draw(p,1);P.snipe=false;P.press=false;next(p)}
+function endTurn(p){const P=G.P[p];if(SOLO&&p===ME&&!G.soloFed)soloFeed();else draw(p,1);P.snipe=false;P.press=false;next(p)}
 
 async function play(p,idx,choice,adj=0){
   G.busy=true;const P=G.P[p],cls=p?'ai':'me',AB=ABS();
@@ -198,6 +207,7 @@ async function play(p,idx,choice,adj=0){
 }
 
 async function endRound(w){
+  if(SOLO){G.over=true;render();await sleep(2200);SOLO=false;$('play').classList.remove('solo');if(window.soloDone)soloDone();return}
   const pts=G.stake;
   if(w!==null){G.score[w]+=pts;G.wins[w]++;log(`저스트! ${NAME[w]} ${G.round}판 승리, +${pts}점`)}
   G.hist.push({w,pts:w===null?0:pts,busts:G.busts});
