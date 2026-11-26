@@ -7,6 +7,10 @@ const AI_PICK=(()=>{
     const xhard=diff==='xhard',cand=RU.scoreMoves(R,AB,p,{full:xhard,mem:xhard});
     if(!cand.length)return null;
     const ju=cand.filter(c=>c.s>=10000),safe=cand.filter(c=>!c.bust);
+    if(diff==='veasy'){   // 아주 쉬움(첫 대전용): 일부러는 안 터뜨리고, 저스트는 절반만 잡고, 나머지는 안 넘치는 카드 중 아무거나
+      if(ju.length&&Math.random()<.5)return ju[0];
+      const calm=safe.filter(c=>c.s<10000);return any(calm.length?calm:safe.length?safe:cand);
+    }
     if(diff==='easy'){   // 쉬움: 판돈 4점 전까지는 터뜨릴 수 있으면 버스트, 아니면 저스트, 그것도 아니면 아무 카드
       const bu=R.stake<4?cand.filter(c=>c.bust):[];
       return bu.length?any(bu):ju.length?ju[0]:any(safe.length?safe:cand);

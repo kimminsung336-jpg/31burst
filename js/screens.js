@@ -60,11 +60,12 @@ const faceImg=(k,e='base')=>`img/p/face/${k}_${e||'base'}.webp`;
 // 표정별 서 있는 그림 (인페인트로 얼굴·팔만 바꿈)
 const EXPR=['base','happy','pout','fluster','sad'];
 const exImg=(k,e='base')=>`img/p/ex/${k}_${e||'base'}.webp`;
-// 대사 속 {N} 을 손님 이름으로. 바로 뒤에 붙은 조사(은/는·이/가·을/를·과/와)는 이름 끝 받침에 맞춘다
-const nm=t=>{const n=Save.d.manager||'손님',c=n.charCodeAt(n.length-1),bat=c>=0xAC00&&c<=0xD7A3?(c-0xAC00)%28>0:/[lmnrLMNR013678]$/.test(n);
-  return String(t).replace(/\{N\}(은|는|이|가|을|를|과|와)(?=[\s,.!?~…]|$)/g,(m,j)=>n+((bat?{는:'은',가:'이',를:'을',와:'과'}:{은:'는',이:'가',을:'를',과:'와'})[j]||j)).replace(/\{N\}/g,n)};
+// 대사 속 {S} 는 가게 이름. 바로 뒤에 붙은 조사(은/는·이/가·을/를·과/와)는 이름 끝 받침에 맞춘다. {N}(손님)은 아직 새 전제로 안 옮긴 장에만 남아 있다
+const nm=t=>{const sub=(str,tok,n)=>{const c=n.charCodeAt(n.length-1),bat=c>=0xAC00&&c<=0xD7A3?(c-0xAC00)%28>0:/[lmnrLMNR013678]$/.test(n);
+    return str.replace(new RegExp('\\{'+tok+'\\}(은|는|이|가|을|를|과|와)(?=[\\s,.!?~…]|$)','g'),(m,j)=>n+((bat?{는:'은',가:'이',를:'을',와:'과'}:{은:'는',이:'가',을:'를',과:'와'})[j]||j)).split('{'+tok+'}').join(n)};
+  return sub(sub(String(t),'S',Save.d.manager||'우리 가게'),'N','손님')};
 const chLabel=st=>`${CASTS[st.k].name} ${st.ch}장`;
-const DIFF_KO={easy:'쉬움',normal:'보통',hard:'어려움',xhard:'매우 어려움'};
+const DIFF_KO={veasy:'아주 쉬움',easy:'쉬움',normal:'보통',hard:'어려움',xhard:'매우 어려움'};
 // 캐스트마다 그림 여백이 달라서 키를 맞춘다 (아이리 스프라이트가 크게 잘려 있음)
 const SPR_SCALE={iri:.86,miko:1,haru:1,mina:1};
 const spr=(k,x,y,h,st='',foot=false)=>{const f=SPR_SCALE[k]||1,h2=Math.round(h*f);
@@ -94,7 +95,7 @@ ${spr('iri',20,180,560,'',true)}${spr('mina',925,250,660)}${spr('miko',290,262,6
 S.title.bind=s=>{const go=()=>{SFX.notify();if(TOUCH&&!FS.on())FS.enter();Screens.go('home')};s.querySelector('#tGo').onclick=go;
   const k=e=>{if(Screens.cur!=='title'){removeEventListener('keydown',k);return}if(e.key==='Tab')return;e.preventDefault();removeEventListener('keydown',k);setTimeout(go,0)};addEventListener('keydown',k)};
 
-/* 메인: 왼쪽 위 손님 명패, 가운데 오늘 지명한 캐스트, 오른쪽 메뉴 버튼 */
+/* 메인: 왼쪽 위 가게 명패, 가운데 오늘 근무하는 캐스트, 오른쪽 메뉴 버튼 */
 S.home=()=>{if(!Progress.castOpen(Save.d.duty)){Save.d.duty='iri';Save.put()}const k=Save.d.duty,c=CASTS[k],st=Progress.nextStory(k),named=!!Save.d.manager;
   const unread=STORY.filter(x=>Progress.storyOpen(x)&&!Progress.storyDone(x.id)).length;
   const cards=Object.keys(BYID).filter(id=>Progress.dexCardVisible(id)).length;
@@ -102,15 +103,15 @@ S.home=()=>{if(!Progress.castOpen(Save.d.duty)){Save.d.duty='iri';Save.put()}con
   const line=noGuide?'처음 오셨죠? 게임 방법은 오른쪽 위 ? 에 있어요. 한 번 보고 가요!':st?nm(st.lines[0][1]):nm(WIN_LINE[k][0]),ex=noGuide?'happy':st?st.lines[0][2]:'happy';
   const scene=`${sceneBg()}${spr(k,250,70,640).replace(`img/p/${k}.webp`,exImg(k,named?ex:'happy'))}${counter([['cups',40],['cake',600]])}`;
   if(!named)return `${scene}<div class="dimbg"></div>
-<div class="panel hmname"><div class="row2" style="gap:12px"><img src="${faceImg(k,'happy')}" alt="" class="facei" style="width:52px;height:52px"><div><b style="font-size:15px">${c.name}</b><div style="font-size:14px;margin-top:2px">처음 오셨죠? 이름이 뭐예요?</div></div></div>
- <label class="lab" for="hName">손님 이름</label>
- <input id="hName" maxlength="10" autocomplete="off" placeholder="이름을 적어 주세요" autofocus>
- <button class="btn y" id="hNameOk">입장하기</button></div>`;
+<div class="panel hmname"><div class="row2" style="gap:12px"><img src="${faceImg(k,'happy')}" alt="" class="facei" style="width:52px;height:52px"><div><b style="font-size:15px">${c.name}</b><div style="font-size:14px;margin-top:2px">드디어 개업이야! 우리 가게 이름은 뭘로 할까?</div></div></div>
+ <label class="lab" for="hName">가게 이름</label>
+ <input id="hName" maxlength="10" autocomplete="off" placeholder="가게 이름을 적어 주세요" autofocus>
+ <button class="btn y" id="hNameOk">개업하기</button></div>`;
   const mb=(go,cls,ico,t,sub,badge='')=>`<button class="hmb ${cls}" data-go="${go}"><span class="ic">${ico}${badge}</span><span class="tx"><b>${t}</b><small>${sub}</small></span><span class="ar">›</span></button>`;
   return `${scene}
 <div class="hmplate">
  <div class="row2" style="gap:12px"><img src="${av(k)}" alt="" class="hmav"><div style="min-width:0"><div class="hmnm">${Save.d.manager}</div></div></div>
- <div class="hmduty"><span>오늘 지명</span>${CAST_KEYS.map(x=>Progress.castOpen(x)?`<button data-duty="${x}" class="${x===k?'on':''}" aria-label="${CASTS[x].name}"><img src="${av(x)}" alt=""></button>`:`<button data-lock="${x}" class="lock" aria-label="${CASTS[x].name} 잠김" title="${Progress.castCond(x)}"><img src="${av(x)}" alt=""><svg class="lk" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="3" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="#ffd23f"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>`).join('')}</div>
+ <div class="hmduty"><span>오늘 근무</span>${CAST_KEYS.map(x=>Progress.castOpen(x)?`<button data-duty="${x}" class="${x===k?'on':''}" aria-label="${CASTS[x].name}"><img src="${av(x)}" alt=""></button>`:`<button data-lock="${x}" class="lock" aria-label="${CASTS[x].name} 잠김" title="${Progress.castCond(x)}"><img src="${av(x)}" alt=""><svg class="lk" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e1a22" stroke-width="3" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="#ffd23f"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>`).join('')}</div>
 </div>
 <div class="hmtop"><button class="hmic" id="hFull" aria-label="전체 화면" title="전체 화면 (F11)">${FS.on()?ICO.fsx:ICO.fs}</button><button class="hmic${noGuide?' new':''}" id="hGuide" aria-label="게임 설명서" title="게임 설명서">?</button><button class="hmic" data-go="settings" aria-label="설정" title="설정">${ICO.set}</button></div>
 <button class="hmsay" id="hDm"><img src="${faceImg(k,ex)}" alt="" class="facei"><span><b>${c.name}${noGuide?' <i>설명서</i>':st?` <i>스토리 ${st.ch}장</i>`:''}</b>${line}</span></button>
@@ -122,8 +123,8 @@ S.home=()=>{if(!Progress.castOpen(Save.d.duty)){Save.d.duty='iri';Save.put()}con
 </div>`};
 S.home.bind=s=>{
   const ok=s.querySelector('#hNameOk');
-  if(ok){const inp=s.querySelector('#hName');const f=async()=>{const v=inp.value.trim();if(!v){inp.focus();return}Save.d.manager=v;Save.put();Screens.go('home');
-    if(!Save.d.guide&&await ask(`${v} 님, 어서 오세요!`,`${CASTS[Save.d.duty].name}: 31 버스트는 처음이죠? 게임 방법부터 한 번 보고 가요. 1분이면 돼요.`,[{label:'설명서 보기',value:1},{label:'나중에',value:0}]))showGuide()};ok.onclick=f;inp.onkeydown=e=>{if(e.key==='Enter')f()};return}
+  if(ok){const inp=s.querySelector('#hName');const f=async()=>{const v=inp.value.trim();if(!v){inp.focus();return}Save.d.manager=v;Save.put();if(Progress.storyDone('iri1'))Screens.go('home');else Screens.go('scene',{id:'iri1'})};   // 가게 이름을 정하면 바로 개업 첫날(첫 대전)로
+    ok.onclick=f;inp.onkeydown=e=>{if(e.key==='Enter')f()};return}
   s.querySelector('#hPlay').onclick=()=>Screens.go('match');
   s.querySelector('#hGuide').onclick=()=>showGuide();
   s.querySelector('#hFull').onclick=()=>FS.toggle();
@@ -160,12 +161,12 @@ S.match.bind=s=>{
   s.querySelector('#mGo').onclick=()=>startMatch();
 };
 function startMatch(opt={}){
-  if(!Save.d.guide&&!NET.on)return showGuide(()=>startMatch(opt));   // 처음 대전이면 설명서부터 (닫거나 끝까지 보면 바로 시작)
 const k=Save.d.duty,o={...MATCH_OPT,...opt};G.gid=(G.gid||0)+1;G.over=true;if(typeof Talk!=='undefined')Talk.reset();   // 앞 대전에서 밀린 말풍선이 새 대전에 끼어들지 않게
   let opp=o.opp;if(opp==='rand'||opp===k){const c=CAST_KEYS.filter(x=>x!==k);opp=c[Math.random()*c.length|0]}
   DIFF=o.diff;MATCH=o.rounds;SEAT=[k,opp];Screens.ctx.story=o.story||null;CURRENT={story:o.story||null,opt:o};
-  TUTOR=!NET.on&&o.story==='iri2'&&!Progress.storyDone('iri2');   // 첫 대전(아이리 2장을 깨기 전)에만 길잡이
-  seatSetup();Screens.go('play');showVS(k,opp,o).then(()=>TUTOR?tutDeck(opp):0).then(()=>newGame());
+  TUTOR=!NET.on&&o.story==='iri1'&&!Progress.storyDone('iri1');   // 첫 대전(개업 첫날을 깨기 전)에만 길잡이
+  seatSetup();Screens.go('play');showVS(k,opp,o).then(()=>TUTOR&&!Save.d.tutDeck?(Save.d.tutDeck=1,Save.put(),tutDeck(opp)):0)   // 상대 덱 보기는 첫 도전에만
+   .then(()=>newGame());
 }
 let CURRENT={story:null,opt:{}};
 // 첫 대전 길잡이: 시작하기 전에 상대 덱을 꼭 한 번 보게 한다. 닫으면 대전이 시작된다
@@ -183,7 +184,7 @@ function showVS(me,op,o={}){return new Promise(res=>{
   const v=document.createElement('div');v.className='vsov';v.setAttribute('role','dialog');v.setAttribute('aria-label',`${CASTS[me].name} 대 ${CASTS[op].name}`);
   v.innerHTML=`<div class="vsl c${CAST_COL[me]}"></div><div class="vsr c${CAST_COL[op]}"></div><div class="vsline"></div>
    <div class="vsp l">${spr(me,0,0,780)}</div><div class="vsp r">${spr(op,0,0,780)}</div>
-   <div class="vsn l"><b>${CASTS[me].name}</b><span>${NET.on?'나':Save.d.manager?Save.d.manager+' 님':'나'}</span></div>
+   <div class="vsn l"><b>${CASTS[me].name}</b><span>${NET.on?'나':Save.d.manager||'나'}</span></div>
    <div class="vsn r"><b>${CASTS[op].name}</b><span>${NET.on?'상대':'AI'}</span></div>
    <div class="vsx">VS</div><div class="vsi">${info}</div>`;
   $('stage').appendChild(v);let done=false;
@@ -391,7 +392,7 @@ S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.query
     const ln=Q.length?Q.shift():i<st.lines.length?st.lines[i++]:null;if(!ln)return fin();const[w,t,e,o]=ln;
     // 고르기: ['c', [보기…], [보기별 반응…]] 반응은 [말, 표정] 한 줄이거나, 줄 여러 개([[줄], [줄]…])다. 여러 줄이면 고른 보기대로 글·DM 이 실제로 올라간다
     if(w==='c'){putAway();wait=true;nx.hidden=true;ch.innerHTML='';const re=e;t.forEach((x,j)=>{const b=document.createElement('button');b.className='btn';b.textContent=nm(x);
-      b.onclick=()=>{ch.innerHTML='';wait=false;col(k);say(Save.d.manager||'손님',nm(x),true);const r=re&&re[j];if(r)Q.push(...(Array.isArray(r[0])?r:[['k',r[0],r[1]]]))};ch.appendChild(b)});ch.firstChild.focus();return}
+      b.onclick=()=>{ch.innerHTML='';wait=false;col(k);say(CASTS[k].name,nm(x));const r=re&&re[j];if(r)Q.push(...(Array.isArray(r[0])?r:[['k',r[0],r[1]]]))};ch.appendChild(b)});ch.firstChild.focus();return}
     if(w==='p'){post(e,t,o);return}
     if(w==='d'){dmSay(e,t,o);return}
     if(w==='n'){live(e,t,o);return step()}
@@ -419,7 +420,7 @@ S.cast=()=>{const k=CAST_UI.k||Save.d.duty,c=CASTS[k];if(!Progress.castOpen(k))C
     <div class="panel" style="padding:14px 16px"><div class="row2" style="justify-content:space-between"><span class="lab">호감도</span><b style="font-size:14px">Lv${Progress.lv(k)}</b></div>${(()=>{const L=Progress.AFF_LV,l=Progress.lv(k),n=L[l],p=L[l-1],a=Progress.aff(k);return `<div class="affbar"><i style="width:${n?Math.round(100*(a-p)/(n-p)):100}%"></i></div><div style="font-size:12px;color:var(--sub2);font-weight:700;margin-top:4px">${n?`다음 레벨까지 ${n-a} · 이 캐스트로 이기면 +1, 스토리를 깨면 +2`:'최고 레벨'}</div>`})()}</div>
     <div class="panel" style="padding:14px 16px"><span class="lab">능력</span><div style="font-size:15px;margin-top:4px">${c.abil}</div></div>
     <div class="panel" style="padding:14px 16px"><span class="lab">덱</span><div style="font-size:14px;margin-top:4px">${Save.d.decks[k]?'직접 짠 덱':'기본 덱'} · 전용 8장 + 공용 12장</div></div>
-    <div class="row2" style="margin-top:6px">${!Progress.castOpen(k)?`<span class="chip2" style="cursor:default">잠김 · ${Progress.castCond(k)}</span>`:k===Save.d.duty?'<span class="chip2 on" style="cursor:default">오늘 지명 중</span>':'<button class="btn" id="cDuty">오늘 지명하기</button>'}${Progress.castOpen(k)?'<button class="btn y" data-tab="deck" style="margin-left:auto">덱 편집</button>':''}</div>
+    <div class="row2" style="margin-top:6px">${!Progress.castOpen(k)?`<span class="chip2" style="cursor:default">잠김 · ${Progress.castCond(k)}</span>`:k===Save.d.duty?'<span class="chip2 on" style="cursor:default">오늘 근무 중</span>':'<button class="btn" id="cDuty">오늘 지명하기</button>'}${Progress.castOpen(k)?'<button class="btn y" data-tab="deck" style="margin-left:auto">덱 편집</button>':''}</div>
    </div></div></div></div>`)};
 function deckEditor(k){const d=deckIds(k),sel=CAST_UI.sel;
   const grid=(ids,sec)=>`<div class="cardgrid">${ids.map((id,i)=>`<button class="pk${sel&&sel.sec===sec&&sel.i===i?' sel':''}" data-sec="${sec}" data-i="${i}" title="${BYID[id].name}: ${BYID[id].text}">${cardHTML(BYID[id],{size:'s'})}</button>`).join('')}</div>`;
@@ -439,7 +440,7 @@ function deckEditor(k){const d=deckIds(k),sel=CAST_UI.sel;
 S.cast.bind=s=>{const k=CAST_UI.k;
   s.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{CAST_UI.tab=b.dataset.tab;CAST_UI.sel=null;Screens.go('cast')});
   s.querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>{CAST_UI.k=b.dataset.ck;Screens.go('cast')});
-  const du=s.querySelector('#cDuty');if(du)du.onclick=()=>{Save.d.duty=k;Save.put();Screens.toast(`오늘 지명: ${CASTS[k].name}`);Screens.go('cast')};
+  const du=s.querySelector('#cDuty');if(du)du.onclick=()=>{Save.d.duty=k;Save.put();Screens.toast(`오늘 근무: ${CASTS[k].name}`);Screens.go('cast')};
   s.querySelectorAll('.pk').forEach(b=>b.onclick=()=>{const v={sec:b.dataset.sec,i:+b.dataset.i};const cur=CAST_UI.sel;CAST_UI.sel=cur&&cur.sec===v.sec&&cur.i===v.i?null:v;Screens.go('cast')});
   s.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const sel=CAST_UI.sel;if(!sel)return;const d=deckIds(k);const nd={own:[...d.own],shared:[...d.shared]};
     nd[sel.sec][sel.i]=b.dataset.add;Save.d.decks[k]=nd;Save.put();CAST_UI.sel=null;Screens.toast('덱 저장됨');Screens.go('cast')});
@@ -483,7 +484,7 @@ S.settings=()=>{const row=(l,c)=>`<div class="row2" style="justify-content:space
    ${row('연출 속도',`<div class="seg" style="width:220px" id="stSpeed"><button data-v="1" class="${SPEED===1?'on':''}">보통</button><button data-v="0.5" class="${SPEED===0.5?'on':''}">빠르게</button></div>`)}
    ${row('효과음',`<span class="row2"><input id="stVol" type="range" min="0" max="1" step=".05" value="${Save.d.vol!=null?Save.d.vol:.6}" aria-label="효과음 크기" style="width:120px;accent-color:var(--cM)"><button class="chip2${Save.d.sound?' on':''}" id="stMute">${Save.d.sound?'켜짐':'꺼짐'}</button></span>`)}
    ${row('게임 설명서','<button class="btn" id="stGuide" style="min-height:36px;font-size:13px">다시 보기</button>')}
-   <span class="lab" style="margin-top:18px">손님</span>
+   <span class="lab" style="margin-top:18px">가게</span>
    ${row('이름',`<span class="row2"><input id="stName" maxlength="10" value="${(Save.d.manager||'').replace(/"/g,'&quot;')}" style="font:inherit;width:140px;padding:6px 10px;border:2px solid var(--ink2);border-radius:10px"><button class="btn" id="stNameOk" style="min-height:36px;font-size:13px">저장</button></span>`)}
   </div>
   <div class="lsid" style="flex:1;padding:14px 36px;display:flex;flex-direction:column;border-left:3px solid var(--ink2)">
@@ -501,7 +502,7 @@ s.querySelector('#stSpeed').onclick=e=>{const b=e.target.closest('button');if(!b
   s.querySelector('#stNameOk').onclick=()=>{const v=s.querySelector('#stName').value.trim();if(!v)return;Save.d.manager=v;Save.put();Screens.toast('저장됨')};
   const all=s.querySelector('#stAll');if(all)all.onclick=async()=>{const r=await ask('캐스트 전원 해금','스토리를 깨지 않아도 캐스트 네 명과 그 스토리를 전부 쓸 수 있어.',[{label:'취소',value:0},{label:'해금',value:1}]);
     if(r){Save.d.allCast=1;Save.put();Screens.toast('캐스트 전원 해금');Screens.go('settings')}};
-  s.querySelector('#stReset').onclick=async()=>{const r=await ask('진행 초기화','손님 이름, 덱, 스토리, 호감도, 업적이 전부 지워져. 되돌릴 수 없어.',[{label:'취소',value:0},{label:'초기화',value:1}]);
+  s.querySelector('#stReset').onclick=async()=>{const r=await ask('진행 초기화','가게 이름, 덱, 스토리, 호감도, 업적이 전부 지워져. 되돌릴 수 없어.',[{label:'취소',value:0},{label:'초기화',value:1}]);
     if(r){Save.reset();SPEED=1;Screens.go('title')}}};
 
 /* 플레이 화면 버튼 */
