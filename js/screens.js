@@ -123,7 +123,7 @@ S.home=()=>{if(!Progress.castOpen(Save.d.duty)){Save.d.duty='iri';Save.put()}con
 </div>`};
 S.home.bind=s=>{
   const ok=s.querySelector('#hNameOk');
-  if(ok){const inp=s.querySelector('#hName');const f=async()=>{const v=inp.value.trim();if(!v){inp.focus();return}Save.d.manager=v;Save.put();if(Save.d.intro)Screens.go('home');else Screens.go('scene',{id:'open1'})};   // 가게 이름을 정하면 바로 첫 플레이로
+  if(ok){const inp=s.querySelector('#hName');const f=async()=>{const v=inp.value.trim();if(!v){inp.focus();return}Save.d.manager=v;Save.put();if(Save.d.intro)Screens.go('home');else Screens.go('comic',{id:'open',then:()=>Screens.go('scene',{id:'open1'})})};   // 가게 이름을 정하면 바로 첫 플레이로
     ok.onclick=f;inp.onkeydown=e=>{if(e.key==='Enter')f()};return}
   s.querySelector('#hPlay').onclick=()=>Screens.go('match');
   s.querySelector('#hGuide').onclick=()=>showGuide();
@@ -324,6 +324,27 @@ S.reward.bind=s=>{const r=s.querySelector('#rAgain');if(r)r.onclick=()=>startMat
   }}
   const st=CURRENT.story&&STORY.find(x=>x.id===CURRENT.story),rs=s.querySelector('#rStory');
   if(rs)rs.onclick=()=>Progress.last&&Progress.last.clear?Screens.go('story',{sel:(Progress.nextStory(st.k)||st).id}):storyMatch(st)};
+
+/* 만화: 검은 지면에 비스듬한 컷이 하나씩 튀어나온다. 누르면 다음 컷, 한 쪽이 다 차면 다음 쪽. 그림(img/p/comic/<id>_<번호>.webp)이 없으면 콘티 설명이 대신 나온다.
+   컷: {a:지면 칸(grid-area), note:그릴 내용, sfx:효과음 글자, say:[[말, 위치(tl·tr·bl·br), 생각이면 1]…], from:튀어나오는 방향(l·r·t·b)} */
+const COMIC={open:{title:'개업 전날',pages:[
+ [{a:'a',note:'간판 없는 빈 가게. 점장의 뒷모습',say:[['가게는 차렸다.','bl',1]],from:'l'},
+  {a:'b',note:'의자만 가지런한 텅 빈 홀',sfx:'휑',say:[['…직원이 없다.','bl',1]],from:'r'},
+  {a:'c',note:'번화가. 전단지를 들고 두리번거리는 점장',sfx:'두리번',from:'b'}],
+ [{a:'a',note:'셀카를 찍으며 걸어오는 아이리',sfx:'반짝',say:[['오늘 각 미쳤다~','tr']],from:'t'},
+  {a:'b',note:'아이리 앞에 무릎을 꿇는 점장',sfx:'털썩',say:[['제발 일해 주세요!','tl'],['…뭐야, 이 사람?','br']],from:'l'},
+  {a:'c',note:'폰을 내리고 씩 웃는 아이리',say:[['재밌어 보이네. 갈게!','bl']],from:'r'}]]}};
+S.comic=()=>{const c=COMIC[Screens.ctx.id];return `<div class="cmbar"><span class="chip2 on" style="cursor:default">${c.title}</span><button class="btn" id="cmSkip">건너뛰기</button></div><div class="cmpage" id="cmPage"></div><div class="cmnx" id="cmNx">▼</div>`};
+S.comic.bind=s=>{const id=Screens.ctx.id,c=COMIC[id],then=Screens.ctx.then||(()=>Screens.go('home')),page=s.querySelector('#cmPage');let pi=0,ci=0,n=0,done=false;
+  const end=()=>{if(done)return;done=true;removeEventListener('keydown',key);then()};
+  const draw=()=>{page.classList.remove('in');void page.offsetWidth;page.classList.add('in');page.dataset.n=c.pages[pi].length;
+    page.innerHTML=c.pages[pi].map((p,i)=>{const no=c.pages.slice(0,pi).reduce((a,b)=>a+b.length,0)+i+1;
+      return `<figure class="cmp f${p.from||'l'}" style="grid-area:${p.a};--r:${[-1.2,.9,-.6][i%3]}deg"><div class="cmart"><span class="cmnote"><b>${no}</b>${p.note}</span><img src="img/p/comic/${id}_${no}.webp" alt="" onerror="this.remove()" onload="this.parentNode.classList.add('has')"></div>${p.sfx?`<em class="cmsfx">${p.sfx}</em>`:''}${(p.say||[]).map(([t,at,th],j)=>`<p class="cmsay ${at||'bl'}${th?' th':''}" style="--d:${.28+j*.35}s">${nm(t)}</p>`).join('')}</figure>`}).join('');ci=0};
+  const step=()=>{if(done)return;const P=page.querySelectorAll('.cmp');
+    if(ci<P.length){P[ci++].classList.add('on');SFX.flip&&SFX.flip();return}
+    if(++pi>=c.pages.length)return end();draw();step()};
+  const key=e=>{if(Screens.cur!=='comic')return removeEventListener('keydown',key);if(e.key==='Escape')return end();if(e.key==='Enter'||e.key===' '){e.preventDefault();step()}};
+  s.onclick=e=>{if(e.target.closest('#cmSkip'))return end();step()};addEventListener('keydown',key);draw();setTimeout(step,250)};
 
 /* 스토리 */
 function storyMatch(st){Save.d.duty=st.k;Save.put();startMatch({mode:'ai',diff:st.diff||'normal',rounds:st.rounds||3,opp:st.vs,story:st.id})}
