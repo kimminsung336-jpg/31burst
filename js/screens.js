@@ -103,7 +103,7 @@ S.home=()=>{if(!Progress.castOpen(Save.d.duty)){Save.d.duty='iri';Save.put()}con
   const line=noGuide?'처음 오셨죠? 게임 방법은 오른쪽 위 ? 에 있어요. 한 번 보고 가요!':st?nm(st.lines[0][1]):nm(WIN_LINE[k][0]),ex=noGuide?'happy':st?st.lines[0][2]:'happy';
   const scene=`${sceneBg()}${spr(k,250,70,640).replace(`img/p/${k}.webp`,exImg(k,named?ex:'happy'))}${counter([['cups',40],['cake',600]])}`;
   if(!named)return `${scene}<div class="dimbg"></div>
-<div class="panel hmname"><div class="row2" style="gap:12px"><img src="${faceImg(k,'happy')}" alt="" class="facei" style="width:52px;height:52px"><div><b style="font-size:15px">${c.name}</b><div style="font-size:14px;margin-top:2px">드디어 개업이야! 우리 가게 이름은 뭘로 할까?</div></div></div>
+<div class="panel hmname"><div class="row2" style="gap:12px"><img src="${faceImg(k,'happy')}" alt="" class="facei" style="width:52px;height:52px"><div><b style="font-size:15px">${c.name}</b><div style="font-size:14px;margin-top:2px">점장! 간판 달아야지. 우리 가게 이름은 뭘로 할까?</div></div></div>
  <label class="lab" for="hName">가게 이름</label>
  <input id="hName" maxlength="10" autocomplete="off" placeholder="가게 이름을 적어 주세요" autofocus>
  <button class="btn y" id="hNameOk">개업하기</button></div>`;
@@ -392,7 +392,7 @@ S.scene.bind=s=>{const st=STORY.find(x=>x.id===Screens.ctx.id),k=st.k,ch=s.query
     const ln=Q.length?Q.shift():i<st.lines.length?st.lines[i++]:null;if(!ln)return fin();const[w,t,e,o]=ln;
     // 고르기: ['c', [보기…], [보기별 반응…]] 반응은 [말, 표정] 한 줄이거나, 줄 여러 개([[줄], [줄]…])다. 여러 줄이면 고른 보기대로 글·DM 이 실제로 올라간다
     if(w==='c'){putAway();wait=true;nx.hidden=true;ch.innerHTML='';const re=e;t.forEach((x,j)=>{const b=document.createElement('button');b.className='btn';b.textContent=nm(x);
-      b.onclick=()=>{ch.innerHTML='';wait=false;col(k);say(CASTS[k].name,nm(x));const r=re&&re[j];if(r)Q.push(...(Array.isArray(r[0])?r:[['k',r[0],r[1]]]))};ch.appendChild(b)});ch.firstChild.focus();return}
+      b.onclick=()=>{ch.innerHTML='';wait=false;col(k);say('점장',nm(x),true);const r=re&&re[j];if(r)Q.push(...(Array.isArray(r[0])?r:[['k',r[0],r[1]]]))};ch.appendChild(b)});ch.firstChild.focus();return}
     if(w==='p'){post(e,t,o);return}
     if(w==='d'){dmSay(e,t,o);return}
     if(w==='n'){live(e,t,o);return step()}
