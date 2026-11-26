@@ -190,3 +190,5 @@ body.pt .tourtip{zoom:1.35;left:16px!important}
 /* 세로: 내 상태 칩이 길어져도 덱·설명서·메뉴 버튼을 가리지 않게 (칩은 눌리지 않고, 버튼 왼쪽에서 줄바꿈) */
 body.pt #play .mine .chips{pointer-events:none;max-width:calc((440px)/1.25);flex-direction:column;align-items:flex-start}
 body.pt #play .pbtns{z-index:6}
+/* 세로: 덱·설명서·메뉴는 화면 맨 위 왼쪽으로 (손패 근처는 카드와 상태 칩 자리) */
+body.pt #play .pbtns{left:14px;right:auto;top:calc(96px/1.25);z-index:6}
